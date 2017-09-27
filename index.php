@@ -19,6 +19,7 @@ class Context {
       <head>
       <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
       <link type="text/css" rel="stylesheet" href="/matcha/app/css/materialize.css"  media="screen,projection"/>
+      <link type="text/css" rel="stylesheet" href="/matcha/app/css/perso.css"  media="screen,projection"/>
       <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
       </head>
 
@@ -27,16 +28,25 @@ class Context {
       <script type="text/javascript" src="/matcha/app/js/materialize.js"></script>
 
       <header class="page-header internal-border" id="header">
-      <div class="col s12 m12 l12 header-top internal-border "><h1 class="center-align center-block" >Welcome to Matcha</h1></div>
-      <div class="container section cyan">
+        <div class="col s12 m12 l12 header-top internal-border "><h1 class="center-align center-block scrib title" >Welcome to Matcha</h1></div>
+        <div class="container section sec-part-header">
         <div class="row">
-          <div class="col s8 m8 l8"><h3 class="center-align" > header <h3></div>
-          <div class="col s4 m4 l4"><h3 class="center-align" > log menu<h3></div>
+          <div class="col s8 m8 l8">
+            <div class=stage>
+              <figure class="ball glow">
+                <span class="shadowiz"></span>
+              </figure>
+            </div>
+          </div>
+          <div class="col s4 m4 l4">
+            <figure class="inkwell">
+            </figure>
+           </div>
           </div>
         </div>
       </div>
      </header>
-     <main>
+     <main class="parchemin ">
       ');
       $response = $next($request, $response);
       $response->write('
@@ -45,14 +55,14 @@ class Context {
           <div class="container">
             <div class="row">
               <div class="col l6 s12">
-                <h5 class="white-text">Footer Content</h5>
-                <p class="grey-text text-lighten-4">You can use rows and columns here to organize your footer content.</p>
+                <h5 class=" ">Footer Content</h5>
+                <p class=" ">You can use rows and columns here to organize your footer content.</p>
               </div>
               <div class="col l4 offset-l2 s12">
-                <h5 class="white-text">Links</h5>
+                <h5 class="">Links</h5>
                 <ul>
-                  <li><a class="grey-text text-lighten-3" href="#!">Link 1</a></li>
-                  <li><a class="grey-text text-lighten-3" href="#!">Link 2</a></li>
+                  <li><a class=" " href="#!">Link 1</a></li>
+                  <li><a class=" " href="#!">Link 2</a></li>
                 </ul>
               </div>
             </div>
@@ -63,7 +73,7 @@ class Context {
             <a class="grey-text text-lighten-4 right" href="#!">More Links</a>
             </div>
           </div>
-        </footer>
+    </footer>
   </body></html>');
       return $response;
     }
@@ -80,9 +90,13 @@ $container['pdo'] = function() {
 };
 
 $app->add(new Context());
-$app->get("/pede/{nom}", function (Request $request, Response $response, $args) {
-    return $response->write("<div>
-     hello ". $args['nom'] . "</div>");
+$app->get("/", function (Request $request, Response $response) {
+    return $response->write('
+    <div class="container section">
+      <span class="scrib"> Write your name bellow</span>
+
+    </div>
+      ');
 });
 
 
