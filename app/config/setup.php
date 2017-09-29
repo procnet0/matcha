@@ -5,14 +5,14 @@ try
   $pdo = new PDO("mysql:host=localhost", $DB_USER, $DB_PASSWORD);
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-  $dbname = "`".str_replace("`","``",$dbname)."`";
-  $pdo->query("CREATE DATABASE IF NOT EXISTS $dbname");
-  $pdo->query("use $dbname");
+  $pdo->query("CREATE DATABASE IF NOT EXISTS $db_name");
+  $pdo->query("use $db_name");
 
-  $db_status ='1';
+  $_SESSION['db_status'] ='1';
 
 } catch (PDOException $e) {
-    print "Error!: DATABASE -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+  $_SESSION['db_status'] ='0';
+    print "Error!: DATABASE db-> " . $e->getMessage() . " FAILED TO CREATE<br/>";
     die();
 }
 
@@ -28,11 +28,13 @@ try {
     activated ENUM('yes','no') DEFAULT 'no' NOT NULL,
     admin ENUM('yes','no') DEFAULT 'no' NOT NULL
   )");
-  $pdo->commit();
 
+  $_SESSION['db_status'] ='2';
+  $pdo->commit();
 } catch (PDOException $e) {
   $pdo->rollBack();
-  print "Error!: DATABASE -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+  $_SESSION['db_status'] ='1';
+  print "Error!: DATABASE members -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
   die();
 }
 

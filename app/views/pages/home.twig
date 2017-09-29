@@ -1,0 +1,19 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+ <div> salut </div>
+
+ <form action="{{ path_for('profil')}}" method="post">
+   <div class="form-group">
+    <label for="name"> Votre nom </label>
+    <input type="text" class="form-control" name="name" id="name">
+  </div>
+  <div class="form-group">
+    <label for="password"> Votre password</label>
+    <input type="password" class="form-control" name="password" id="password">
+  </div>
+  <div class="form-group">
+    <input type="submit" class="btn btn-primary" value="envoyer">
+  </div>
+ </form>
+{% endblock %}

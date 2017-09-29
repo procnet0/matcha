@@ -1,7 +1,7 @@
 <?php
 
-$dbname = "matcha";
-$DB_DSN = "mysql:host=localhost;dbname=".$dbname.";";
+$db_name = "matcha";
+$db_host = "localhost";
 $DB_USER = "root";
 $DB_PASSWORD = "vbalartdb";
  ?>

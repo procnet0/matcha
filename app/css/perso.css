@@ -2,6 +2,7 @@
 {
   margin: 0 auto;
   width: 90%;
+  min-height: 33%;
 background-image: url("image/parch.jpg");
 background-size: 100% 100%;
 background-repeat: no-repeat;
@@ -17,7 +18,7 @@ box-shadow: 10px 10px 5px black;
 }
 
 .sec-part-header {
-  max-height: 200px;
+  max-height: 17%;
 }
 
 @font-face {
@@ -33,50 +34,24 @@ font-weight: normal;
 }
 
 .scrib.title {
-  font-size: 8vh;
+  max-height: 16%;
+  font-size: 6vh;
   color: rgba(0, 0, 0, 0.2);
   text-shadow: 1px 1px 2px rgba(255, 212, 0, 0.8);
 }
 
 .ball {
-  display: inline-block;
+  background-color: rgba(0, 0, 0, 0.5);
   width: 100%;
-  height: 100%;
-  margin: 0;
-  border-radius: 50%;
-  position: relative;
-  background: radial-gradient(circle at 50% 120%, #323232, rgba(0, 0, 0, 0.8) 80%, black 100%);
-}
-.ball:before {
-  content: "";
-  position: absolute;
-  background: radial-gradient(circle at 50% 120%, rgba(0, 0, 0, 0.5), rgba(255, 255, 255, 0) 70%);
-  border-radius: 50%;
-  bottom: 2.5%;
-  left: 5%;
-  opacity: 0.6;
-  height: 150px;
-  width: 135px;
-  filter: blur(5px);
-  z-index: 2;
-}
-.ball:after {
-  content: "";
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 50px;
-  left: 50px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8) 14%, rgba(255, 255, 255, 0) 24%);
-  transform: translateX(-80px) translateY(-90px) skewX(-20deg);
-  filter: blur(10px);
+  max-width: 150px;
+  min-width: 100px;
+  min-height: 100px;
 }
 
 @-webkit-keyframes greenPulse {
-  from { background-color: #749a02; -webkit-box-shadow: 0 0 9px #333; }
-  50% { background-color: #91bd09; -webkit-box-shadow: 0 0 18px #91bd09; }
-  to { background-color: #749a02; -webkit-box-shadow: 0 0 9px #333; }
+  from { background-color: radial-gradient(transparent 66%, green, transparent 9% ) ; -webkit-box-shadow: 0 0 9px #333; }
+  50% { background-color: radial-gradient(transparent 66%, green, transparent 0%); -webkit-box-shadow: 0 0 18px #91bd09; }
+  to { background-color: radial-gradient(transparent 66%, green, transparent 9%); -webkit-box-shadow: 0 0 9px #333; }
 }
 
 .glow:hover {
@@ -85,57 +60,24 @@ font-weight: normal;
   -webkit-animation-iteration-count: infinite;
 }
 
-.ball .shadowiz {
-position: absolute;
-width: 100%;
-height: 100%;
-background: radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.1) 40%, rgba(0, 0, 0, 0) 50%);
--webkit-transform: rotateX(90deg) translateZ(-75px);
--moz-transform: rotateX(90deg) translateZ(-75px);
--ms-transform: rotateX(90deg) translateZ(-75px);
--o-transform: rotateX(90deg) translateZ(-75px);
-transform: rotateX(90deg) translateZ(-75px);
-z-index: -1;
-}
-
-.stage {
-  max-width: 150px;
-  max-height: 150px;
-  width: 100%;
-  height: 100%;
-  display: inline-block;
-  margin: 20px;
-  -webkit-perspective: 1200px;
-  -moz-perspective: 1200px;
-  -ms-perspective: 1200px;
-  -o-perspective: 1200px;
-  perspective: 1200px;
-  -webkit-perspective-origin: 50% 50%;
-  -moz-perspective-origin: 50% 50%;
-  -ms-perspective-origin: 50% 50%;
-  -o-perspective-origin: 50% 50%;
-  perspective-origin: 50% 50%;
-}
-
 .inkwell {
-  max-width: 100px;
   max-height: 150px;
-  width: 100%;
-  height: 100%;
+  min-width: 50px;
+  min-height: 100px;
   background-image: url("image/encrier nohover.png");
   background-size: contain;
   background-repeat: no-repeat;
 }
 
 .inkwell:hover {
-  max-width: 150px;
   max-height: 150px;
-  width: 100%;
-  height: 100%;
-    background-image: url("image/encrier hover.png");
+  min-width: 50px;
+  min-height: 100px;
+  background-image: url("image/encrier hover.png");
 }
 
 body{
+  min-width: 375px;
   margin-top: 0;
   margin-bottom: 0;
   background-image:
