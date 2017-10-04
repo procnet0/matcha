@@ -1,5 +1,95 @@
 {% extends "layout.twig" %}
 
 {% block content %}
-<div> SignUp PAGE </div>
+
+
+  <div class="row">
+    <form action="{{ path_for('signUp')}}" method="post">
+      <div class="row">
+        <div class="input-field col s12">
+          <input type="text" class="form-control" name="pseudo" id="pseudo" value="{%  if login  %}{{ login }}{%endif%}">
+          <label class="scrib black-text" for="pseudo"> Votre pseudo </label>
+          {% if flash.error.pseudo %}
+           <div class="alert">
+             {{ flash.error.pseudo }}
+           </div>
+          {% endif %}
+        </div>
+    <div class="input-field col s12">
+      <input type="text" class="form-control" name="prenom" id="prenom">
+      <label class="scrib black-text" for="prenom"> Votre prenom </label>
+      {% if flash.error.prenom %}
+       <div class="alert">
+         {{ flash.error.prenom }}
+       </div>
+      {% endif %}
+    </div>
+    <div class="input-field col s12">
+      <input type="text" class="form-control" name="nom" id="nom">
+      <label class="scrib black-text" for="nom"> Votre nom de famille </label>
+      {% if flash.error.nom %}
+       <div class="alert">
+         {{ flash.error.nom }}
+       </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s12">
+      <input type="password" class="form-control" name="password" id="password">
+      <label class="scrib black-text" for="password"> Votre password</label>
+      {% if flash.error.password %}
+       <div class="alert">
+         {{ flash.error.password }}
+       </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s12">
+        <input type="email" class="form-control" name="email" id="email">
+        <label class="scrib black-text" for="email"> Votre email</label>
+        {% if flash.error.email %}
+         <div class="alert">
+           {{ flash.error.email }}
+         </div>
+        {% endif %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s12">
+        <input type="text" class="form-control" name="answer" id="answer">
+        <label class="scrib black-text" for="answer"> Votre phrase secrete</label>
+        {% if flash.error.answer %}
+         <div class="alert">
+           {{ flash.error.answer }}
+         </div>
+        {% endif %}
+    </div>
+  </div>
+  <div class="row">
+    <div class="input-field col s12">
+      <div class="row">
+        <select class="col s6 m6 l6" name="gender" id="gender">
+          <option value="" disabled></option>
+          <option value="male" selected >Male</option>
+          <option value="female">Female</option>
+          <option value="other">Other</option>
+          <option value="" disabled></option>
+        </select>
+        <label class="scrib black-text" for="gender"> Votre sexe</label>
+      </div>
+      {% if flash.error.gender %}
+       <div class="alert">
+         {{ flash.error.gender }}
+       </div>
+      {% endif %}
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary" name="action">Submit
+    <i class="material-icons right">send</i>
+  </button>
+  </form>
+ </div>
+
 {% endblock %}

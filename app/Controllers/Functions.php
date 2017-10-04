@@ -32,4 +32,27 @@ function checkForAccount($name, $password, $pdo) {
   }
 };
 
+
+function createNewAccount($params, $pdo) {
+
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare("INSERT INTO members VALUES
+      (NULL, ?, ?, ?, ?, ?, ?, 'no', 'no')");
+    $sql->bindParam(1, $params['pseudo'], PDO::PARAM_STR);
+    $sql->bindParam(2, $params['nom'], PDO::PARAM_STR);
+    $sql->bindParam(3, $params['prenom'], PDO::PARAM_STR);
+    $sql->bindParam(4, $params['email'], PDO::PARAM_STR);
+    $sql->bindParam(5, hash('whirlpool',$params['password']), PDO::PARAM_STR);
+    $sql->bindParam(6, $params['answer'], PDO::PARAM_STR);
+    $sql->execute();
+    $pdo->commit();
+  } catch (PDOException $e) {
+    $pdo->rollBack();
+    print "</br>Error!: DATABASE create Account-> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+    die();
+  }
+
+  return true;
+};
  ?>

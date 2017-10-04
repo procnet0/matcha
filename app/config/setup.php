@@ -22,6 +22,8 @@ try {
   (
     id_user INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
     login VARCHAR(64) NOT NULL,
+    nom VARCHAR(64) NOT NULL,
+    prenom VARCHAR(64) NOT NULL,
     email VARCHAR(64) NOT NULL,
     password VARCHAR(128) NOT NULL,
     secret_answer VARCHAR(128) NOT NULL,

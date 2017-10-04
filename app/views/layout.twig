@@ -19,23 +19,23 @@
   <div class="container section sec-part-header">
     <div class="row">
       <div class="col s4 m4 l4">
-        <a href="#"><img src="app/css/image/boule-de-cristal.png" class="circle glow ball"></img></a>
-      </div>
-      <div class="col s4 m4 l4">
-
+        <a href="{{ path_for('contact') }}"><img src="app/css/image/boule-de-cristal.png" class="circle glow ball"></img></a>
       </div>
       <div class="col s4 m4 l4">
         <a href="{{ path_for('profil') }}"><figure class="inkwell"></figure></a>
+      </div>
+      <div class="col s4 m4 l4">
+          <a href="{{ path_for('logout')}}"><img src="app/css/image/potion-oubli.png" class="logout" alt="potion d'oubli"></a>
      </div>
-
     </div>
   </div>
 </div>
 </header>
 <main class="parchemin ">
+<div class="container section">
 
-{% block content %} {% endblock%}
-
+{% block content %} {% endblock %}
+</div>
 </main>
 <footer class="page-footer">
     <div class="container">
@@ -60,4 +60,9 @@
       </div>
     </div>
 </footer>
+<script >
+$(document).ready(function() {
+   $('select').material_select();
+ });
+ </script>
 </body></html>

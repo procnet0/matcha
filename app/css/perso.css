@@ -30,7 +30,8 @@ font-weight: normal;
 .scrib {
   font-family: "Angels";
   font-weight: normal;
-  font-size: 2vh;
+  font-size: 2.5vh;
+  color: black !important;
 }
 
 .scrib.title {
@@ -43,7 +44,7 @@ font-weight: normal;
 .ball {
   background-color: rgba(0, 0, 0, 0.5);
   width: 100%;
-  max-width: 150px;
+  max-width: 100px;
   min-width: 100px;
   min-height: 100px;
 }
@@ -61,7 +62,7 @@ font-weight: normal;
 }
 
 .inkwell {
-  max-height: 150px;
+  max-height: 100px;
   min-width: 50px;
   min-height: 100px;
   background-image: url("image/encrier nohover.png");
@@ -70,10 +71,21 @@ font-weight: normal;
 }
 
 .inkwell:hover {
-  max-height: 150px;
+  max-height: 100px;
   min-width: 50px;
   min-height: 100px;
   background-image: url("image/encrier hover.png");
+}
+
+.logout {
+  max-height: 100px;
+  max-width: 100px;
+  min-width: 50px;
+  min-height: 100px;
+}
+
+.navi li {
+  display: inline-block;
 }
 
 body{

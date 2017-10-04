@@ -1,0 +1,47 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+
+{% if flash.success %}
+ <div class="alert">
+   {{ flash.success }}
+ </div>
+{% endif %}
+
+<div class="row">
+  <div class="col s12 m12 l12">
+    <form action="{{ path_for('contact')}}" method="post">
+          <div class="form-group">
+            <label class="scrib " for="email"> Votre email </label>
+            <input type="email" class="form-control" name="email" id="email">
+          </div>
+          {% if flash.error.email %}
+           <div class="alert">
+             {{ flash.error.email }}
+           </div>
+          {% endif %}
+          <div class="form-group">
+            <label class="scrib " for="pseudo"> Votre pseudo</label>
+            <input type="text" class="form-control" name="pseudo" id="pseudo">
+          </div>
+          {% if flash.error.pseudo %}
+           <div class="alert">
+             {{ flash.error.pseudo }}
+           </div>
+          {% endif %}
+          <div class="form-group">
+            <label class="scrib " for="content"> Votre message </label>
+            <input type="textarea" class="form-control" name="content" id="content">
+          </div>
+          {% if flash.error.content %}
+           <div class="alert">
+             {{ flash.error.content }}
+           </div>
+          {% endif %}
+          <div class="form-group">
+            <input type="submit" class="btn btn-primary" value="envoyer">
+          </div>
+    </form>
+  </div>
+ </div>
+{% endblock %}
