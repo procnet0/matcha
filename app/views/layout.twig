@@ -14,7 +14,7 @@
 
 <header class="page-header internal-border" id="header">
   <div class="col s12 m12 l12 internal-border ">
-    <a href="{{ path_for('home') }}"><h1 class="center-align center-block scrib title" > Abracadamatcha</h1></a>
+    <a href="{{ path_for('home') }}"><h1 class="center-align center-block scrib title text-gold-shadow" > Abracadamatcha</h1></a>
   </div>
   <div class="container section sec-part-header">
     <div class="row">
@@ -22,7 +22,7 @@
         <a href="{{ path_for('contact') }}"><img src="app/css/image/boule-de-cristal.png" class="circle glow ball"></img></a>
       </div>
       <div class="col s4 m4 l4">
-        <a href="{{ path_for('profil') }}"><figure class="inkwell"></figure></a>
+        <a href="{{ path_for('profil') }}"><img src="app/css/image/encrier nohover.png" class="inkwell"></img></a>
       </div>
       <div class="col s4 m4 l4">
           <a href="{{ path_for('logout')}}"><img src="app/css/image/potion-oubli.png" class="logout" alt="potion d'oubli"></a>
@@ -63,6 +63,8 @@
 <script >
 $(document).ready(function() {
    $('select').material_select();
+   $('.carousel').carousel();
+
  });
  </script>
 </body></html>

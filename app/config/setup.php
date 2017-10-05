@@ -27,6 +27,10 @@ try {
     email VARCHAR(64) NOT NULL,
     password VARCHAR(128) NOT NULL,
     secret_answer VARCHAR(128) NOT NULL,
+    sexe ENUM('male','female','other') DEFAULT 'male' NOT NULL,
+    oriented ENUM('hetero', 'homo', 'bi') DEFAULT 'bi' NOT NULL,
+    bio TEXT,
+    profil_pict ENUM('0','1','2','3','4','5') DEFAULT '0' NOT NULL,
     activated ENUM('yes','no') DEFAULT 'no' NOT NULL,
     admin ENUM('yes','no') DEFAULT 'no' NOT NULL
   )");
@@ -37,6 +41,60 @@ try {
   $pdo->rollBack();
   $_SESSION['db_status'] ='1';
   print "Error!: DATABASE members -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+  die();
+}
+
+try {
+  $pdo->beginTransaction();
+  $pdo->exec("CREATE TABLE IF NOT EXISTS tags
+  (
+    id_tag INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    name_tag varchar(64) NOT NULL
+  )");
+  $_SESSION['db_status'] ='2';
+  $pdo->commit();
+} catch (PDOException $e) {
+  $pdo->rollBack();
+  $_SESSION['db_status'] ='1';
+  print "Error!: DATABASE tags -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+  die();
+}
+
+try {
+  $pdo->beginTransaction();
+  $pdo->exec("CREATE TABLE IF NOT EXISTS tags_members
+  (
+    id_assoc INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    id_tag INT NOT NULL,
+    id_members INT NOT NULL
+  )");
+  $_SESSION['db_status'] ='2';
+  $pdo->commit();
+} catch (PDOException $e) {
+  $pdo->rollBack();
+  $_SESSION['db_status'] ='1';
+  print "Error!: DATABASE tags_members -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+  die();
+}
+
+try {
+  $pdo->beginTransaction();
+  $pdo->exec("CREATE TABLE IF NOT EXISTS pictures
+  (
+    id_pict INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    id_user INT NOT NULL,
+    pict1 VARCHAR(255),
+    pict2 VARCHAR(255),
+    pict3 VARCHAR(255),
+    pict4 VARCHAR(255),
+    pict5 VARCHAR(255)
+  )");
+  $_SESSION['db_status'] ='2';
+  $pdo->commit();
+} catch (PDOException $e) {
+  $pdo->rollBack();
+  $_SESSION['db_status'] ='1';
+  print "Error!: DATABASE pictures -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
   die();
 }
 

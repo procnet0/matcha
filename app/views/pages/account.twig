@@ -1,5 +1,80 @@
 {% extends "layout.twig" %}
 
 {% block content %}
-<div> ACCOUNT PAGE </div>
+<div class="row">
+  <form action="{{ path_for('UpdateProfil')}}" method="post">
+    <fieldset class="profil">
+      <legend class="scrib text-gold-shadow">{% if profil.id_user %}{{ profil.login }}{% endif %}</legend>
+      <div class="row">
+      <div class="input-field col s6">
+        <input type="text" class="form-control" name="nom" id="nom" value="{% if profil.nom %}{{ profil.nom }}{% endif %}">
+        <label class="scrib black-text" for="nom"> Votre nom </label>
+      </div>
+      <div class="input-field col s6">
+        <input type="text" class="form-control" name="prenom" id="prenom" value="{% if profil.prenom %}{{ profil.prenom }}{% endif %}">
+        <label class="scrib black-text" for="nom"> Votre prenom </label>
+      </div>
+    </div>
+    <div class="row">
+      <div class="input-field col s6">
+        <input type="text" class="form-control" name="email" id="email" value="{% if profil.email %}{{ profil.email }}{% endif %}">
+        <label class="scrib black-text" for="email"> Votre email </label>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="picture-field col s8">
+        <div class="carousel" id="carousel">
+          {% if profil.pict.1  %}<a class="carousel-item" href="#one!"><img src="{{ profil.pict.1 }}"></a>{% endif %}
+          {% if profil.pict.2  %}<a class="carousel-item" href="#two!"><img src="{{ profil.pict.2 }}"></a>{% endif %}
+          {% if profil.pict.3  %}<a class="carousel-item" href="#three!"><img src="{{ profil.pict.3 }}"></a>{% endif %}
+          {% if profil.pict.4  %}<a class="carousel-item" href="#four!"><img src="{{ profil.pict.4 }}"></a>{% endif %}
+          {% if profil.pict.5  %}<a class="carousel-item" href="#five!"><img src="{{ profil.pict.5 }}"></a>{% endif %}
+        </div>
+      </div>
+      <div class="selector col s4">
+        <div>
+          <button type="button"  class="pict_selector" id="pict_selector">Set Profil pict</button>
+        </div>
+        <div>
+          <input type="file" accept="image/*">
+        </div>
+      </div>
+    </div>
+
+      <div class="row">
+        <div class="input-field col s6 m6 l6">
+        <select  name="gender" id="gender">
+          <option value="" disabled></option>
+          <option value="male" {% if profil.sexe == 'male' %}selected{% endif %} >Male</option>
+          <option value="female" {% if profil.sexe == 'female' %}selected{% endif %}>Female</option>
+          <option value="other" {% if profil.sexe == 'other' %}selected{% endif %}>Other</option>
+          <option value="" disabled></option>
+        </select>
+        <label class="scrib black-text" for="gender"> Votre sexe</label>
+      </div>
+      <div class="input-field col s6 m6 l6">
+        <select  name="oriented" id="oriented">
+          <option value="" disabled></option>
+          <option value="hetero" {% if profil.oriented == 'hetero' %}selected{% endif %} >Heterosexuel</option>
+          <option value="homo"{% if profil.oriented == 'homo' %}selected{% endif %}>Homosexuel</option>
+          <option value="bi"{% if profil.oriented == 'bi' %}selected{% endif %}>Bisexuel</option>
+          <option value="" disabled></option>
+        </select>
+        <label class="scrib black-text" for="oriented"> Votre orientation</label>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="input-field col s12 m12 l12">
+        <input type="text" class="form-control" name="bio" id="bio" value="{% if profil.bio %}{{ profil.bio }}{% endif %}">
+        <label class="scrib black-text" for="bio"> Votre bio</label>
+      </div>
+    </div>
+      <button type="submit" class="btn btn-primary" name="action">Save change
+        <i class="material-icons right">send</i>
+      </button>
+    </fieldset>
+  </form>
+</div>
 {% endblock %}

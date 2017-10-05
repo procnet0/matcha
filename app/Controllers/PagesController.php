@@ -19,7 +19,44 @@ class PagesController extends Controller{
 
     if(!empty($_SESSION['loggued_as']))
     {
-      $this->render($response, 'pages/account.twig');
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $info = [];
+      $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+      $this->render($response, 'pages/account.twig', $info);
+    }
+    else {
+      $this->render($response, 'pages/home.twig');
+    }
+  }
+
+  public function UpdateProfil(Request $request, Response $response) {
+
+    if(!empty($_SESSION['loggued_as']))
+    {
+      $pdo = $this->pdo;
+      include_once('Functions.php');
+
+
+      $errors = [];
+      $Validator = new Validator();
+      if($Validator->validate('email',$request->getParam('email')) != true) {
+      $errors['email'] = 'Your email is not valid.';}
+      if($Validator->validate('content',$request->getParam('nom')) != true) {
+      $errors['nom'] = 'Your lastname is empty.';}
+      if($Validator->validate('content',$request->getParam('prenom')) != true) {
+      $errors['prenom'] = 'Your firstname is empty.';}
+
+      if(empty($errors) && !empty($request->getParsedBody())) {
+
+
+          updateAccountInfo($_SESSION['loggued_as'],$request->getParsedBody(),$pdo);
+         $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+      }
+      else {
+        $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+      }
+      $this->render($response, 'pages/account.twig', $info);
     }
     else {
       $this->render($response, 'pages/home.twig');
@@ -39,7 +76,9 @@ class PagesController extends Controller{
       {
         $_SESSION['loggued_as'] = $param['name'];
         $_SESSION['Alert'] = "Connexion Succeeded";
-        $this->render($response, 'pages/account.twig');
+        $info = [];
+        $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+        $this->render($response, 'pages/account.twig', $info);
       }
       else if($result['name'] == True && $result['password'] == False)
       {
@@ -117,7 +156,6 @@ class PagesController extends Controller{
 
   public function getContact(Request $request, Response $response) {
     return $this->render($response, 'pages/contact.twig');
-
   }
 
   public function postContact(Request $request, Response $response) {

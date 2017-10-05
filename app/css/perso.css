@@ -31,14 +31,16 @@ font-weight: normal;
   font-family: "Angels";
   font-weight: normal;
   font-size: 2.5vh;
-  color: black !important;
+  color: black;
 }
 
 .scrib.title {
   max-height: 16%;
   font-size: 6vh;
-  color: rgba(0, 0, 0, 0.2);
-  text-shadow: 1px 1px 2px rgba(255, 212, 0, 0.8);
+}
+
+.text-gold-shadow {
+    text-shadow: 1px 1px 2px rgba(255, 212, 0, 0.8);
 }
 
 .ball {
@@ -63,18 +65,16 @@ font-weight: normal;
 
 .inkwell {
   max-height: 100px;
+  max-width: 100px;
   min-width: 50px;
   min-height: 100px;
-  background-image: url("image/encrier nohover.png");
-  background-size: contain;
-  background-repeat: no-repeat;
 }
 
 .inkwell:hover {
-  max-height: 100px;
-  min-width: 50px;
-  min-height: 100px;
   background-image: url("image/encrier hover.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+
 }
 
 .logout {
@@ -96,4 +96,21 @@ body{
 radial-gradient(circle at 50% 50%, transparent 61%, rgba(0, 0, 0, 0.8)), url('http://lakecountrykeys.com/wp-content/uploads/2016/03/latest-vintage-wood-table-texture-home-future-table-2880x1800-2175kb.jpg');
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+fieldset.profil {
+  border-width: 50px;
+  border-image-slice: 100;
+  border-image-source: url('image/runesProfil Benediction.png');
+}
+
+.picture-field {
+
+}
+
+button.pict_selector {
+height: 75px;
+width: 75px;
+border-width: 0px;
+border-radius: 50%;
 }
