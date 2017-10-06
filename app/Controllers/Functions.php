@@ -76,7 +76,11 @@ function getAccountInfo($name, $pdo) {
     $sql = $pdo->prepare("SELECT * FROM pictures WHERE id_user = ?");
     $sql->bindParam(1, $result['id_user'] , PDO::PARAM_STR);
     $sql->execute();
-    $result = array_merge($sql->fetch(PDO::FETCH_ASSOC));
+    $tmp = $sql->fetch(PDO::FETCH_ASSOC);
+    if(!empty($tmp))
+    {
+      $result = array_merge($result, $tmp);
+    }
     $pdo->commit();
 
   } catch (PDOException $e) {
@@ -108,4 +112,46 @@ function updateAccountInfo($login, $post,$pdo) {
   return;
 }
 
+function updatePict($data, $pdo) {
+
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare("SELECT members.id_user,profil_pict, login FROM pictures INNER JOIN members ON members.id_user = pictures.id_user WHERE  ? IN(pict1,pict2,pict3,pict4,pict5)");
+    $sql->bindParam(1, $data['profil_pict'] , PDO::PARAM_STR);
+    $sql->execute();
+    $result = $sql->fetch(PDO::FETCH_ASSOC);
+    $pdo->commit();
+  } catch (PDOException $e) {
+    $pdo->rollBack();
+    print "Error!: DATABASE Profilpict Update-> " . $e->getMessage() . " FAILED TO COMBINE<br/>";
+    die();
+  }
+  if ($result['profil_pict'] == $data['profil_pict'])
+  {
+    return false;
+  }
+
+  if($result && $result['login'] == $_SESSION['loggued_as'])
+  {
+    try {
+      $pdo->beginTransaction();
+      $sql = $pdo->prepare("UPDATE members SET profil_pict = ?  WHERE login = ? ");
+      $sql->bindParam(1, $data['profil_pict'] , PDO::PARAM_STR);
+      $sql->bindParam(2, $result['login'] , PDO::PARAM_STR);
+      $sql->execute();
+      $pdo->commit();
+    } catch (PDOException $e) {
+      $pdo->rollBack();
+      print "Error!: DATABASE Profilpict Update-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
+      die();
+    }
+  }
+  return true;
+}
+
+function AddOrChangePicturePhp($data, $pdo) {
+
+
+  return (print_r($data));
+}
  ?>

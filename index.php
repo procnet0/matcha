@@ -36,6 +36,7 @@ $app->get("/signUp", \App\Controllers\PagesController::class . ':getMember')->se
 $app->post("/signUp", \App\Controllers\PagesController::class . ':postMember');
 $app->get("/logout", \App\Controllers\PagesController::class . ':logout')->setName('logout');
 $app->post("/UpdateProfil", \App\Controllers\PagesController::class . ':UpdateProfil')->setName('UpdateProfil');
-
+$app->post("/setAsProfil", \App\Controllers\PagesController::class . ':setAsProfil');
+$app->post("/updateAccountPict", \App\Controllers\PagesController::class . ':updateAccountPict');
 $app->run();
 ?>

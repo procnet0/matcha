@@ -23,6 +23,7 @@ class PagesController extends Controller{
       include_once ('Functions.php');
       $info = [];
       $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+
       $this->render($response, 'pages/account.twig', $info);
     }
     else {
@@ -32,11 +33,11 @@ class PagesController extends Controller{
 
   public function UpdateProfil(Request $request, Response $response) {
 
+
     if(!empty($_SESSION['loggued_as']))
     {
       $pdo = $this->pdo;
       include_once('Functions.php');
-
 
       $errors = [];
       $Validator = new Validator();
@@ -46,11 +47,10 @@ class PagesController extends Controller{
       $errors['nom'] = 'Your lastname is empty.';}
       if($Validator->validate('content',$request->getParam('prenom')) != true) {
       $errors['prenom'] = 'Your firstname is empty.';}
+      $value = $request->getParsedBody();
 
-      if(empty($errors) && !empty($request->getParsedBody())) {
-
-
-          updateAccountInfo($_SESSION['loggued_as'],$request->getParsedBody(),$pdo);
+      if(empty($errors) && !empty($value)) {
+          updateAccountInfo($_SESSION['loggued_as'],$value,$pdo);
          $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
       }
       else {
@@ -181,6 +181,24 @@ class PagesController extends Controller{
       $this->flash($errors, 'error');
     }
     return $this->redirect($response, 'contact');
+  }
+
+  public function setAsProfil(Request $request, Response $response) {
+    if($_POST && $_POST['profil_pict'])
+    {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      print updatePict($_POST, $pdo);
+    }
+  }
+
+  public function updateAccountPict(Request $request, Response $response) {
+    if($_POST && $_POST['newone'] && $_POST['old'])
+    {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      print (AddOrChangePicturePhp($_POST, $pdo));
+    }
   }
 }
  ?>

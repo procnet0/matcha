@@ -114,3 +114,29 @@ width: 75px;
 border-width: 0px;
 border-radius: 50%;
 }
+
+input.pict_uploader {
+height: 0.1px;
+width: 0.1px;
+opacity: 0;
+z-index: -1;
+position: absolute;
+}
+
+label.pict_selector {
+height: 75px;
+width: 75px;
+border: solid;
+border-width: 0px;
+border-radius: 50%;
+overflow: visible;
+padding: 10px;
+text-align: center;
+font-size: medium;
+font-weight: 300;
+background-color: lightgrey;
+color: black;
+cursor: pointer;
+margin: 0;
+position: absolute;
+}

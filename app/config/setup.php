@@ -30,7 +30,7 @@ try {
     sexe ENUM('male','female','other') DEFAULT 'male' NOT NULL,
     oriented ENUM('hetero', 'homo', 'bi') DEFAULT 'bi' NOT NULL,
     bio TEXT,
-    profil_pict ENUM('0','1','2','3','4','5') DEFAULT '0' NOT NULL,
+    profil_pict VARCHAR(255)  DEFAULT '#' NOT NULL,
     activated ENUM('yes','no') DEFAULT 'no' NOT NULL,
     admin ENUM('yes','no') DEFAULT 'no' NOT NULL
   )");
