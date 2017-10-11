@@ -66,27 +66,43 @@ function getAccountInfo($name, $pdo) {
     $result = $sql->fetch(PDO::FETCH_ASSOC);
     $pdo->commit();
 
-  } catch (PDOException $e) {
+    } catch (PDOException $e) {
     $pdo->rollBack();
     return "Error!: DATABASE getAccountInfo-> " . $e->getMessage() . " FAILED TO PULL<br/>";
   }
 
   try {
     $pdo->beginTransaction();
-    $sql = $pdo->prepare("SELECT * FROM pictures WHERE id_user = ?");
+    $sql = $pdo->prepare("SELECT pict1,pict2,pict3,pict4,pict5 FROM pictures WHERE id_user = ?");
     $sql->bindParam(1, $result['id_user'] , PDO::PARAM_STR);
     $sql->execute();
     $tmp = $sql->fetch(PDO::FETCH_ASSOC);
     if(!empty($tmp))
     {
-      $result = array_merge($result, $tmp);
-    }
-    $pdo->commit();
-
-  } catch (PDOException $e) {
-    $pdo->rollBack();
-    return "Error!: DATABASE getAccountInfo-> " . $e->getMessage() . " FAILED TO PULL<br/>";
-  }
+      $tmp = array_filter($tmp);
+      $tmp2 = [];
+      foreach ($tmp as $key => $value) {
+        if($value && file_exists($value)) {
+          $tmp2[$key] = $value;
+        }}
+      if($output = array_diff($tmp, $tmp2))
+      {
+        $result['output'] = $output;
+        foreach($output as $key => $value) {
+          if($value) {
+          $sql = $pdo->prepare("UPDATE pictures SET ".$key." = '' WHERE id_user = ".$result['id_user']);
+          $sql->execute();
+          $tmp[$key] = '';
+          }
+        }
+      }
+      $pdo->commit();
+      $result += $tmp;
+      }
+    } catch (PDOException $e) {
+      $pdo->rollBack();
+      return "Error!: DATABASE getAccountInfo-> " . $e->getMessage() . " FAILED TO PULL<br/>";
+      }
   return $result;
 }
 
@@ -116,8 +132,8 @@ function updatePict($data, $pdo) {
 
   try {
     $pdo->beginTransaction();
-    $sql = $pdo->prepare("SELECT members.id_user,profil_pict, login FROM pictures INNER JOIN members ON members.id_user = pictures.id_user WHERE  ? IN(pict1,pict2,pict3,pict4,pict5)");
-    $sql->bindParam(1, $data['profil_pict'] , PDO::PARAM_STR);
+    $sql = $pdo->prepare("SELECT members.id_user,profil_pict, login FROM pictures INNER JOIN members ON members.id_user = pictures.id_user WHERE  login = ?");
+    $sql->bindParam(1, $_SESSION['loggued_as'] , PDO::PARAM_STR);
     $sql->execute();
     $result = $sql->fetch(PDO::FETCH_ASSOC);
     $pdo->commit();
@@ -151,7 +167,81 @@ function updatePict($data, $pdo) {
 
 function AddOrChangePicturePhp($data, $pdo) {
 
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare("SELECT pict1, pict2, pict3, pict4, pict5, members.id_user FROM pictures INNER JOIN members ON members.id_user = pictures.id_user WHERE ? = members.login");
+    $sql->bindParam(1, $_SESSION['loggued_as'], PDO::PARAM_STR);
+    $sql->execute();
+    $result = $sql->fetch(PDO::FETCH_ASSOC);
+    $pdo->commit();
+    } catch (PDOException $e) {
+    $pdo->rollBack();
+    print "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO Check number of pictures<br/>";
+    die();
+  }
+  $error = '';
+  $ret = [];
+  $tmp = explode(',',$data['newone']);
+  $newpict = base64_decode($tmp[1]);
 
-  return (print_r($data));
+  $info = getimagesize($data['newone']);
+  if($info !== false) {
+  $data['old'] = str_replace('http://localhost:8080/matcha/','',$data['old']);
+  $newpict = imagecreatefromstring($newpict);
+  }
+  else {
+    $error = 'Invalid file.';
+  }
+  if($newpict && !$error )
+  {
+    $pictname = 'app/imgprofil/'.$_SESSION['loggued_as'].'_'.date('h:i:s_z-o', time()).'.png';
+    imagepng($newpict, $pictname );
+    $key = array_keys($result,NULL);
+    if($key && $key['0'])
+    {
+      try {
+        $pdo->beginTransaction();
+        $sql = $pdo->prepare("UPDATE pictures SET ".$key['0']." = ? WHERE id_user = ? ");
+        $sql->bindParam(1, $pictname, PDO::PARAM_STR);
+        $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
+        $sql->execute();
+        $pdo->commit();
+        } catch (PDOException $e) {
+        $pdo->rollBack();
+        return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO add picture to db<br/>";
+        }
+        $ret['status'] = 'added';
+        $ret['number']= str_replace('pict','',$key['0']);
+        $ret['src'] = $pictname;
+       return json_encode($ret);
+    }
+
+    else {
+      $cle = array_keys($result,$data['old']);
+      if($cle && $cle['0']) {
+
+      try {
+        $pdo->beginTransaction();
+        $sql = $pdo->prepare("UPDATE pictures SET  ".$cle['0']."= ?  WHERE id_user = ? ");
+        $sql->bindParam(1, $pictname, PDO::PARAM_STR);
+        $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
+        $sql->execute();
+        $pdo->commit();
+      } catch (PDOException $e) {
+        $pdo->rollBack();
+        return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO change picture to db<br/>";
+      }
+      unlink($data['old']);
+      $ret['status'] = 'changed';
+      $ret['number']= str_replace('pict','',$cle['0']);
+      $ret['src'] = $pictname;
+       return json_encode($ret);
+     }
+    }
+  }
+  else {
+    $ret['status'] = $error;
+    }
+  return json_encode($ret);
 }
  ?>

@@ -193,11 +193,12 @@ class PagesController extends Controller{
   }
 
   public function updateAccountPict(Request $request, Response $response) {
-    if($_POST && $_POST['newone'] && $_POST['old'])
+    if($_POST && $_POST['newone'] && isset($_POST['old']))
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
-      print (AddOrChangePicturePhp($_POST, $pdo));
+      $ret =  (AddOrChangePicturePhp($_POST, $pdo));
+      print ($ret);
     }
   }
 }

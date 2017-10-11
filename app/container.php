@@ -19,8 +19,6 @@ $container['debug'] = function() {
 };
 
 $container['pdo'] = function() {
-
-  //require('app/config/database.php');
   try {
   $pdo = new PDO("mysql:host=". DBHOST.";dbname=".DBNM, DBUSR, DBPWD);
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

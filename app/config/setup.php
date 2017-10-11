@@ -1,7 +1,6 @@
 <?php
 
-try
-{
+try {
   $pdo = new PDO("mysql:host=localhost", $DB_USER, $DB_PASSWORD);
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -10,8 +9,8 @@ try
 
   $_SESSION['db_status'] ='1';
 
-} catch (PDOException $e) {
-  $_SESSION['db_status'] ='0';
+  } catch (PDOException $e) {
+    $_SESSION['db_status'] ='0';
     print "Error!: DATABASE db-> " . $e->getMessage() . " FAILED TO CREATE<br/>";
     die();
 }
@@ -35,50 +34,19 @@ try {
     admin ENUM('yes','no') DEFAULT 'no' NOT NULL
   )");
 
-  $_SESSION['db_status'] ='2';
-  $pdo->commit();
-} catch (PDOException $e) {
-  $pdo->rollBack();
-  $_SESSION['db_status'] ='1';
-  print "Error!: DATABASE members -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
-  die();
-}
-
-try {
-  $pdo->beginTransaction();
   $pdo->exec("CREATE TABLE IF NOT EXISTS tags
   (
     id_tag INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
     name_tag varchar(64) NOT NULL
   )");
-  $_SESSION['db_status'] ='2';
-  $pdo->commit();
-} catch (PDOException $e) {
-  $pdo->rollBack();
-  $_SESSION['db_status'] ='1';
-  print "Error!: DATABASE tags -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
-  die();
-}
 
-try {
-  $pdo->beginTransaction();
   $pdo->exec("CREATE TABLE IF NOT EXISTS tags_members
   (
     id_assoc INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
     id_tag INT NOT NULL,
     id_members INT NOT NULL
   )");
-  $_SESSION['db_status'] ='2';
-  $pdo->commit();
-} catch (PDOException $e) {
-  $pdo->rollBack();
-  $_SESSION['db_status'] ='1';
-  print "Error!: DATABASE tags_members -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
-  die();
-}
 
-try {
-  $pdo->beginTransaction();
   $pdo->exec("CREATE TABLE IF NOT EXISTS pictures
   (
     id_pict INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -89,9 +57,18 @@ try {
     pict4 VARCHAR(255),
     pict5 VARCHAR(255)
   )");
+
+  $pdo->exec("INSERT IGNORE INTO tags VALUES
+    (1,'Geek'),
+    (2,'Food'),
+    (3,'Sport'),
+    (4,'Sleep'),
+    (5,'Drink')
+    ");
+
   $_SESSION['db_status'] ='2';
   $pdo->commit();
-} catch (PDOException $e) {
+  } catch (PDOException $e) {
   $pdo->rollBack();
   $_SESSION['db_status'] ='1';
   print "Error!: DATABASE pictures -> " . $e->getMessage() . " FAILED TO CREATE<br/>";

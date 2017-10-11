@@ -140,3 +140,9 @@ cursor: pointer;
 margin: 0;
 position: absolute;
 }
+
+div.menucontext {
+  background-color: rgba(0, 0, 0, 0.5);
+  position: absolute;
+  z-index: 1001;
+}
