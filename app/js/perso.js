@@ -93,62 +93,109 @@ function AddOrChangePicture(ev) {
     }
 }
 
+function addEventListenerByClass(className, event, fn) {
+    var list = document.getElementsByClassName(className);
+    for (var i = 0, len = list.length; i < len; i++) {
+        list[i].addEventListener(event, fn, false);
+    }
+}
+
 function OpenTagMenu() {
 
   var menucontext = document.createElement('DIV');
-  window.addEventListener('resize', function() {
+    window.addEventListener('resize', function() {
     var menucontext = document.getElementById('menucontext');
     var mainbox = document.getElementsByTagName('main');
     menucontext.setAttribute('style', 'height:'+ mainbox['0'].offsetHeight+'px;width:'+ mainbox['0'].offsetWidth+'px;');
   })
-
-
   var mainbox = document.getElementsByTagName('main');
-  menucontext.setAttribute('class', 'container section menucontext');
-  menucontext.setAttribute('id', 'menucontext');
-  menucontext.setAttribute('style', 'height:'+ mainbox['0'].offsetHeight+'px;width:'+ mainbox['0'].offsetWidth+'px;');
-
+    menucontext.setAttribute('class', 'container section menucontext');
+    menucontext.setAttribute('id', 'menucontext');
+    menucontext.setAttribute('style', 'height:'+ mainbox['0'].offsetHeight+'px;width:'+ mainbox['0'].offsetWidth+'px;');
   var row = document.createElement('DIV');
-  row.setAttribute('class', 'row');
+    row.setAttribute('class', 'row');
   var row2 = row.cloneNode(false);
-
+    row.setAttribute('style', 'height: 80%; min-height: 250px;')
   var activetag =  document.createElement('DIV');
-  activetag.setAttribute('class', 'col s6');
-  activetag.setAttribute('id', 'active-tag');
-
-
+    activetag.setAttribute('class', 'col s6 tag-box');
+    activetag.setAttribute('id', 'active-tag');
   var inactivetag =  document.createElement('DIV');
-  inactivetag.setAttribute('class', 'col s6');
-  inactivetag.setAttribute('id', 'inactive-tag');
+    inactivetag.setAttribute('class', 'col s6 tag-box');
+    inactivetag.setAttribute('id', 'inactive-tag');
 
+  var tagunit = document.createElement('DIV');
   var menuclose = document.createElement('button');
-  menuclose.setAttribute('type', 'button');
-  menuclose.setAttribute('class', 'closer');
-  menuclose.innerHTML = 'Close';
-  menuclose.addEventListener('click', function(){
+    menuclose.setAttribute('type', 'button');
+    menuclose.setAttribute('class', 'closer');
+    menuclose.innerHTML = 'Close';
+    menuclose.addEventListener('click', function(){
+
     var target = document.getElementById('menucontext');
     target.parentNode.removeChild(target);
   })
-
-
-
+  var divcont = document.createElement('DIV');
+    divcont.setAttribute('class', 'bot-divcont col s6');
   var validator = document.createElement('button');
-  validator.setAttribute('type', 'button');
-  validator.setAttribute('class', 'validator');
-  validator.innerHTML = 'Validate';
-  validator.addEventListener('click', function(){
-    var active = document.getElementById('active-tag');
-    var inactive = document.getElementById('inactive-tag');
-  })
+    validator.setAttribute('type', 'button');
+    validator.setAttribute('class', 'validator');
+    validator.innerHTML = 'Validate';
+    validator.addEventListener('click', function()
+    {
+      var actives = document.getElementById('active-tag').childNodes;
+      var inactives = document.getElementById('inactive-tag').childNodes;
+      console.log(actives);
+      console.log(inactives);
+      var xhr2 = new XMLHttpRequest();
+      xhr2.onreadystatechange = function() {
+      if (xhr2.readyState == 4 && (xhr2.status == 200 || xhr2.status == 0)) {
+        console.log(xhr2.responseText);
+
+      }};
+
+      xhr2.open("POST", "updateTagInfo", true);
+      xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      xhr2.send("subject=tagupdt&activeTag="+ actives +"&inactiveTag="+ inactives);
+    });
+  var border = document.createElement('DIV');
+    border.setAttribute('class', 'border col s3');
+  var border2 = border.cloneNode();
 
 
   row.append(activetag);
   row.append(inactivetag);
-
-  row2.append(menuclose);
-  row2.append(validator);
+  row2.append(border);
+  row2.append(divcont);
+  divcont.append(validator);
+  divcont.append(menuclose);
+  row2.append(border2);
   menucontext.append(row);
   menucontext.append(row2);
 
   mainbox['0'].prepend(menucontext);
+
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+  if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+    var data = JSON.parse(xhr.responseText);
+    if(data['active']) {
+      data['active'].forEach(function (item, index) {
+        activetag.innerHTML = activetag.innerHTML + "<div class='tagitem chip' id='tagitem"+item['id_tag']+"'>"+item['name_tag']+"<i class='material-icons'></i></div>"
+      });}
+    if(data['inactive']) {
+      data['inactive'].forEach(function (item, index) {
+        inactivetag.innerHTML = inactivetag.innerHTML + "<div class='tagitem chip' id='tagitem"+item['id_tag']+"'>"+item['name_tag']+"<i class='material-icons'></i></div>"
+      });}
+    addEventListenerByClass('tagitem', 'click', function (event) {
+      parent = event.target.parentNode;
+      if(parent.id == "inactive-tag") {
+        document.getElementById('active-tag').append(event.target);
+      }
+      if(parent.id == "active-tag") {
+        document.getElementById('inactive-tag').append(event.target);
+      }
+    });
+  }};
+  xhr.open("POST", "getTagInfo", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send("subject=tagmbt");
 }

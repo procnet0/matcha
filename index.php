@@ -43,5 +43,7 @@ $app->get("/logout", \App\Controllers\PagesController::class . ':logout')->setNa
 $app->post("/UpdateProfil", \App\Controllers\PagesController::class . ':UpdateProfil')->setName('UpdateProfil');
 $app->post("/setAsProfil", \App\Controllers\PagesController::class . ':setAsProfil');
 $app->post("/updateAccountPict", \App\Controllers\PagesController::class . ':updateAccountPict');
+$app->post("/getTagInfo", \App\Controllers\PagesController::class . ':getTagInfo');
+$app->post("/updateTagInfo", \App\Controllers\PagesController::class . ':updateTagInfo');
 $app->run();
 ?>

@@ -244,4 +244,65 @@ function AddOrChangePicturePhp($data, $pdo) {
     }
   return json_encode($ret);
 }
+
+
+function DiffArrayDepth1($array1 , $array2) {
+  $arrayret = [];
+  $x = 0;
+  foreach ($array1 as $key => $value) {
+    if(is_array($value)) {
+      $isinside = false;
+      foreach ($array2 as $key2 => $val2) {
+          if(is_array($val2)){
+            $tmp = array_diff($value , $val2);
+          if(empty($tmp)) {
+            $isinside = true;
+            }
+          }
+        }
+        if ($isinside == false) {
+        $arrayret[$x] =$value;
+        $x += 1;
+        }
+    }
+  }
+  return $arrayret;
+}
+
+function getTags($pdo) {
+
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare("SELECT id_tag, name_tag FROM tags");
+    $sql->execute();
+    $taglist = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    $sql2 = $pdo->prepare("SELECT tags.id_tag,name_tag FROM tags INNER JOIN tags_members ON tags_members.id_tag = tags.id_tag INNER JOIN members ON members.id_user = tags_members.id_members  WHERE members.login = ?");
+    $sql2->bindParam(1, $_SESSION['loggued_as'],PDO::PARAM_STR);
+    $sql2->execute();
+    $activelist= $sql2->fetchAll(PDO::FETCH_ASSOC);
+    $pdo->commit();
+  } catch (PDOException $e) {
+    $pdo->rollBack();
+    print "Error!: DATABASE TAGINFO-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
+    die();
+  }
+  $inactivlist = [];
+  $inactivlist = DiffArrayDepth1($taglist, $activelist);
+  $ret = [];
+  $ret['active'] =  $activelist;
+  $ret['inactive'] = $inactivlist;
+  return json_encode($ret);
+}
+
+function updateTags($active,$inactive,$pdo) {
+
+
+
+
+  $ret = [];
+  $ret['active'] = $active;
+  $ret['inactive'] = $inactive;
+  return json_encode($ret);
+}
  ?>

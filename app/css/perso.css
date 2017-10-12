@@ -146,3 +146,24 @@ div.menucontext {
   position: absolute;
   z-index: 1001;
 }
+
+div.tag-box {
+  min-height: 250px !important;
+  height: 90%;
+}
+
+#active-tag {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+#inactive-tag {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+div.bot-divcont {
+  display: grid;
+}
+
+
+.tagitem {
+  
+}

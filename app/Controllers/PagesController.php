@@ -201,5 +201,34 @@ class PagesController extends Controller{
       print ($ret);
     }
   }
+
+  public function getTagInfo(Request $request, Response $response) {
+    $subject = $request->getParam('subject');
+    if(isset($subject) && $subject = 'tagmbt')
+    {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $ret = getTags($pdo);
+      print($ret);
+    }
+  }
+
+  public function updateTagInfo(Request $request, Response $response) {
+    $subject = $request->getParam('subject');
+    $active = $request->getParam('activeTag');
+    $inactive = $request->getParam('inactiveTag');
+    var_dump($subject);
+    var_dump($active);
+    var_dump($inactive);
+    die();
+    if(isset($subject) && $subject = 'tagupdt')
+    {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $ret = updateTags($active, $inactive, $pdo);
+      print($ret);
+    }
+
+  }
 }
  ?>
