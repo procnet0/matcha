@@ -19,7 +19,7 @@
   <div class="container section sec-part-header">
     <div class="row">
       <div class="col s4 m4 l4">
-        <a href="#"><img src="app/css/image/boule-de-cristal.png" class="circle glow ball"></img></a>
+        <a href="{{ path_for('recherche') }}"><img src="app/css/image/boule-de-cristal.png" class="circle glow ball"></img></a>
       </div>
       <div class="col s4 m4 l4">
         <a href="{{ path_for('profil') }}"><img src="app/css/image/encrier nohover.png" class="inkwell"></img></a>
@@ -64,6 +64,7 @@
 $(document).ready(function() {
    $('select').material_select();
    $('.carousel').carousel();
+
  });
  </script>
 

@@ -141,25 +141,29 @@ function OpenTagMenu() {
     validator.innerHTML = 'Validate';
     validator.addEventListener('click', function()
     {
-      var actives = document.getElementById('active-tag').childNodes;
-      var inactives = document.getElementById('inactive-tag').childNodes;
-      console.log(actives);
-      console.log(inactives);
+      var acnl = document.getElementById('active-tag').childNodes;
+      var innl = document.getElementById('inactive-tag').childNodes;
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
       if (xhr2.readyState == 4 && (xhr2.status == 200 || xhr2.status == 0)) {
-        console.log(xhr2.responseText);
-
+        //console.log(JSON.parse(xhr2.responseText));
       }};
 
+      var actives = [];
+      for(var i = 0, len = acnl.length; i < len; i++) {
+        actives.push({id_tag:acnl[i].id, name: acnl[i].innerText});
+      }
+      var inactives = [];
+      for(var i = 0, len = innl.length; i < len; i++) {
+          inactives.push({id_tag:innl[i].id, name: innl[i].innerText});
+      }
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr2.send("subject=tagupdt&activeTag="+ actives +"&inactiveTag="+ inactives);
+      xhr2.send("subject=tagupdt&activeTag=" + JSON.stringify(actives) + "&inactiveTag=" + JSON.stringify(inactives));
     });
   var border = document.createElement('DIV');
     border.setAttribute('class', 'border col s3');
   var border2 = border.cloneNode();
-
 
   row.append(activetag);
   row.append(inactivetag);

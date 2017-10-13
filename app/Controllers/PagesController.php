@@ -100,7 +100,7 @@ class PagesController extends Controller{
   }
 
   public function getMember(Request $request, Response $response , $info) {
-    if(isset($info))
+      if(isset($info))
     {
       $_SESSION['Alert'] = $info['Alert'] ? $info['Alert'] : [];
     }
@@ -155,7 +155,7 @@ class PagesController extends Controller{
   }
 
   public function getContact(Request $request, Response $response) {
-    return $this->render($response, 'pages/contact.twig');
+      return $this->render($response, 'pages/contact.twig');
   }
 
   public function postContact(Request $request, Response $response) {
@@ -193,7 +193,7 @@ class PagesController extends Controller{
   }
 
   public function updateAccountPict(Request $request, Response $response) {
-    if($_POST && $_POST['newone'] && isset($_POST['old']))
+      if($_POST && $_POST['newone'] && isset($_POST['old']))
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
@@ -208,27 +208,60 @@ class PagesController extends Controller{
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
-      $ret = getTags($pdo);
+      $ret = getTags($_SESSION['loggued_as'],$pdo);
       print($ret);
     }
   }
 
   public function updateTagInfo(Request $request, Response $response) {
     $subject = $request->getParam('subject');
-    $active = $request->getParam('activeTag');
-    $inactive = $request->getParam('inactiveTag');
-    var_dump($subject);
-    var_dump($active);
-    var_dump($inactive);
-    die();
-    if(isset($subject) && $subject = 'tagupdt')
+    $active = json_decode($request->getParam('activeTag'), true);
+    $inactive = json_decode($request->getParam('inactiveTag'), true);
+    $error = [];
+    $x = 0;
+    foreach($active as $key => $value)
+    {
+      $active[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
+      if($active[$key]['id_tag'] < 1 || $active[$key]['id_tag'] > 5)
+      {
+        $error[$x] = 'id error -> '.$active[$key]['id_tag'].'//  tag name was ->'.$active[$key]['name'];
+      }
+    }
+    foreach($inactive as $key => $value)
+    {
+      $inactive[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
+      if($inactive[$key]['id_tag'] < 1 || $inactive[$key]['id_tag'] > 5)
+      {
+        $error[$x] = 'id error -> '.$inactive[$key]['id_tag'].'// tag name was ->'.$inactive[$key]['name'];
+      }
+    }
+    if(isset($subject) && $subject = 'tagupdt' && empty($error))
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $ret = updateTags($active, $inactive, $pdo);
       print($ret);
     }
+    else {
+      $ret = json_encode($error);
+      print $ret;
+    }
 
   }
+
+  public function getSearch(Request $request, Response $response) {
+    if(!empty($_SESSION['loggued_as']))
+    {
+      $this->render($response, 'pages/search.twig');
+    }
+    else {
+      $this->render($response, 'pages/home.twig');
+    }
+  }
+
+  public function postSearch(Request $request, Response $response) {
+
+  }
+
 }
  ?>

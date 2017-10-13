@@ -37,6 +37,9 @@ $app->get("/contact", \App\Controllers\PagesController::class . ':getContact')->
 $app->post("/contact", \App\Controllers\PagesController::class . ':postContact');
 $app->get("/profil", \App\Controllers\PagesController::class . ':getAccount')->setName('profil');
 $app->post("/profil", \App\Controllers\PagesController::class . ':postAccount');
+$app->get("/recherche", \App\Controllers\PagesController::class . ':getSearch')->setName('recherche');
+$app->post("/recherche", \App\Controllers\PagesController::class . ':postSearch');
+
 $app->get("/signUp", \App\Controllers\PagesController::class . ':getMember')->setName('signUp');
 $app->post("/signUp", \App\Controllers\PagesController::class . ':postMember');
 $app->get("/logout", \App\Controllers\PagesController::class . ':logout')->setName('logout');
