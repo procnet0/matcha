@@ -1,5 +1,6 @@
 <?php
-
+if (!isset($_SESSION['db_status']) || $_SESSION['db_status'] != '1')
+{
 try {
   $pdo = new PDO("mysql:host=localhost", $DB_USER, $DB_PASSWORD);
   $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -14,7 +15,9 @@ try {
     print "Error!: DATABASE db-> " . $e->getMessage() . " FAILED TO CREATE<br/>";
     die();
 }
-
+}
+if (!isset($_SESSION['db_status']) || $_SESSION['db_status'] != '2')
+{
 try {
   $pdo->beginTransaction();
   $pdo->exec("CREATE TABLE IF NOT EXISTS members
@@ -66,6 +69,27 @@ try {
     (5,'Drink')
     ");
 
+    $pdo->exec("CREATE TABLE IF NOT EXISTS likes
+    (
+      id_visit INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+      id_from INT NOT NULL,
+      id_to INT NOT NULL,
+      timeof INT NOT NULL,
+      type ENUM('like','unlike') DEFAULT 'like' NOT NULL
+    )");
+
+    $pdo->exec("CREATE TABLE IF NOT EXISTS geoloc
+    (
+      id_geoloc INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+      id_user INT NOT NULL,
+      ville VARCHAR(100) NOT NULL,
+      post_code INT NOT NULL,
+      latitude INT NOT NULL,
+      longitude INT NOT NULL,
+      timeof INT NOT NULL,
+      type ENUM('auto','user') DEFAULT 'auto' NOT NULL
+    )");
+
   $_SESSION['db_status'] ='2';
   $pdo->commit();
   } catch (PDOException $e) {
@@ -74,6 +98,6 @@ try {
   print "Error!: DATABASE pictures -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
   die();
 }
-
+}
 
 ?>

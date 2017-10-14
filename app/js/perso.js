@@ -203,3 +203,24 @@ function OpenTagMenu() {
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send("subject=tagmbt");
 }
+
+function ShowMap() {
+  var map = document.getElementById('map');
+  if(map.style.visibility == 'hidden') {
+  map.style.visibility = 'visible';}
+  else {
+    map.style.visibility= 'hidden';
+  }
+}
+
+function initMap() {
+  var uluru = {lat: -25.363, lng: 131.044};
+  var map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 12,
+      center: uluru
+   });
+       var marker = new google.maps.Marker({
+         position: uluru,
+         map: map
+ });
+}

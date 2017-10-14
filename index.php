@@ -9,11 +9,7 @@ session_start();
 require 'vendor/autoload.php';
 
 include_once('app/config/database.php');
-
-if (!isset($_SESSION['db_status']) || $_SESSION['db_status'] != '2')
-{
-  include_once($_SERVER['DOCUMENT_ROOT'].'/matcha/app/config/setup.php');
-}
+include_once($_SERVER['DOCUMENT_ROOT'].'/matcha/app/config/setup.php');
 
 if(!is_dir('app/imgprofil/'))
 {

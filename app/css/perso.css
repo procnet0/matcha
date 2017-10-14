@@ -183,8 +183,22 @@ div.bot-divcont {
 
 }
 
-
-
 #bio {
   text-overflow: clip;
+}
+
+.minimap{
+  max-height: 100px;
+  max-width: 100px;
+  min-width: 50px;
+  min-height: 100px;
+  cursor :pointer;
+
+}
+
+#map {
+  position: absolute;
+  height: 300px;
+  width: 300px;
+  visibility: hidden;
 }

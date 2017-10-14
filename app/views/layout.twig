@@ -18,13 +18,19 @@
   </div>
   <div class="container section sec-part-header">
     <div class="row">
-      <div class="col s4 m4 l4">
+      <div class="col s3 m3 l3">
         <a href="{{ path_for('recherche') }}"><img src="app/css/image/boule-de-cristal.png" class="circle glow ball"></img></a>
       </div>
-      <div class="col s4 m4 l4">
+      <div class="col s3 m3 l3">
         <a href="{{ path_for('profil') }}"><img src="app/css/image/encrier nohover.png" class="inkwell"></img></a>
       </div>
-      <div class="col s4 m4 l4">
+      <div class="col s3 m3 l3">
+        <div class="minimap-contain">
+          <img src="app/css/image/treasure-map.png" class="minimap" onclick="ShowMap()"></img>
+          <div id="map"></div>
+        </div>
+      </div>
+      <div class="col s3 m3 l3">
           <a href="{{ path_for('logout')}}"><img src="app/css/image/potion-oubli.png" class="logout" alt="potion d'oubli"></a>
      </div>
     </div>
@@ -64,8 +70,11 @@
 $(document).ready(function() {
    $('select').material_select();
    $('.carousel').carousel();
-
  });
  </script>
-
+ <script>
+  initMap
+ </script>
+ <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo&callback=initMap"
+ type="text/javascript"></script>
 </body></html>

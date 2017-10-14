@@ -11,16 +11,11 @@ when connected
 
 geolocalisation + modification du lieu par le client
 
-Biographie
-
-Tag system
-
-orientation sexuel
-
-5 image max  1 de profil
-
 historique des visites et like
 
 score de populariter
 
 filtre + trie sur la recherche
+-> possibiliter = intervalle d age , intervalle de score de populariter, localisation, et tags
+
+filtre et trie sur ces parametre

@@ -133,6 +133,7 @@ class PagesController extends Controller{
     {
       $result = createNewAccount($params, $pdo);
       if ($result === true) {
+        $_SESSION['loggued_as'] = $request->getParam('pseudo');
         $this->flash('Account created, mail have been sent for activation' ,'success');
       }
       else {
