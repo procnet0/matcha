@@ -159,7 +159,7 @@ div.menucontext {
   -webkit-animation-iteration-count: 1;
   background-color: rgba(0, 0, 0, 0.5);
   position: absolute;
-  z-index: 1001;
+  z-index: 70;
 }
 
 div.tag-box {
@@ -197,6 +197,7 @@ div.bot-divcont {
 }
 
 #map {
+  z-index: 100;
   position: absolute;
   height: 300px;
   width: 300px;

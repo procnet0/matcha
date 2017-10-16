@@ -44,5 +44,6 @@ $app->post("/setAsProfil", \App\Controllers\PagesController::class . ':setAsProf
 $app->post("/updateAccountPict", \App\Controllers\PagesController::class . ':updateAccountPict');
 $app->post("/getTagInfo", \App\Controllers\PagesController::class . ':getTagInfo');
 $app->post("/updateTagInfo", \App\Controllers\PagesController::class . ':updateTagInfo');
+$app->post("/updatePosition", \App\Controllers\PagesController::class . ':updatePosition');
 $app->run();
 ?>

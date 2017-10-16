@@ -106,7 +106,9 @@ function OpenTagMenu() {
     window.addEventListener('resize', function() {
     var menucontext = document.getElementById('menucontext');
     var mainbox = document.getElementsByTagName('main');
+    if(menucontext){
     menucontext.setAttribute('style', 'height:'+ mainbox['0'].offsetHeight+'px;width:'+ mainbox['0'].offsetWidth+'px;');
+    }
   })
   var mainbox = document.getElementsByTagName('main');
     menucontext.setAttribute('class', 'container section menucontext');
@@ -213,14 +215,69 @@ function ShowMap() {
   }
 }
 
-function initMap() {
-  var uluru = {lat: -25.363, lng: 131.044};
+function updateMap(data)
+{
+  if(typeof data.geoplugin_latitude !== 'undefined' && typeof data.geoplugin_longitude !== 'undefined')
+  {
+    var pos = {lat: parseFloat(data.geoplugin_latitude), lng: parseFloat(data.geoplugin_longitude)};
+  }
+  else {
+    var pos = {lat: data.coords.latitude, lng: data.coords.longitude};
+  }
+  if(document.getElementById('latitude') && document.getElementById('longitude'))
+  {
+    document.getElementById('latitude').value = pos['lat'];
+    document.getElementById('longitude').value = pos['lng'];
+  }
   var map = new google.maps.Map(document.getElementById('map'), {
-      zoom: 12,
-      center: uluru
-   });
-       var marker = new google.maps.Marker({
-         position: uluru,
-         map: map
- });
+    center: {lat: 48.895443, lng: 2.318076},
+    zoom: 15
+  });
+  var marker = new google.maps.Marker({position: pos,map: map,title: 'You'});
+   map.setCenter(pos);
 }
+
+function initMap()
+{
+   // Try HTML5 geolocation.
+   if (navigator.geolocation) {
+     navigator.geolocation.getCurrentPosition(updateMap,function (data) {
+       $.getJSON("http://www.geoplugin.net/json.gp?jsoncallback=?",updateMap);
+   });
+ }
+   // Else get from api.
+   else {
+     $.getJSON("http://www.geoplugin.net/json.gp?jsoncallback=?",updateMap);
+   }
+ }
+
+function updateLocation() {
+   var input = document.getElementById('geoloc');
+   if(input !== 'undefined') {
+     input = input.value;
+   }
+   else if (document.getElementById('latitude') !== 'undefined' && document.getElementById('longitude') !== 'undefined') {
+     var data = [];
+     data.push({ latitude:document.getElementById('latitude').value , longitude: document.getElementById('longitude').value});
+
+   }
+   var xhr = new XMLHttpRequest();
+   xhr.onreadystatechange = function() {
+     if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+       var data = xhr.responseText;
+       //var data = JSON.parse(xhr.responseText);
+       console.log(data);
+     }
+   }
+     xhr.open("POST", "updatePosition", true);
+     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+    if(input !== 'undefined') {
+     xhr.send("input="+ encodeURIComponent(input));
+     console.log(input);
+    }
+    else if(data !== 'undefined') {
+      xhr.send("lng="+ encodeURIComponent(data['longitude']) + "&lat="+ encodeURIComponent(data['latitude']));
+      console.log(data);
+    }
+ }

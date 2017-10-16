@@ -82,12 +82,11 @@
         <label class="scrib black-text" for="bio"> Votre bio</label>
       </div>
       <div class="input-field col s4 m4 l4">
-        <input type="text" class="form-control" name="geoloc" id="geoloc" value="{% if profil.geo %}{{ profil.geo}}{% endif %}">
+        <input type="text" class="form-control" name="geoloc" id="geoloc" value="{% if geo.formatted_address %}{{ geo.formatted_address }}{% endif %}">
           <label class="scrib black-text" for="geoloc"> Localisation</label>
-        <button type="button" class="geoloc" id="geolocSender" onclick="">Set new location</button>
+        <button type="button" class="geoloc" id="geolocSender" onclick="updateLocation()">Set new location</button>
       </div>
     </div>
-
       <button type="submit" class="btn btn-primary" name="action">Save change
         <i class="material-icons right">send</i>
       </button>

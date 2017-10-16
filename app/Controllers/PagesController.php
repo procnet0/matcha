@@ -23,7 +23,7 @@ class PagesController extends Controller{
       include_once ('Functions.php');
       $info = [];
       $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
-
+      $info['geo'] = getAddrWithCoord($info['profil']['latitude'] , $info['profil']['longitude']);
       $this->render($response, 'pages/account.twig', $info);
     }
     else {
@@ -262,6 +262,16 @@ class PagesController extends Controller{
 
   public function postSearch(Request $request, Response $response) {
 
+  }
+
+  public function updatePosition(request $request, Response $reponse) {
+     $data = $request->getParams();
+    if(!empty($data['input']) || (!empty($data['lng']) && !empty($data['lat']))) {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $ret = updateLocation($data,$pdo);
+      var_dump( $ret);
+    }
   }
 
 }

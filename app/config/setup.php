@@ -82,10 +82,8 @@ try {
     (
       id_geoloc INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
       id_user INT NOT NULL,
-      ville VARCHAR(100) NOT NULL,
-      post_code INT NOT NULL,
-      latitude INT NOT NULL,
-      longitude INT NOT NULL,
+      latitude FLOAT NOT NULL,
+      longitude FLOAT NOT NULL,
       timeof INT NOT NULL,
       type ENUM('auto','user') DEFAULT 'auto' NOT NULL
     )");

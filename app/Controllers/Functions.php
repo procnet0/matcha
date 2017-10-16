@@ -1,4 +1,6 @@
 <?php
+include_once($_SERVER['DOCUMENT_ROOT'].'/matcha/app/geoloc/geoipcity.inc');
+include_once($_SERVER['DOCUMENT_ROOT'].'/matcha/app/geoloc/geoipregionvars.php');
 
 function checkForAccount($name, $password, $pdo) {
 
@@ -34,8 +36,26 @@ function checkForAccount($name, $password, $pdo) {
 
 function createNewAccount($params, $pdo) {
 
+  if(empty($params['latitude']) || empty($params['longitude']))
+  {
+    $gi = geoip_open(realpath("GeoLiteCity.dat"),GEOIP_STANDARD);
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+         $ip=$_SERVER['HTTP_CLIENT_IP'];
+       }
+    else if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+         $ip=$_SERVER['HTTP_X_FORWARDED_FOR'];
+       }
+    else {
+         $ip=$_SERVER['REMOTE_ADDR'];
+       }
+    $record = geoip_record_by_addr($gi,$ip);
+    $params['latitude']= $record->latitude ;
+    $params['latitude']= $record->longitude . "\n";
+    geoip_close($gi);
+  }
 
   $params['password'] =  hash('whirlpool',$params['password']);
+
   try {
     $pdo->beginTransaction();
     $sql = $pdo->prepare("INSERT INTO members (login,nom,prenom,email,password,secret_answer) VALUES
@@ -47,6 +67,21 @@ function createNewAccount($params, $pdo) {
     $sql->bindParam(5, $params['password'], PDO::PARAM_STR);
     $sql->bindParam(6, $params['answer'], PDO::PARAM_STR);
     $sql->execute();
+
+    $id = $pdo->lastInsertId();
+    $time = time();
+    $sql = $pdo->prepare("INSERT INTO pictures (id_user) VALUES (?)");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->execute();
+
+    $sql = $pdo->prepare("INSERT INTO geoloc (id_user,latitude,longitude,timeof) VALUES (?,?,?,?)");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->bindParam(2, $params['latitude'], PDO::PARAM_STR);
+    $sql->bindParam(3, $params['longitude'], PDO::PARAM_STR);
+    $sql->bindParam(4, $time, PDO::PARAM_INT);
+    $sql->execute();
+
+
     $pdo->commit();
   } catch (PDOException $e) {
     $pdo->rollBack();
@@ -64,15 +99,7 @@ function getAccountInfo($name, $pdo) {
     $sql->bindParam(1, $name , PDO::PARAM_STR);
     $sql->execute();
     $result = $sql->fetch(PDO::FETCH_ASSOC);
-    $pdo->commit();
 
-    } catch (PDOException $e) {
-    $pdo->rollBack();
-    return "Error!: DATABASE getAccountInfo-> " . $e->getMessage() . " FAILED TO PULL<br/>";
-  }
-
-  try {
-    $pdo->beginTransaction();
     $sql = $pdo->prepare("SELECT pict1,pict2,pict3,pict4,pict5 FROM pictures WHERE id_user = ?");
     $sql->bindParam(1, $result['id_user'] , PDO::PARAM_STR);
     $sql->execute();
@@ -96,13 +123,20 @@ function getAccountInfo($name, $pdo) {
           }
         }
       }
-      $pdo->commit();
       $result += $tmp;
-      }
-    } catch (PDOException $e) {
-      $pdo->rollBack();
-      return "Error!: DATABASE getAccountInfo-> " . $e->getMessage() . " FAILED TO PULL<br/>";
-      }
+    }
+
+    $sql = $pdo->prepare("SELECT latitude,longitude FROM geoloc WHERE id_user= ? ORDER BY timeof DESC");
+    $sql->bindParam(1, $result['id_user'] , PDO::PARAM_STR);
+    $sql->execute();
+    $tmp = $sql->fetch(PDO::FETCH_ASSOC);
+    $result += $tmp;
+
+  }catch (PDOException $e) {
+    $pdo->rollBack();
+    return "Error!: DATABASE getAccountInfo-> " . $e->getMessage() . " FAILED TO PULL<br/>";
+  }
+
   return $result;
 }
 
@@ -245,7 +279,6 @@ function AddOrChangePicturePhp($data, $pdo) {
   return json_encode($ret);
 }
 
-
 function DiffArrayDepth1($array1 , $array2) {
   $arrayret = [];
   $x = 0;
@@ -331,12 +364,10 @@ function updateTags($active,$inactive,$pdo) {
     $sql = $pdo->prepare("SELECT id_tag, name_tag FROM tags");
     $sql->execute();
     $taglist = $sql->fetchAll(PDO::FETCH_ASSOC);
-
     $sql2 = $pdo->prepare("SELECT tags.id_tag,name_tag FROM tags INNER JOIN tags_members ON tags_members.id_tag = tags.id_tag INNER JOIN members ON members.id_user = tags_members.id_members  WHERE members.login = ?");
     $sql2->bindParam(1, $_SESSION['loggued_as'],PDO::PARAM_STR);
     $sql2->execute();
     $activelist= $sql2->fetchAll(PDO::FETCH_ASSOC);
-
     $sql3 = $pdo->prepare("SELECT id_user FROM members WHERE login = ?");
     $sql3->bindParam(1, $_SESSION['loggued_as'], PDO::PARAM_STR);
     $sql3->execute();
@@ -347,13 +378,11 @@ function updateTags($active,$inactive,$pdo) {
     print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
     die();
   }
-
   $check = checkTag(array_merge($active,$inactive),$taglist);
   if($check['result'] == true){
      $error = 'none';
      $removed = DiffArrayDepth1($activelist, $active);
      $added = DiffArrayDepth1($active, $activelist);
-
      if($added) {
      try {
        $pdo->beginTransaction();
@@ -375,44 +404,107 @@ function updateTags($active,$inactive,$pdo) {
      }
    }
    if($removed) {
-
-   try {
-     $pdo->beginTransaction();
-     $query = "DELETE FROM tags_members WHERE id_members = ? AND id_tag IN (";
-     $qpart2 = array_fill(0, count($removed), "?");
-     $query .= implode(",", $qpart2).")";
-     $sql = $pdo->prepare($query);
-     $i = 1;
-     $binded = 0;
-     $sql->bindValue($i++, $iduser['id_user'], PDO::PARAM_STR);
+     try {
+       $pdo->beginTransaction();
+       $query = "DELETE FROM tags_members WHERE id_members = ? AND id_tag IN (";
+       $qpart2 = array_fill(0, count($removed), "?");
+       $query .= implode(",", $qpart2).")";
+       $sql = $pdo->prepare($query);
+       $i = 1;
+       $binded = 0;
+       $sql->bindValue($i++, $iduser['id_user'], PDO::PARAM_STR);
      foreach($removed as $item) {
        $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
        $binded += 1;
      }
      $ret['rquery']= $query;
      $sql->execute();
-
      $pdo->commit();
    } catch (PDOException $e) {
      $pdo->rollBack();
      print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
      die();
    }
- }
-
-
+  }
   }
   else {
     $error = 'Wrong data sended no modification made';
     $removed = [];
     $added = [];
   }
-
-
   $ret = [];
   $ret['added'] =$added;
   $ret['removed'] = $removed;
   $ret['error'] = $error;
   return json_encode($ret);
+}
+
+function getAddrWithCoord($lat , $lng) {
+  $url ="https://maps.googleapis.com/maps/api/geocode/json?latlng=".$lat.','.$lng."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
+
+  $ret = [];
+  if($json = file_get_contents($url)) {
+    $informations = json_decode($json, true);
+  }
+  if($informations) {
+      $ret = $informations['results']['0'];
+  }
+ return $ret;
+}
+
+function updateLocation($data, $pdo) {
+  if(!empty($data['input'])) {
+    $url="https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($data['input'])."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
+    $ret = [];
+    if($json = file_get_contents($url)) {
+      $informations = json_decode($json, true);
+    }
+    if($informations['status'] === "OK") {
+      $loc = $informations['results']['0']['geometry']['location'];
+
+    try {
+      $pdo->beginTransaction();
+      $time = time();
+      $sql = $pdo->prepare("INSERT INTO geoloc (id_user,latitude,longitude,timeof,type) SELECT members.id_user, ? , ? ,? , 'user' FROM members WHERE login = ? ");
+      $sql->bindParam(1, $loc['lat'], PDO::PARAM_STR);
+      $sql->bindParam(2, $loc['lng'], PDO::PARAM_STR);
+      $sql->bindParam(3, $time, PDO::PARAM_INT);
+      $sql->bindParam(4, $_SESSION['loggued_as'], PDO::PARAM_STR);
+      $sql->execute();
+      $pdo->commit();
+    }catch (PDOException $e){
+      $pdo->rollBack();
+      print "Error!: DATABASE UPDATE LOCATION-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
+      die();
+    }
+    return $informations['results']['0']['formatted_address'];
+    }
+  }
+
+else if (!empty($data['lng']) && !empty($data['lat'])) {
+   $info = getAddrWithCoord($data['lng'], $data['lat']);
+   if(!empty($info))
+   {
+   try {
+     $pdo->beginTransaction();
+     $time = time();
+     $sql = $pdo->prepare("INSERT INTO geoloc (id_user,latitude,longitude,timeof,type) SELECT members.id_user, ? , ? ,? , 'user' FROM members WHERE login = ? ");
+     $sql->bindParam(1, $data['lat'], PDO::PARAM_STR);
+     $sql->bindParam(2, $data['lng'], PDO::PARAM_STR);
+     $sql->bindParam(3, $time, PDO::PARAM_INT);
+     $sql->bindParam(4, $_SESSION['loggued_as'], PDO::PARAM_STR);
+     $sql->execute();
+     $pdo->commit();
+   }catch (PDOException $e){
+     $pdo->rollBack();
+     print "Error!: DATABASE UPDATE LOCATION-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
+     die();
+   }
+   return $info['formatted_address'];
+ }
+}
+else {
+  return 'error';
+  }
 }
  ?>
