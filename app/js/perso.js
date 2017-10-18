@@ -215,8 +215,7 @@ function ShowMap() {
   }
 }
 
-function updateMap(data)
-{
+function updateMap(data) {
   if(typeof data.geoplugin_latitude !== 'undefined' && typeof data.geoplugin_longitude !== 'undefined')
   {
     var pos = {lat: parseFloat(data.geoplugin_latitude), lng: parseFloat(data.geoplugin_longitude)};
@@ -237,8 +236,7 @@ function updateMap(data)
    map.setCenter(pos);
 }
 
-function initMap()
-{
+function initMap() {
    // Try HTML5 geolocation.
    if (navigator.geolocation) {
      navigator.geolocation.getCurrentPosition(updateMap,function (data) {
@@ -281,3 +279,43 @@ function updateLocation() {
       console.log(data);
     }
  }
+
+function initsliders() {
+var agepicker = document.getElementById('age-picker');
+var rangepicker = document.getElementById('range-picker');
+var rangepop = document.getElementById('range-popularity');
+
+noUiSlider.create(agepicker, {
+    start: [ 18, 100 ],
+    behaviour: 'snap',
+    connect: true,
+    tooltips: [ wNumb({ decimals: 0 ,step: 1}), wNumb({ decimals: 0 ,step: 1})],
+    range: {
+      'min': 18,
+      'max': 100
+    }
+  });
+
+
+noUiSlider.create(rangepicker, {
+    start: 5,
+    behaviour: 'snap',
+    connect: [true,false],
+    tooltips: [wNumb({ decimals: 0 ,step: 1})],
+    range: {
+      'min': 5,
+      'max': 100
+    }
+  });
+
+  noUiSlider.create(rangepop, {
+      start: [ 50, 100 ],
+      behaviour: 'snap',
+      connect: true,
+      tooltips: [wNumb({ decimals: 0 ,step: 1}),wNumb({ decimals: 0 ,step: 1})],
+      range: {
+        'min': 0,
+        'max': 100
+      }
+    });
+}

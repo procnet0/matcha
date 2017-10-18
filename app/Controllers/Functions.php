@@ -125,13 +125,28 @@ function getAccountInfo($name, $pdo) {
       }
       $result += $tmp;
     }
-
-    $sql = $pdo->prepare("SELECT latitude,longitude FROM geoloc WHERE id_user= ? ORDER BY timeof DESC");
+    $sql = $pdo->prepare("SELECT latitude,longitude,type,timeof FROM geoloc WHERE id_user= ? ORDER BY timeof DESC");
     $sql->bindParam(1, $result['id_user'] , PDO::PARAM_STR);
     $sql->execute();
-    $tmp = $sql->fetch(PDO::FETCH_ASSOC);
-    $result += $tmp;
-
+    $tmp = $sql->fetchAll(PDO::FETCH_ASSOC);
+    $first = $tmp['0'];
+    if($first['type'] != 'user')
+    {
+      foreach ($tmp as $index => $item)
+      {
+        if($item != $first && $item['type'] == 'user' && $item['timeof'] > ($first['timeof'] - 84600)){
+          $set = $item;
+          break;
+        }
+      }
+    }
+    if(isset($set)){
+    $result += $set;
+    }
+    else {
+      $result += $first;
+    }
+    $pdo->commit();
   }catch (PDOException $e) {
     $pdo->rollBack();
     return "Error!: DATABASE getAccountInfo-> " . $e->getMessage() . " FAILED TO PULL<br/>";
@@ -446,7 +461,8 @@ function getAddrWithCoord($lat , $lng) {
   if($json = file_get_contents($url)) {
     $informations = json_decode($json, true);
   }
-  if($informations) {
+  if($informations['status'] == "OK") {
+
       $ret = $informations['results']['0'];
   }
  return $ret;
@@ -459,51 +475,43 @@ function updateLocation($data, $pdo) {
     if($json = file_get_contents($url)) {
       $informations = json_decode($json, true);
     }
-    if($informations['status'] === "OK") {
-      $loc = $informations['results']['0']['geometry']['location'];
-
-    try {
-      $pdo->beginTransaction();
-      $time = time();
-      $sql = $pdo->prepare("INSERT INTO geoloc (id_user,latitude,longitude,timeof,type) SELECT members.id_user, ? , ? ,? , 'user' FROM members WHERE login = ? ");
-      $sql->bindParam(1, $loc['lat'], PDO::PARAM_STR);
-      $sql->bindParam(2, $loc['lng'], PDO::PARAM_STR);
-      $sql->bindParam(3, $time, PDO::PARAM_INT);
-      $sql->bindParam(4, $_SESSION['loggued_as'], PDO::PARAM_STR);
-      $sql->execute();
-      $pdo->commit();
-    }catch (PDOException $e){
-      $pdo->rollBack();
-      print "Error!: DATABASE UPDATE LOCATION-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
-      die();
-    }
-    return $informations['results']['0']['formatted_address'];
+      if($informations['status'] === "OK") {
+        $loc = $informations['results']['0']['geometry']['location'];
+        try {
+          $tim = time();
+          $sql = $pdo->prepare("INSERT INTO geoloc (id_user,latitude,longitude,timeof,type) SELECT  members.id_user, ? , ? ,? , 'user' FROM members WHERE login = ? ");
+          $sql->bindParam(1, $loc['lat'], PDO::PARAM_STR);
+          $sql->bindParam(2, $loc['lng'], PDO::PARAM_STR);
+          $sql->bindParam(3, $tim, PDO::PARAM_INT);
+          $sql->bindParam(4, $_SESSION['loggued_as'], PDO::PARAM_STR);
+          $sql->execute();
+        }catch (PDOException $e){
+          print "Error!: DATABASE UPDATE LOCATION-> " . $e->getMessage() . " FAILED TO UPDATE 1<br/>";
+          die();
+        }
+        return $informations['results']['0']['formatted_address'];
+      }
+  }
+  else if (!empty($data['latitude']) && !empty($data['longitude'])) {
+      $info = getAddrWithCoord($data['latitude'], $data['longitude']);
+     if(!empty($info))
+     {
+       try {
+         $tim = time();
+         $sqt = $pdo->prepare("INSERT INTO geoloc (id_user,latitude,longitude,timeof,type) SELECT members.id_user, ? , ? ,? , 'auto' FROM members WHERE login = ? ");
+         $sqt->bindParam(1, $data['latitude'], PDO::PARAM_STR);
+         $sqt->bindParam(2, $data['longitude'], PDO::PARAM_STR);
+         $sqt->bindParam(3, $tim, PDO::PARAM_INT);
+         $sqt->bindParam(4, $_SESSION['loggued_as'], PDO::PARAM_STR);
+         $sqt->execute();
+       }catch (PDOException $e){
+      print "Error!: DATABASE UPDATE LOCATION-> " . $e->getMessage() . " FAILED TO UPDATE 2 <br/>";
+       die();
+     }
+     return $info['formatted_address'];
     }
   }
-
-else if (!empty($data['lng']) && !empty($data['lat'])) {
-   $info = getAddrWithCoord($data['lng'], $data['lat']);
-   if(!empty($info))
-   {
-   try {
-     $pdo->beginTransaction();
-     $time = time();
-     $sql = $pdo->prepare("INSERT INTO geoloc (id_user,latitude,longitude,timeof,type) SELECT members.id_user, ? , ? ,? , 'user' FROM members WHERE login = ? ");
-     $sql->bindParam(1, $data['lat'], PDO::PARAM_STR);
-     $sql->bindParam(2, $data['lng'], PDO::PARAM_STR);
-     $sql->bindParam(3, $time, PDO::PARAM_INT);
-     $sql->bindParam(4, $_SESSION['loggued_as'], PDO::PARAM_STR);
-     $sql->execute();
-     $pdo->commit();
-   }catch (PDOException $e){
-     $pdo->rollBack();
-     print "Error!: DATABASE UPDATE LOCATION-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
-     die();
-   }
-   return $info['formatted_address'];
- }
-}
-else {
+  else {
   return 'error';
   }
 }

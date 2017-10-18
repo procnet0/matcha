@@ -19,3 +19,6 @@ filtre + trie sur la recherche
 -> possibiliter = intervalle d age , intervalle de score de populariter, localisation, et tags
 
 filtre et trie sur ces parametre
+
+
+https://tympanus.net/Tutorials/CircularNavigation/

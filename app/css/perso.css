@@ -193,7 +193,6 @@ div.bot-divcont {
   min-width: 50px;
   min-height: 100px;
   cursor :pointer;
-
 }
 
 #map {
@@ -202,4 +201,44 @@ div.bot-divcont {
   height: 300px;
   width: 300px;
   visibility: hidden;
+}
+
+.search-menu {
+  background: radial-gradient(circle at 50% 50%, transparent 61%, rgba(0, 0, 0, 0.8));
+  border-radius: 25px;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.round {
+  border-radius: 50%;
+}
+
+#range-origin {
+  background-color: rgba(255, 255, 255,0.2);
+  margin: 0;
+  height: 1vh;
+}
+
+#range-origin::-webkit-input-placeholder {
+  color: darkgrey;
+}
+#range-origin::-moz-placeholder {
+  color: darkgrey;
+}
+#range-origin:-ms-input-placeholder {
+  color: darkgrey;
+}
+#range-origin:-moz-placeholder {
+  color: darkgrey;
+}
+
+.col.slid {
+  min-width: 150px;
+}
+
+.tap-target-wrapper.open #tag-container li:first-child {
+  background: red;
 }

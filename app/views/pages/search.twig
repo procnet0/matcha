@@ -1,12 +1,86 @@
 {% extends "layout.twig" %}
 
 {% block content %}
- <div class="container section">
-  <div class = "row">
-    <div class = "search-menu col s12 m12 l12">
+  <div class="search-menu row" >
+    <div class="col s3 m3 l3 slid">
+        <div class="sliders" name="age-picker" id="age-picker"></div>
+        <p class="text-center"> Age range </p>
+    </div>
+    <div class="col s3 m3 l3 slid">
+      <div class="sliders" name="range-picker" id="range-picker"></div>
+      <p class="text-center"> Area range (km) </p>
+    </div>
+    <div class="col s3 m3 l3 slid">
+        <input type="text" id="range-origin" value="" placeholder="default is your position" name="range-origin">
+        <p class="text-center">  Area Origin </p>
+    </div>
+    <div class="col s3 m3 l3 slid">
+
+        <div class="sliders" name="range-popularity" id="range-popularity"></div>
+        <p class="text-center"> Popularity </p>
+    </div>
+  </div>
+  <div class="search-menu row">
+    <div class="col s4 m4 l4">
+      <div class="tag-picker">
+
+        <a id="menu" class="waves-effect waves-light btn btn-floating" onclick="$('.tap-target').tapTarget('open')">
+          <i class="material-icons">settings</i>
+        </a>
+
+        <div class="tap-target" data-activates="menu">
+          <div class="tap-target-content">
+            <div id="tag-container">
+              <ul>
+                <li>
+              <div class="chip round-menu-item">
+                  Tag
+                  <i class="close material-icons">close</i>
+              </div>
+              </li>
+              <li>
+              <div class="chip">
+                  Tag
+                  <i class="close material-icons">close</i>
+              </div>
+            </li>
+            <li>
+              <div class="chip">
+                  Tag
+                  <i class="close material-icons">close</i>
+              </div>
+            </li>
+            <li>
+              <div class="chip">
+                  Tag
+                  <i class="close material-icons">close</i>
+              </div>
+            </li>
+            <li>
+              <div class="chip">
+                  Tag
+                  <i class="close material-icons">close</i>
+              </div>
+            </li>
+            </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="col s4 m4 l4">
+      <button type="button" name="setFilterAge" class="round">Filter Age</button>
+      <button type="button" name="setFilterArea" class="round">Filter Area</button>
+      <button type="button" name="setFilterPop" class="round">Filter Popularity</button>
+      <button type="button" name="setFilterTag" class="round">Filter Tags</button>
+    </div>
+    <div class="col s4 m4 l4">
 
 
     </div>
   </div>
- </div>
+  <script type="javascript">
+  initsliders();
+   </script>
 {% endblock %}

@@ -23,7 +23,9 @@ class PagesController extends Controller{
       include_once ('Functions.php');
       $info = [];
       $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
-      $info['geo'] = getAddrWithCoord($info['profil']['latitude'] , $info['profil']['longitude']);
+      $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
+
+
       $this->render($response, 'pages/account.twig', $info);
     }
     else {
@@ -78,6 +80,8 @@ class PagesController extends Controller{
         $_SESSION['Alert'] = "Connexion Succeeded";
         $info = [];
         $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+        $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
+        updateLocation($param,$pdo);
         $this->render($response, 'pages/account.twig', $info);
       }
       else if($result['name'] == True && $result['password'] == False)
@@ -142,8 +146,8 @@ class PagesController extends Controller{
       }
     }
     else {
-    $this->flash($errors, 'error');
-    return $this->render($response, 'pages/signUp.twig');
+      $this->flash($errors, 'error');
+      return $this->render($response, 'pages/signUp.twig');
     }
     $this->render($response, 'pages/account.twig');
   }
