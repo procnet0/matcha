@@ -281,11 +281,10 @@ function updateLocation() {
  }
 
 function initsliders() {
-var agepicker = document.getElementById('age-picker');
-var rangepicker = document.getElementById('range-picker');
-var rangepop = document.getElementById('range-popularity');
-
-noUiSlider.create(agepicker, {
+  var agepicker = document.getElementById('age-picker');
+  var rangepicker = document.getElementById('range-picker');
+  var rangepop = document.getElementById('range-popularity');
+  noUiSlider.create(agepicker, {
     start: [ 18, 100 ],
     behaviour: 'snap',
     connect: true,
@@ -297,7 +296,7 @@ noUiSlider.create(agepicker, {
   });
 
 
-noUiSlider.create(rangepicker, {
+  noUiSlider.create(rangepicker, {
     start: 5,
     behaviour: 'snap',
     connect: [true,false],
@@ -308,7 +307,7 @@ noUiSlider.create(rangepicker, {
     }
   });
 
-  noUiSlider.create(rangepop, {
+    noUiSlider.create(rangepop, {
       start: [ 50, 100 ],
       behaviour: 'snap',
       connect: true,
@@ -318,4 +317,49 @@ noUiSlider.create(rangepicker, {
         'max': 100
       }
     });
+}
+
+function Tagchooserdisplay(targetname) {
+  var contain = document.getElementById(targetname);
+  if(contain.style.visibility != 'visible') {
+  contain.style.visibility = 'visible';
+  }
+  else {
+    contain.style.visibility = 'collapse';
+  }
+
+}
+
+function manageactivity(name_tag, ev) {
+
+ var clas = ev.target.className;
+  if(clas.search('activated') == -1) {
+  ev.target.setAttribute('class', ev.target.className + ' activated');
+  ev.target.style.background = 'radial-gradient(circle at center, transparent ,  rgba(0,255,0, 0.8) 76%, transparent)';
+  }
+  else {
+    ev.target.className = clas.replace(' activated', '');
+    ev.target.style.background = 'radial-gradient(circle at center, transparent ,  rgba(255,255,255, 0.8) 76%, transparent)';
+  }
+}
+
+function activefilter(filter_name) {
+
+}
+
+function startsearch() {
+
+}
+
+function sortresult(action,ev) {
+  var targ = ev.target;
+  if(targ.nodeName == 'I') {
+    var inner = ev.target.innerText;
+    if(inner.search('down') != -1) {
+      ev.target.innerText = inner.replace('down' , 'up'); }
+    else {
+    ev.target.innerText = inner.replace('up' , 'down');
+    }
+  }
+
 }
