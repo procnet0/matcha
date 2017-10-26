@@ -292,7 +292,10 @@ function initsliders() {
     range: {
       'min': 18,
       'max': 100
-    }
+    },
+    format: wNumb({
+      decimals: 0
+    })
   });
 
 
@@ -304,7 +307,10 @@ function initsliders() {
     range: {
       'min': 5,
       'max': 100
-    }
+    },
+    format: wNumb({
+      decimals: 0
+    })
   });
 
     noUiSlider.create(rangepop, {
@@ -315,7 +321,10 @@ function initsliders() {
       range: {
         'min': 0,
         'max': 100
-      }
+      },
+      format: wNumb({
+        decimals: 0
+      })
     });
 }
 
@@ -344,11 +353,64 @@ function manageactivity(name_tag, ev) {
 }
 
 function activefilter(filter_name) {
+  console.log(filter_name);
 
 }
 
-function startsearch() {
+var extracted = 0;
 
+function startsearch() {
+  var age = document.getElementById('age-picker');
+  var range = document.getElementById('range-picker');
+  var rangeorigin = document.getElementById('range-origin');
+  var pop = document.getElementById('range-popularity');
+  var tags = document.getElementsByClassName('tagitem activated');
+  var actives = [];
+  if(tags) {
+    for (var tag in tags) {
+      if (tags.hasOwnProperty(tag)) {
+      actives.push(tags[tag].innerText);
+      }
+    }
+  }
+  if(age && range && pop)
+  {
+    age = age.noUiSlider.get();
+    range =  range.noUiSlider.get();
+    pop = pop.noUiSlider.get();
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({'address': rangeorigin.value}, function(results, status) {
+      if(status === 'OK') {
+          var address = [];
+
+          address.push({'lat' :results['0'].geometry.location.lat()});
+          address.push({'lng' : results['0'].geometry.location.lng()});
+          address.push({'address' : results['0']['formatted_address']});
+          address = JSON.stringify(address);
+      }
+      else {
+        var address = [];
+      }
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+        var data = JSON.parse(xhr.responseText);
+        extracted += data['extracted'];
+        var resultzone = document.getElementById('search_content_area');
+        data['result'].forEach(function (element) {
+          var newelem = document.createElement('DIV');
+          newelem.innerHTML("")
+
+          resultzone.appendChild(newelem);
+        });
+        console.log(data);
+      }
+    }
+    xhr.open("POST", "recherche", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send("age="+ encodeURIComponent(age) +"&range="+ encodeURIComponent(range)+ "&pop="+encodeURIComponent(pop)+"&area="+encodeURIComponent(address)+"&tags="+encodeURIComponent(actives)+"&extracted="+encodeURIComponent(extracted));
+    });
+  }
 }
 
 function sortresult(action,ev) {

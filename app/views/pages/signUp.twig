@@ -75,20 +75,16 @@
   <div class="row">
     <div class="input-field col s12">
       <div class="row">
-        <select class="col s6 m6 l6" name="gender" id="gender">
-          <option value="" disabled></option>
-          <option value="male" selected >Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-          <option value="" disabled></option>
-        </select>
-        <label class="scrib black-text" for="gender"> Votre sexe</label>
+        <div class="col s6 m6 l6">
+          <input type="text" class="datepicker" name="birthday" id="birthday">
+            <label class="scrib black-text" for="birthday"> Votre anniversaire</label>
+        </div>
+        {% if flash.error.birthday %}
+         <div class="alert">
+           {{ flash.error.birthday }}
+         </div>
+        {% endif %}
       </div>
-      {% if flash.error.gender %}
-       <div class="alert">
-         {{ flash.error.gender }}
-       </div>
-      {% endif %}
     </div>
   </div>
   <input type="hidden" name="latitude" value="" id="latitude">

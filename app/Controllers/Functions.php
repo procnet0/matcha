@@ -55,17 +55,19 @@ function createNewAccount($params, $pdo) {
   }
 
   $params['password'] =  hash('whirlpool',$params['password']);
-
+  $datec = new DateTime($params['birthday']);
+  $date = $datec->format('Y-m-d H:i:s');
   try {
     $pdo->beginTransaction();
-    $sql = $pdo->prepare("INSERT INTO members (login,nom,prenom,email,password,secret_answer) VALUES
-      (?, ?, ?, ?, ?, ?)");
+    $sql = $pdo->prepare("INSERT INTO members (login,nom,prenom,email,password,secret_answer,birthday) VALUES
+      (?, ?, ?, ?, ?, ?,?)");
     $sql->bindParam(1, $params['pseudo'], PDO::PARAM_STR);
     $sql->bindParam(2, $params['nom'], PDO::PARAM_STR);
     $sql->bindParam(3, $params['prenom'], PDO::PARAM_STR);
     $sql->bindParam(4, $params['email'], PDO::PARAM_STR);
     $sql->bindParam(5, $params['password'], PDO::PARAM_STR);
     $sql->bindParam(6, $params['answer'], PDO::PARAM_STR);
+    $sql->bindParam(7, $date, PDO::PARAM_STR);
     $sql->execute();
 
     $id = $pdo->lastInsertId();
@@ -80,8 +82,6 @@ function createNewAccount($params, $pdo) {
     $sql->bindParam(3, $params['longitude'], PDO::PARAM_STR);
     $sql->bindParam(4, $time, PDO::PARAM_INT);
     $sql->execute();
-
-
     $pdo->commit();
   } catch (PDOException $e) {
     $pdo->rollBack();
@@ -514,5 +514,154 @@ function updateLocation($data, $pdo) {
   else {
   return 'error';
   }
+}
+
+function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_long, $decimals = 2) {
+
+  $degrees = rad2deg(acos((sin(deg2rad($point1_lat))*sin(deg2rad($point2_lat))) + (cos(deg2rad($point1_lat))*cos(deg2rad($point2_lat))*cos(deg2rad($point1_long-$point2_long)))));
+
+  $distance = $degrees * 111.13384;
+  return round($distance, $decimals);
+}
+
+function Researcher($datas, $pdo) {
+
+  $age = explode(',',$datas['age']);
+  $range = explode(',', $datas['range']);
+  $area = $datas['area'];
+  $extracted = $datas['extracted'];
+  if($area){
+    $area = json_decode($area);
+  }
+  $pop = explode(',', $datas['pop']);
+
+
+  try {
+    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `get_distance_km`");
+    $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION get_distance_km (lat1 DOUBLE, lng1 DOUBLE, lat2 DOUBLE, lng2 DOUBLE) RETURNS DOUBLE
+BEGIN
+    DECLARE rlo1 DOUBLE;
+    DECLARE rla1 DOUBLE;
+    DECLARE rlo2 DOUBLE;
+    DECLARE rla2 DOUBLE;
+    DECLARE dlo DOUBLE;
+    DECLARE dla DOUBLE;
+    DECLARE a DOUBLE;
+
+    SET rlo1 = RADIANS(lng1);
+    SET rla1 = RADIANS(lat1);
+    SET rlo2 = RADIANS(lng2);
+    SET rla2 = RADIANS(lat2);
+    SET dlo = (rlo2 - rlo1) / 2;
+    SET dla = (rla2 - rla1) / 2;
+    SET a = SIN(dla) * SIN(dla) + COS(rla1) * COS(rla2) * SIN(dlo) * SIN(dlo);
+    RETURN ROUND((6378137 * 2 * ATAN2(SQRT(a), SQRT(1 - a)) / 1000), 2);
+END");
+
+
+    $sql = $pdo->prepare("SELECT members.id_user, members.prenom, members.nom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, members.sexe, members.oriented, members.profil_pict ,
+      (
+        SELECT CONCAT(latitude,',',longitude) AS pos
+        FROM geoloc
+        INNER JOIN members
+        WHERE type = 'user'
+        AND FROM_UNIXTIME(geoloc.timeof) > DATE_ADD(NOW(), INTERVAL -1 DAY)
+        AND login = ?
+        ORDER BY timeof
+        DESC LIMIT 1
+      )
+      AS geouser,
+      (
+        SELECT CONCAT(latitude,',',longitude) AS pos
+        FROM geoloc
+        INNER JOIN members
+        WHERE type = 'auto'
+        AND login = ?
+        ORDER BY timeof
+        DESC LIMIT 1
+      )
+      AS geoauto
+      FROM members
+      INNER JOIN geoloc ON geoloc.id_user = members.id_user
+      INNER JOIN tags_members ON tags_members.id_members = members.id_user
+      WHERE login = ?
+      GROUP BY members.id_user");
+    $sql->bindParam(1, $_SESSION['loggued_as'], PDO::PARAM_STR);
+    $sql->bindParam(2, $_SESSION['loggued_as'], PDO::PARAM_STR);
+    $sql->bindParam(3, $_SESSION['loggued_as'], PDO::PARAM_STR);
+    $sql->execute();
+    $user = $sql->fetchAll(PDO::FETCH_ASSOC);
+     if(!empty($user['0']['geoauto'])) {
+      $pos = $user['0']['geoauto'];
+      $arr = explode(',',$user['0']['geoauto']);
+      $user['0']['geoauto'] = $arr;
+    }
+    else  if(!empty($user['0']['geouser'])) {
+        $pos = $user['0']['geouser'];
+        $arr = explode(',',$user['0']['geouser']);
+        $user['0']['geouser'] = $arr;
+      }
+    $sexnor = array($user['0']['sexe'], $user['0']['oriented']);
+
+    $or = "members.sexe IN (";
+    switch($sexnor)  {
+      case array('male','hetero'):
+      $or .= "'female'"; break;
+      case array('female','hetero'):
+      $or .= "'male'"; break;
+      case array('other','hetero'):
+      $or .= "'female','male','other'"; break;
+      case array('male','bi'):
+      $or .= "'female','male','other'"; break;
+      case array('female','bi'):
+      $or .= "'female','male','other'"; break;
+      case array('other','bi'):
+      $or .= "'female','male','other'"; break;
+      case array('male','homo'):
+      $or .= "'male'"; break;
+      case array('female','homo'):
+      $or .= "'female'"; break;
+      case array('other','homo'):
+      $or .= "'female','male','other'"; break;
+    }
+    $or .= ")";
+
+
+
+    $reqsql = "SELECT
+    members.id_user,
+    members.prenom,
+    members.nom,
+    TIMESTAMPDIFF(YEAR, members.birthday, NOW()) AS age,
+    members.sexe,
+    members.oriented,
+    members.profil_pict,
+    GROUP_CONCAT(tags_members.id_tag) AS tags,
+    get_distance_km(48.892,2.31929,(SELECT latitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1),
+    (SELECT longitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1)) AS dist
+FROM
+    members, geoloc
+    LEFT JOIN tags_members ON (id_user=tags_members.id_members)
+WHERE ";
+    $reqsql .= $or;
+    $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
+    $reqsql .= ' GROUP BY id_user
+     HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
+     AND dist BETWEEN 0 AND '.$range['0'].'
+     LIMIT '.$extracted.', 2';
+
+    $sql = $pdo->query($reqsql);
+    $resultaa = $sql->fetchall(PDO::FETCH_ASSOC);
+  } catch (PDOException $e) {
+
+    print "Error!: DATABASE updateAccountInfo-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
+    die();
+  }
+
+
+  $res = [];
+  $res['result']= $resultaa;
+  $res['extracted']= count($resultaa);
+  return($res);
 }
  ?>

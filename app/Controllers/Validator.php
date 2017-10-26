@@ -52,6 +52,10 @@ class Validator {
     }
   }
 
+  public function isbirthday($content) {
+    return strtotime($content);
+  }
+
   public function password(string $content) {
     if(strlen($content) >= PASSWORD_LENGHT)
     {
@@ -76,6 +80,9 @@ class Validator {
       return true;
     }
     if($name == 'password' && !$this->isempty($value) && $this->password($value)){
+      return true;
+    }
+    if($name == 'birthday' && !$this->isempty($value) && $this->isbirthday($value)) {
       return true;
     }
 

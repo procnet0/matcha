@@ -14,7 +14,7 @@ try {
     $_SESSION['db_status'] ='0';
     print "Error!: DATABASE db-> " . $e->getMessage() . " FAILED TO CREATE<br/>";
     die();
-}
+  }
 }
 if (!isset($_SESSION['db_status']) || $_SESSION['db_status'] != '2')
 {
@@ -29,6 +29,7 @@ try {
     email VARCHAR(64) NOT NULL,
     password VARCHAR(128) NOT NULL,
     secret_answer VARCHAR(128) NOT NULL,
+    birthday DATETIME NOT NULL,
     sexe ENUM('male','female','other') DEFAULT 'male' NOT NULL,
     oriented ENUM('hetero', 'homo', 'bi') DEFAULT 'bi' NOT NULL,
     bio TEXT,
@@ -69,7 +70,7 @@ try {
     (5,'Drink')
     ");
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS likes
+  $pdo->exec("CREATE TABLE IF NOT EXISTS likes
     (
       id_visit INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
       id_from INT NOT NULL,
@@ -78,7 +79,7 @@ try {
       type ENUM('like','unlike') DEFAULT 'like' NOT NULL
     )");
 
-    $pdo->exec("CREATE TABLE IF NOT EXISTS geoloc
+  $pdo->exec("CREATE TABLE IF NOT EXISTS geoloc
     (
       id_geoloc INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
       id_user INT NOT NULL,
@@ -88,12 +89,46 @@ try {
       type ENUM('auto','user') DEFAULT 'auto' NOT NULL
     )");
 
+  $pdo->exec("CREATE TABLE IF NOT EXISTS likes
+    (
+      id_like INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+      id_from INT NOT NULL,
+      id_to INT NOT NULL,
+      timeof INT NOT NULL
+    )");
+
+  $pdo->exec("CREATE TABLE IF NOT EXISTS visite
+    (
+      id_visite INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+      id_from INT NOT NULL,
+      id_to INT NOT NULL,
+      timeof INT NOT NULL
+    )");
+
+  $pdo->exec("CREATE TABLE IF NOT EXISTS report
+    (
+      id_report INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+      id_from INT NOT NULL,
+      id_to INT NOT NULL,
+      timeof INT NOT NULL,
+      subject ENUM('Message indesirable','Fake profil','Photo non conforme','Other') DEFAULT 'Other' NOT NULL,
+      content TEXT
+    )");
+
+  $pdo->exec("CREATE TABLE IF NOT EXISTS logs
+    (
+      id_logs INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+      id_user INT NOT NULL,
+      logip VARCHAR(40) NOT NULL,
+      timeof INT NOT NULL
+    )");
+
   $_SESSION['db_status'] ='2';
   $pdo->commit();
   } catch (PDOException $e) {
   $pdo->rollBack();
-  $_SESSION['db_status'] ='1';
-  print "Error!: DATABASE pictures -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+  $_SESSION['db_status'] ='0';
+  print "Error!: DATABASE ALL -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
   die();
 }
 }

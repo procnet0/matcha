@@ -275,4 +275,5 @@ cursor: pointer;
   line-height: 30px;
   text-align: center;
   display: flex;
+  flex-wrap: wrap;
 }

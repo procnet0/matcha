@@ -73,6 +73,14 @@
 $(document).ready(function() {
    $('select').material_select();
    $('.carousel').carousel();
+   $('.datepicker').pickadate({
+    selectMonths: true,
+    selectYears: 82,
+    clear: 'Clear',
+    close: 'Ok',
+    closeOnSelect: false,
+    max: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
+  });
 });
  </script>
  <script>

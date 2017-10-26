@@ -130,8 +130,8 @@ class PagesController extends Controller{
     $errors['password'] = 'Your password is to short';}
     if($Validator->validate('content',$request->getParam('answer')) != true) {
     $errors['answer'] = 'Your secret answer is empty.';}
-    if($Validator->validate('gender',$request->getParam('gender')) != true) {
-    $errors['gender'] = 'Your gender is not known by abracadamatcha what kind of creature are you?';}
+    if($Validator->validate('birthday',$request->getParam('birthday')) != true) {
+    $errors['birthday'] = 'Your birthday is not known by abracadamatcha what kind of creature are you?';}
 
     if(empty($errors))
     {
@@ -139,6 +139,9 @@ class PagesController extends Controller{
       if ($result === true) {
         $_SESSION['loggued_as'] = $request->getParam('pseudo');
         $this->flash('Account created, mail have been sent for activation' ,'success');
+        $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+        $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
+        $this->render($response, 'pages/account.twig', $info);
       }
       else {
         $this->flash($result ,'error');
@@ -265,7 +268,13 @@ class PagesController extends Controller{
   }
 
   public function postSearch(Request $request, Response $response) {
-
+    $datas = $request->getParams();
+    if($datas){
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $ret = Researcher($datas, $pdo);
+      print json_encode($ret);
+    }
   }
 
   public function updatePosition(request $request, Response $reponse) {
@@ -277,6 +286,5 @@ class PagesController extends Controller{
       var_dump( $ret);
     }
   }
-
 }
  ?>
