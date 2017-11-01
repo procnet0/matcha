@@ -24,8 +24,6 @@ class PagesController extends Controller{
       $info = [];
       $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
       $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
-
-
       $this->render($response, 'pages/account.twig', $info);
     }
     else {
@@ -80,6 +78,7 @@ class PagesController extends Controller{
         $_SESSION['Alert'] = "Connexion Succeeded";
         $info = [];
         $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+        $_SESSION['id'] = $info['profil']['id_user'];
         $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
         updateLocation($param,$pdo);
         $this->render($response, 'pages/account.twig', $info);
@@ -87,18 +86,21 @@ class PagesController extends Controller{
       else if($result['name'] == True && $result['password'] == False)
       {
         $_SESSION['loggued_as'] = "";
+        $_SESSION['id'] = "";
         $_SESSION['Alert'] = "Wrong password";
         $this->render($response, 'pages/home.twig');
       }
       else if($result['name'] != True)
       {
         $_SESSION['loggued_as'] = "";
+        $_SESSION['id'] = "";
         $info = "Login not Found, Please Sign up";
         $this->render($response, 'pages/signUp.twig', array('login' => filter_var($param['name'], FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES)));
       }
     }
     else {
       $_SESSION['loggued_as'] = "";
+      $_SESSION['id'] = "";
       $this->render($response, 'pages/home.twig');
     }
   }
@@ -140,26 +142,26 @@ class PagesController extends Controller{
         $_SESSION['loggued_as'] = $request->getParam('pseudo');
         $this->flash('Account created, mail have been sent for activation' ,'success');
         $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
-        $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
-        $this->render($response, 'pages/account.twig', $info);
+        $_SESSION['id'] = $info['profil']['id_user'];
+      return  $this->redirect($response, 'profil');
       }
       else {
         $this->flash($result ,'error');
-        return $this->render($response, 'pages/signUp.twig');
+        return $this->redirect($response, 'signUp');
       }
     }
     else {
       $this->flash($errors, 'error');
-      return $this->render($response, 'pages/signUp.twig');
+      $this->render($response, 'pages/signUp.twig');
     }
-    $this->render($response, 'pages/account.twig');
   }
 
   public function logout(Request $request, Response $response) {
     if(!empty($_SESSION['loggued_as'])) {
       $_SESSION['loggued_as'] = "";
+      $_SESSION['id'] = "";
     }
-    $this->render($response, 'pages/home.twig');
+    return $this->redirect($response, 'home');
   }
 
   public function getContact(Request $request, Response $response) {

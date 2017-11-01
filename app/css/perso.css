@@ -277,3 +277,12 @@ cursor: pointer;
   display: flex;
   flex-wrap: wrap;
 }
+
+p {
+  text-align: center;
+}
+
+#search_content_area {
+  max-height: 450px;
+  overflow-y: overlay;
+}

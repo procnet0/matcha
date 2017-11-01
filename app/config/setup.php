@@ -123,6 +123,13 @@ try {
       timeof INT NOT NULL
     )");
 
+  $pdo->exec("CREATE TABLE IF NOT EXISTS ping
+  (
+    id_ping INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    id_user INT NOT NULL,
+    timeof INT NOT NULL
+  )");
+
   $_SESSION['db_status'] ='2';
   $pdo->commit();
   } catch (PDOException $e) {

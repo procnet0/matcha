@@ -23,7 +23,6 @@ $app = new \Slim\App([
 ]);
 
 require('app/container.php');
-
 $container = $app->getContainer();
 
 $app->add(new \App\Middlewares\FlashMiddleware($container->view->getEnvironment()));

@@ -27,7 +27,7 @@ function setAsProfil(ev) {
         {
             document.getElementById('pict_selector').parentElement.appendChild(div);
         }}};
-
+        console.log(link);
     xhr.open("POST", "setAsProfil", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send("profil_pict="+ encodeURIComponent(link));
@@ -365,11 +365,13 @@ function startsearch() {
   var rangeorigin = document.getElementById('range-origin');
   var pop = document.getElementById('range-popularity');
   var tags = document.getElementsByClassName('tagitem activated');
+
   var actives = [];
   if(tags) {
     for (var tag in tags) {
       if (tags.hasOwnProperty(tag)) {
-      actives.push(tags[tag].innerText);
+      actives.push(tags[tag].innerHTML.replace(/ |\n|\r/g, ""));
+      console.log(actives);
       }
     }
   }
@@ -395,12 +397,23 @@ function startsearch() {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
         var data = JSON.parse(xhr.responseText);
+        var num = extracted;
+        var numtmp = 0;
         extracted += data['extracted'];
         var resultzone = document.getElementById('search_content_area');
         data['result'].forEach(function (element) {
           var newelem = document.createElement('DIV');
-          newelem.innerHTML("")
+          num += 1;
+          var tag = data['result'][numtmp]['tags'];
+          if(tag !== null){
+            nbtag = tag.split(",").length;
+          }
+          else {
+            nbtag = 0;
+          }
+          newelem.innerHTML = "<div class='row' id='num"+num+"'><div class='col s2'><img src='"+data['result'][numtmp]['profil_pict']+"' style='height:100px;width:80%;'><p>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p></div><div class='col s2'>"+data['result'][numtmp]['age']+" </div><div class='col s2'>"+data['result'][numtmp]['dist']+"</div><div class='col s2'> </div><div class='col s2'> </div><div class='col s1'> "+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><i class='material-icons'>unfold_more</i></div></div>";
 
+          numtmp += 1;
           resultzone.appendChild(newelem);
         });
         console.log(data);

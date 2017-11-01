@@ -60,7 +60,7 @@ function createNewAccount($params, $pdo) {
   try {
     $pdo->beginTransaction();
     $sql = $pdo->prepare("INSERT INTO members (login,nom,prenom,email,password,secret_answer,birthday) VALUES
-      (?, ?, ?, ?, ?, ?,?)");
+      (?, ?, ?, ?, ?, ?, ?)");
     $sql->bindParam(1, $params['pseudo'], PDO::PARAM_STR);
     $sql->bindParam(2, $params['nom'], PDO::PARAM_STR);
     $sql->bindParam(3, $params['prenom'], PDO::PARAM_STR);
@@ -82,6 +82,12 @@ function createNewAccount($params, $pdo) {
     $sql->bindParam(3, $params['longitude'], PDO::PARAM_STR);
     $sql->bindParam(4, $time, PDO::PARAM_INT);
     $sql->execute();
+
+    $sql = $pdo->prepare("INSERT INTO ping (id_user,timeof) VALUES (?,?)");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->bindParam(2, $time, PDO::PARAM_INT);
+    $sql->execute();
+
     $pdo->commit();
   } catch (PDOException $e) {
     $pdo->rollBack();
@@ -179,6 +185,7 @@ function updateAccountInfo($login, $post,$pdo) {
 
 function updatePict($data, $pdo) {
 
+  $data['profil_pict'] = str_replace('http://'.$_SERVER['HTTP_HOST'].'/matcha/','',$data['profil_pict']);
   try {
     $pdo->beginTransaction();
     $sql = $pdo->prepare("SELECT members.id_user,profil_pict, login FROM pictures INNER JOIN members ON members.id_user = pictures.id_user WHERE  login = ?");
@@ -534,12 +541,14 @@ function Researcher($datas, $pdo) {
     $area = json_decode($area);
   }
   $pop = explode(',', $datas['pop']);
+  $tagsnm = [];
+  $tagsnm = explode(',', $datas['tags']);
 
 
   try {
     $sql = $pdo->exec("DROP FUNCTION IF EXISTS `get_distance_km`");
     $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION get_distance_km (lat1 DOUBLE, lng1 DOUBLE, lat2 DOUBLE, lng2 DOUBLE) RETURNS DOUBLE
-BEGIN
+  BEGIN
     DECLARE rlo1 DOUBLE;
     DECLARE rla1 DOUBLE;
     DECLARE rlo2 DOUBLE;
@@ -556,8 +565,18 @@ BEGIN
     SET dla = (rla2 - rla1) / 2;
     SET a = SIN(dla) * SIN(dla) + COS(rla1) * COS(rla2) * SIN(dlo) * SIN(dlo);
     RETURN ROUND((6378137 * 2 * ATAN2(SQRT(a), SQRT(1 - a)) / 1000), 2);
-END");
+  END");
 
+  if($datas['tags']) {
+    $sql = $pdo->query("SELECT id_tag, name_tag FROM tags WHERE name_tag IN ('".str_replace(',', "','",$datas['tags'])."')");
+    $taglist = $sql->fetchAll(PDO::FETCH_ASSOC);
+    foreach($taglist as $key => $elem) {
+      $tlist[$key] = $elem['id_tag'];
+    }
+  }
+  else {
+    $tlist = [];
+  }
 
     $sql = $pdo->prepare("SELECT members.id_user, members.prenom, members.nom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, members.sexe, members.oriented, members.profil_pict ,
       (
@@ -580,12 +599,12 @@ END");
         ORDER BY timeof
         DESC LIMIT 1
       )
-      AS geoauto
+      AS geoauto ,
+       (SELECT GROUP_CONCAT(id_tag) AS nb FROM `tags_members` WHERE id_members = members.id_user GROUP BY id_members) AS nb
       FROM members
       INNER JOIN geoloc ON geoloc.id_user = members.id_user
-      INNER JOIN tags_members ON tags_members.id_members = members.id_user
       WHERE login = ?
-      GROUP BY members.id_user");
+      GROUP BY id_user");
     $sql->bindParam(1, $_SESSION['loggued_as'], PDO::PARAM_STR);
     $sql->bindParam(2, $_SESSION['loggued_as'], PDO::PARAM_STR);
     $sql->bindParam(3, $_SESSION['loggued_as'], PDO::PARAM_STR);
@@ -596,7 +615,7 @@ END");
       $arr = explode(',',$user['0']['geoauto']);
       $user['0']['geoauto'] = $arr;
     }
-    else  if(!empty($user['0']['geouser'])) {
+    else if (!empty($user['0']['geouser'])) {
         $pos = $user['0']['geouser'];
         $arr = explode(',',$user['0']['geouser']);
         $user['0']['geouser'] = $arr;
@@ -626,8 +645,6 @@ END");
     }
     $or .= ")";
 
-
-
     $reqsql = "SELECT
     members.id_user,
     members.prenom,
@@ -637,29 +654,43 @@ END");
     members.oriented,
     members.profil_pict,
     GROUP_CONCAT(tags_members.id_tag) AS tags,
-    get_distance_km(48.892,2.31929,(SELECT latitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1),
-    (SELECT longitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1)) AS dist
-FROM
+    get_distance_km(".$pos.",(SELECT latitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1),
+    (SELECT longitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1)) AS dist, (SELECT COUNT(tags_members.id_tag) FROM tags_members WHERE tags_members.id_members = members.id_user AND tags_members.id_tag IN ('". str_replace(',',"','",$user['0']['nb'])."')) AS nb
+  FROM
     members, geoloc
     LEFT JOIN tags_members ON (id_user=tags_members.id_members)
-WHERE ";
+  WHERE ";
     $reqsql .= $or;
     $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
     $reqsql .= ' GROUP BY id_user
      HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
-     AND dist BETWEEN 0 AND '.$range['0'].'
-     LIMIT '.$extracted.', 2';
+     AND dist BETWEEN 0 AND '.$range['0'];
 
+    if(isset($tlist)) {
+      foreach ($tlist as $elem) {
+        $reqsql .= " AND tags LIKE '%" . $elem ."%'";
+      }
+    }
+    $reqsql .= ' LIMIT '.$extracted.', 5';
     $sql = $pdo->query($reqsql);
     $resultaa = $sql->fetchall(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
 
-    print "Error!: DATABASE updateAccountInfo-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
+    print "Error!: DATABASE searching-> " . $e->getMessage() . " FAILED TO search<br/>";
     die();
   }
 
+  if($resultaa){
+    foreach($resultaa as $key =>$array) {
+      if ($array['profil_pict'] == "#" || !file_exists($array['profil_pict'])) {
+        $resultaa[$key]['profil_pict'] = 'app/css/image/Photo-non-disponible.png';
+      }
+    }
+  }
 
   $res = [];
+  $res['taglist']= isset($tlist) ? $tlist : '';
+  $res['req']= $reqsql;
   $res['result']= $resultaa;
   $res['extracted']= count($resultaa);
   return($res);

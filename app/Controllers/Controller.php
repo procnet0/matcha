@@ -9,6 +9,10 @@ class Controller {
 
   public function __construct($container) {
       $this->container = $container;
+      if(!empty($_SESSION['id'])) {
+      $pdo = $this->pdo;
+      $pdo->exec("UPDATE ping SET timeof =".time()." WHERE id_user =".$_SESSION['id']);
+    }
   }
 
   public function render(Response $response, $file , $params = []) {
