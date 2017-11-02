@@ -578,7 +578,7 @@ function Researcher($datas, $pdo) {
     $tlist = [];
   }
 
-    $sql = $pdo->prepare("SELECT members.id_user, members.prenom, members.nom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, members.sexe, members.oriented, members.profil_pict ,
+    $sql = $pdo->prepare("SELECT members.login, members.id_user, members.prenom, members.nom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, members.sexe, members.oriented, members.profil_pict ,
       (
         SELECT CONCAT(latitude,',',longitude) AS pos
         FROM geoloc
@@ -646,6 +646,7 @@ function Researcher($datas, $pdo) {
     $or .= ")";
 
     $reqsql = "SELECT
+    members.login,
     members.id_user,
     members.prenom,
     members.nom,
@@ -688,11 +689,100 @@ function Researcher($datas, $pdo) {
     }
   }
 
+  $idlist = [];
+  foreach ($resultaa as $key=>$elem) {
+    $idlist[$key] = $elem['id_user'];
+  }
+
   $res = [];
+  $res['online'] = getOnlineMembers($idlist, $pdo);
   $res['taglist']= isset($tlist) ? $tlist : '';
   $res['req']= $reqsql;
   $res['result']= $resultaa;
   $res['extracted']= count($resultaa);
   return($res);
+}
+
+function getOnlineMembers($array_id_user, $pdo) {
+  $res = [];
+  if($array_id_user) {
+    $query = "SELECT id_user, IF(timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected FROM ping WHERE id_user IN (";
+    $query .= implode(",",$array_id_user);
+    $query .= ")";
+    try {
+
+    $sql= $pdo->query($query);
+    $res = $sql->fetchall(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+    print "Error!: DATABASE getOnlineMembers-> " . $e->getMessage() . " FAILED TO search<br/>";
+    die();
+    }
+  }
+  if($res) {
+    $tmp = [];
+    foreach($res as $key=>$elem) {
+      $tmp[$elem['id_user']] = $elem['connected'];
+    }
+    $res = $tmp;
+  }
+  return $res;
+}
+
+function lookathim($login, $pdo) {
+
+  $result = [];
+  try {
+
+    $st = '0';
+    $sql = $pdo->prepare("SELECT id_user,login, nom, prenom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, sexe, oriented, bio, profil_pict FROM members WHERE login = ?");
+    $sql->bindParam(1, $login, PDO::PARAM_INT);
+    $sql->execute();
+    $result = $sql->fetch(PDO::FETCH_ASSOC);
+    if($result['profil_pict'] == "#" || !file_exists($result['profil_pict'])) {
+      $result['profil_pict'] = 'app/css/image/Photo-non-disponible.png';
+    }
+    $id = $result['id_user'];
+
+    $st= '1';
+    $sql = $pdo->prepare("SELECT pict1,pict2,pict3,pict4,pict5 FROM pictures WHERE id_user = ?");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->execute();
+    $result['pictures']= $sql->fetch(PDO::FETCH_ASSOC);
+    foreach($result['pictures'] as $key =>$elem) {
+      if ($elem == 'NULL' || !file_exists($elem)) {
+        $result['pictures'][$key] = 'app/css/image/Photo-non-disponible.png';
+      }
+    }
+    $st = '2';
+    $sql = $pdo->prepare("SELECT GROUP_CONCAT(id_tag) AS tags FROM tags_members WHERE id_members = ?");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->execute();
+    $result['tags']= $sql->fetch(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT id_user, timeof, IF(timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected FROM ping WHERE id_user = ?");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->execute();
+    $result['logs']= $sql->fetchall(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? AND type = 'auto' ORDER BY timeof DESC LIMIT 1");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->execute();
+    $result['geoloc']= $sql->fetch(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? ORDER BY timeof DESC LIMIT 1");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $current= $sql->fetch(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
+    $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
+
+  } catch (PDOException $e) {
+    print "error = ".$e." in lookathim stage=".$st;
+    die();
+  }
+
+  return $result;
 }
  ?>

@@ -288,5 +288,15 @@ class PagesController extends Controller{
       var_dump( $ret);
     }
   }
+
+  public function lookat(request $request, Response $response, $info) {
+
+    $inf = $request->getParams();
+    include_once ('Functions.php');
+    $pdo = $this->pdo;
+    $res = lookathim($info['name'], $pdo);
+    var_dump($res);
+    $this->render($response, 'pages/lookat.twig', $res);
+  }
 }
  ?>

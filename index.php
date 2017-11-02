@@ -31,6 +31,7 @@ $app->get("/", \App\Controllers\PagesController::class . ':home')->setName('home
 $app->get("/contact", \App\Controllers\PagesController::class . ':getContact')->setName('contact');
 $app->post("/contact", \App\Controllers\PagesController::class . ':postContact');
 $app->get("/profil", \App\Controllers\PagesController::class . ':getAccount')->setName('profil');
+$app->get("/lookat/{name}", \App\Controllers\PagesController::class . ':lookat')->setName('lookat');
 $app->post("/profil", \App\Controllers\PagesController::class . ':postAccount');
 $app->get("/recherche", \App\Controllers\PagesController::class . ':getSearch')->setName('recherche');
 $app->post("/recherche", \App\Controllers\PagesController::class . ':postSearch');

@@ -1,0 +1,28 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+<div class="row">
+  <div class="col s6">
+      {% if profil_pict %}<img  class="profil_pict" src="/matcha/{{ profil_pict}}"> {% endif %}
+      {% if login %}<div  class="text-field">{{ login }}</div> {% endif %}
+  </div>
+  <div class="col s6">
+    <div>
+      {% if nom %}<div  class="text-field">nom : {{ nom }}</div> {% endif %}
+      {% if prenom %}<div  class="text-field">prenom : {{ prenom }}</div> {% endif %}
+      {% if age %}<div  class="text-field">age : {{ age }}</div> {% endif %}
+      {% if sexe %}<div  class="text-field">sexe : {{ sexe }}</div> {% endif %}
+      {% if oriented %}<div  class="text-field">orientation : {{ oriented }}</div> {% endif %}
+    </div>
+    <div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col s6">
+    <div  class="text-field big">bio :{% if bio %} {{ bio }} {% endif %}</div>
+  </div>
+  <div class="col s6">
+  </div>
+</div>
+{% endblock %}

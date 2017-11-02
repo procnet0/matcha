@@ -9,13 +9,10 @@ send mail for inscription validation.
 research menu
 when connected
 
-geolocalisation + modification du lieu par le client
+geolocalisation + modification du lieu par le client (fait mais empeche la loc auto apres avoir fait une loc user)
 
 historique des visites et like
 
 score de populariter
 
-filtre + trie sur la recherche
--> possibiliter = intervalle d age , intervalle de score de populariter, localisation, et tags
-
-filtre et trie sur ces parametre
+filtre + trie

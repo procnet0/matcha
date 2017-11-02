@@ -206,6 +206,7 @@ cursor: pointer;
 #map {
   z-index: 100;
   position: absolute;
+  right: 0;
   height: 300px;
   width: 300px;
   visibility: hidden;
@@ -283,6 +284,38 @@ p {
 }
 
 #search_content_area {
+  margin-top: 45px;
   max-height: 450px;
   overflow-y: overlay;
+}
+
+#search_content_area::-webkit-scrollbar-thumb {
+  width: 6px;
+  background-color: #000000;
+}
+#search_content_area::-webkit-scrollbar {
+  width: 8px;
+  background-color: #F5F5F5;
+}
+
+img.miniProfilPict {
+  width:  75%;
+  min-width: 75px;
+
+}
+div.miniProfilPict {
+  min-width: 75px;
+}
+
+.nameContainer {
+  width: 80%;
+  min-width: 40px;
+}
+
+.inline-flex {
+  display: inline-flex;
+}
+
+.profil_pict {
+  width: 150px;
 }

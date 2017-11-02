@@ -336,7 +336,6 @@ function Tagchooserdisplay(targetname) {
   else {
     contain.style.visibility = 'collapse';
   }
-
 }
 
 function manageactivity(name_tag, ev) {
@@ -359,7 +358,12 @@ function activefilter(filter_name) {
 
 var extracted = 0;
 
-function startsearch() {
+
+function startsearch(status) {
+  if(status === 'new') {
+    extracted = 0;
+    document.getElementById('search_content_area').innerHTML = '';
+  }
   var age = document.getElementById('age-picker');
   var range = document.getElementById('range-picker');
   var rangeorigin = document.getElementById('range-origin');
@@ -399,6 +403,7 @@ function startsearch() {
         var data = JSON.parse(xhr.responseText);
         var num = extracted;
         var numtmp = 0;
+        var connect = '';
         extracted += data['extracted'];
         var resultzone = document.getElementById('search_content_area');
         data['result'].forEach(function (element) {
@@ -411,7 +416,14 @@ function startsearch() {
           else {
             nbtag = 0;
           }
-          newelem.innerHTML = "<div class='row' id='num"+num+"'><div class='col s2'><img src='"+data['result'][numtmp]['profil_pict']+"' style='height:100px;width:80%;'><p>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p></div><div class='col s2'>"+data['result'][numtmp]['age']+" </div><div class='col s2'>"+data['result'][numtmp]['dist']+"</div><div class='col s2'> </div><div class='col s2'> </div><div class='col s1'> "+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><i class='material-icons'>unfold_more</i></div></div>";
+
+          if(data['online'][data['result'][numtmp]['id_user']] == 'yes') {
+            connect = "<i class='material-icons green-text'>lens</i>";
+          }
+          else {
+            connect = "<i class='material-icons red-text'>lens</i>";
+          }
+          newelem.innerHTML = "<div class='row' id='num"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='inline-flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2'>"+data['result'][numtmp]['age']+" </div><div class='col s2'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2"> </div><div class="col s1"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
 
           numtmp += 1;
           resultzone.appendChild(newelem);
