@@ -450,3 +450,49 @@ function sortresult(action,ev) {
   }
 
 }
+
+function likeuser(login) {
+ console.log(login);
+}
+
+function blockuser(login) {
+ console.log(login);
+}
+
+function openreportpanel(login, ev) {
+  if(!document.getElementById('report-menu')) {
+  var contextmenu = document.createElement('DIV');
+  contextmenu.setAttribute('id', 'report-menu');
+  contextmenu.innerHTML = '<select id="reportstatus"><option value="1" selected>Message indesirable</option><option value="2">Fake profil</option><option value="3">Photo non conforme</option><option value="4">Other</option></select><textarea id="textreport" placeholder="reasons of report"></textarea>';
+  var send = document.createElement('BUTTON');
+  send.className = 'round';
+  send.id = 'reportsender';
+  send.innerText= 'send';
+  send.addEventListener('click', function(eve){ reportuser(login,eve)});
+  contextmenu.append(send);
+  document.getElementById('maincontainer').prepend(contextmenu);
+  }
+  else {
+    document.getElementById('report-menu').remove();
+  }
+}
+
+function reportuser(login, ev) {
+  var text = document.getElementById('textreport');
+  var select = document.getElementById('reportstatus');
+  if(text && select)
+  {
+  var type = select.options[select.selectedIndex].value;
+  var content = text.value;
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      var data = xhr.responseText;
+    }
+  }
+  xhr.open("POST", "reportUser", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send("action=report&type="+ encodeURIComponent(type)+"&content="+ encodeURIComponent(content)+"&to="+ encodeURIComponent(login));
+  ev.target.parentNode.remove();
+  }
+}

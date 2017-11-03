@@ -45,5 +45,6 @@ $app->post("/updateAccountPict", \App\Controllers\PagesController::class . ':upd
 $app->post("/getTagInfo", \App\Controllers\PagesController::class . ':getTagInfo');
 $app->post("/updateTagInfo", \App\Controllers\PagesController::class . ':updateTagInfo');
 $app->post("/updatePosition", \App\Controllers\PagesController::class . ':updatePosition');
+$app->post("/lookat/reportUser", \App\Controllers\PagesController::class . ':reportUser');
 $app->run();
 ?>

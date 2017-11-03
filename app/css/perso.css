@@ -298,9 +298,8 @@ p {
   background-color: #F5F5F5;
 }
 
-img.miniProfilPict {
-  width:  75%;
-  min-width: 75px;
+.miniProfilPict {
+  width: 75px;
 
 }
 div.miniProfilPict {
@@ -318,4 +317,47 @@ div.miniProfilPict {
 
 .profil_pict {
   width: 150px;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.text-field {
+
+}
+
+#report-menu {
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: absolute;
+  background: url(image/darkfond.jpg);
+  background-size: cover;
+}
+
+#reportstatus {
+  display: inline-block;
+  top: 25px;
+  width: 50%;
+  height: 2rem;
+  position: relative;
+}
+
+#reportsender {
+  height: 50px;
+  width: 50px;
+  margin-left: 50px;
+  margin-right: 50px;
+}
+
+#textreport {
+  resize: none;
+  margin-top: 50px;
+  color: white;
+  width : 200px;
+  height: 75px;
 }

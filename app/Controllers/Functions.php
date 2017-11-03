@@ -739,9 +739,11 @@ function lookathim($login, $pdo) {
     $sql->bindParam(1, $login, PDO::PARAM_INT);
     $sql->execute();
     $result = $sql->fetch(PDO::FETCH_ASSOC);
-    if($result['profil_pict'] == "#" || !file_exists($result['profil_pict'])) {
-      $result['profil_pict'] = 'app/css/image/Photo-non-disponible.png';
-    }
+    if($result) {
+      if($result['profil_pict'] == "#" || !file_exists($result['profil_pict'])) {
+        $result['profil_pict'] = 'app/css/image/Photo-non-disponible.png';
+      }
+
     $id = $result['id_user'];
 
     $st= '1';
@@ -755,20 +757,22 @@ function lookathim($login, $pdo) {
       }
     }
     $st = '2';
-    $sql = $pdo->prepare("SELECT GROUP_CONCAT(id_tag) AS tags FROM tags_members WHERE id_members = ?");
+    $sql = $pdo->prepare("SELECT tags_members.id_tag, name_tag FROM tags_members LEFT JOIN tags ON tags.id_tag= tags_members.id_tag WHERE id_members = ?");
     $sql->bindParam(1, $id, PDO::PARAM_INT);
     $sql->execute();
-    $result['tags']= $sql->fetch(PDO::FETCH_ASSOC);
+    $tags = $sql->fetchall(PDO::FETCH_ASSOC);
+    $result['tags'] = $tags;
 
     $sql = $pdo->prepare("SELECT id_user, timeof, IF(timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected FROM ping WHERE id_user = ?");
     $sql->bindParam(1, $id, PDO::PARAM_INT);
     $sql->execute();
-    $result['logs']= $sql->fetchall(PDO::FETCH_ASSOC);
+    $result['logs']= $sql->fetch(PDO::FETCH_ASSOC);
 
     $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? AND type = 'auto' ORDER BY timeof DESC LIMIT 1");
     $sql->bindParam(1, $id, PDO::PARAM_INT);
     $sql->execute();
     $result['geoloc']= $sql->fetch(PDO::FETCH_ASSOC);
+    $result['geoloc']['info'] = getAddrWithCoord($result['geoloc']['latitude'],$result['geoloc']['longitude']);
 
     $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? ORDER BY timeof DESC LIMIT 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
@@ -777,12 +781,62 @@ function lookathim($login, $pdo) {
 
     $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
     $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
-
+    }
   } catch (PDOException $e) {
     print "error = ".$e." in lookathim stage=".$st;
     die();
   }
 
+  return $result;
+}
+
+function reportevent($from, $param, $pdo) {
+  $to = $param['to'];
+  $type = $param['type'];
+    switch ($type) {
+      case 1:
+        $type = "Message indesirable";
+        break;
+      case 2:
+        $type= "Fake profil";
+        break;
+      case 3:
+        $type = "Photo non conforme";
+        break;
+      default:
+        $type = "Other";
+
+    }
+  $result='';
+  $content = $param['content'];
+  try {
+
+    $sql =$pdo->prepare("SELECT id_user FROM members WHERE login = ?");
+    $sql->bindParam(1, $to, PDO::PARAM_STR);
+    $sql->execute();
+    $tmp = $sql->fetch(PDO::FETCH_ASSOC);
+    $to = $tmp['id_user'];
+    var_dump($tmp);
+
+    $sql =$pdo->prepare("SELECT id_user FROM members WHERE login = ?");
+    $sql->bindParam(1, $from, PDO::PARAM_STR);
+    $sql->execute();
+    $tmp = $sql->fetch(PDO::FETCH_ASSOC);
+    $from = $tmp['id_user'];
+
+    var_dump($tmp);
+
+    $sql = $pdo->prepare("INSERT INTO report (id_from, id_to,timeof,subject,content) VALUES (?,?,UNIX_TIMESTAMP(),?,?) ");
+    $sql->bindParam(1, $from, PDO::PARAM_INT);
+    $sql->bindParam(2, $to, PDO::PARAM_INT);
+    $sql->bindParam(3, $type, PDO::PARAM_STR);
+    $sql->bindParam(4, $content, PDO::PARAM_STR);
+    $sql->execute();
+    $result = $pdo->lastInsertId();
+  } catch (PDOException $e) {
+    print "error database reportevent ->".$e." param = ". implode(' ',$param);
+    die();
+  }
   return $result;
 }
  ?>

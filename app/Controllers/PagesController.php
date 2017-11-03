@@ -59,7 +59,7 @@ class PagesController extends Controller{
       $this->render($response, 'pages/account.twig', $info);
     }
     else {
-      $this->render($response, 'pages/home.twig');
+      return $this->redirect($response, 'home');
     }
   }
 
@@ -279,7 +279,7 @@ class PagesController extends Controller{
     }
   }
 
-  public function updatePosition(request $request, Response $reponse) {
+  public function updatePosition(Request $request, Response $reponse) {
      $data = $request->getParams();
     if(!empty($data['input']) || (!empty($data['lng']) && !empty($data['lat']))) {
       $pdo = $this->pdo;
@@ -289,14 +289,36 @@ class PagesController extends Controller{
     }
   }
 
-  public function lookat(request $request, Response $response, $info) {
+  public function lookat(Request $request, Response $response, $info) {
+    if(!empty($_SESSION['loggued_as'])) {
+      $inf = $request->getParams();
+      include_once ('Functions.php');
+      $pdo = $this->pdo;
 
-    $inf = $request->getParams();
-    include_once ('Functions.php');
-    $pdo = $this->pdo;
-    $res = lookathim($info['name'], $pdo);
-    var_dump($res);
-    $this->render($response, 'pages/lookat.twig', $res);
+      $res = lookathim($info['name'], $pdo);
+      if($res){
+        $this->render($response, 'pages/lookat.twig', $res);
+      }
+      else {
+          return $this->redirect($response, 'home');
+      }
+    }
+    else {
+      return $this->redirect($response, 'home');
+    }
+  }
+
+  public function reportUser(Request $request, Response $response) {
+    if(!empty($_SESSION['loggued_as']))
+    {
+    $param = $request->getParams();
+      if(isset($param['action']) && isset($param['type']) && isset($param['content']) && isset($param['to']) && $param['action'] == "report") {
+        $pdo = $this->pdo;
+        include_once ('Functions.php');
+        $res = reportevent($_SESSION['loggued_as'], $param, $pdo);
+        print ($res);
+      }
+    }
   }
 }
  ?>
