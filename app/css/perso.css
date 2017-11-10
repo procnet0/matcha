@@ -315,6 +315,10 @@ div.miniProfilPict {
   display: inline-flex;
 }
 
+.flex {
+  display: flex;
+}
+
 .profil_pict {
   width: 150px;
 }
@@ -325,6 +329,12 @@ div.miniProfilPict {
 
 .text-field {
 
+}
+
+.centeritem{
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 #report-menu {
@@ -360,4 +370,29 @@ div.miniProfilPict {
   color: white;
   width : 200px;
   height: 75px;
+}
+
+#mini-menu {
+  float: right;
+}
+
+#block-menu {
+  left: 25%;
+  width: 250px;
+  height: 250px;
+  background: url(image/darkfond.jpg);
+  background-size: cover;
+}
+
+#infoblock {
+  align-self: center;
+  width: 75%;
+}
+
+#blocksender {
+
+  height: 50px;
+  width: 50px;
+  margin-left: 50px;
+  margin-right: 50px;
 }

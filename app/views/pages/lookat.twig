@@ -2,6 +2,9 @@
 
 {% block content %}
 <div class="row">
+  <div id="mini-menu" >
+      <button type="button" class="round centeritem" onclick="sendmsg('{% if login %}{{ login }}{% endif %}', event)"><i class='material-icons black-text'>comment</i></button>
+    </div>
   <div class="col s6">
       {% if logs %}
         {% if logs.connected == 'yes' %}
@@ -12,13 +15,23 @@
       {% endif %}
       {% if profil_pict %}<img  class="profil_pict" src="/matcha/{{ profil_pict}}"> {% endif %}
       {% if login %}
-      <div  class="text-field">login : {{ login }}</div>
+      <div  class="text-field">
+        login : {{ login }}
+        {% if likes.toyou and likes.fromyou is null %}
+          <i class="material-icons red-text" id="love">favorite_border</i>
+        {% elseif likes.toyou is null and likes.fromyou %}
+          <i class="material-icons red-text" id="love">favorite_border</i>
+        {% elseif likes.toyou and likes.fromyou %}
+          <i class="material-icons red-text" id="love">favorite </i>
+        {% else %}
+          <i class="material-icons red-text" id="love"> </i>
+        {% endif %}
+      </div>
       <button type="button" name="report" onclick="openreportpanel('{{ login }}', event)">report</button>
-      <button type="button" name="like" onclick="likeuser('{{ login }}', event)">like</button>
-      <button type="button" name="block" onclick="blockuser('{{ login }}', event)">block</button>
+      <button type="button" name="like" onclick="likeuser('{{ login }}', event)">{% if likes.fromyou %} unlike  {% else %}  like  {% endif %}</button>
+      <button type="button" name="block" onclick="openblockpanel('{{ login }}', event)">block</button>
     {% endif %}
   </div>
-
   <div class="col s6">
     <div>
       {% if nom %}<div  class="text-field">nom : {{ nom }}</div> {% endif %}
@@ -26,6 +39,16 @@
       {% if age %}<div  class="text-field">age : {{ age }}</div> {% endif %}
       {% if sexe %}<div  class="text-field">sexe : {{ sexe }}</div> {% endif %}
       {% if oriented %}<div  class="text-field">orientation : {{ oriented }}</div> {% endif %}
+      {% if logs and logs.connect != 'yes' %}
+      <div  class="text-field">last log :
+        {% if logs.year %} {{ logs.year }}y {% endif %}
+        {% if logs.month %} {{ logs.month }}m {% endif %}
+        {% if logs.day %} {{ logs.day }}d {% endif %}
+        {% if logs.hour %} {{ logs.hour }}h {% endif %}
+        {% if logs.min %} {{ logs.min }}mn {% endif %}
+        {% if logs.sec %} {{ logs.sec }}sc {% endif %}
+      </div>
+      {% endif %}
     </div>
     <div>
     </div>

@@ -297,6 +297,19 @@ class PagesController extends Controller{
 
       $res = lookathim($info['name'], $pdo);
       if($res){
+        $diff = abs(time() - $res['logs']['timeof']);
+        $tmp = $diff;
+        $res['logs']['sec'] = $tmp % 60 ;
+        $tmp = floor(($tmp - $res['logs']['sec'])/60);
+        $res['logs']['min'] = $tmp % 60;
+        $tmp = floor(($tmp - $res['logs']['min'])/60);
+        $res['logs']['hour'] = $tmp % 24;
+        $tmp = floor(($tmp - $res['logs']['hour'])/24);
+        $res['logs']['day'] = $tmp % 30;
+        $tmp = floor(($tmp - $res['logs']['day'])/30);
+        $res['logs']['month'] =  $tmp % 12;
+        $tmp = floor(($tmp - $res['logs']['month'])/12);
+        $res['logs']['year'] = $tmp % 9999;
         $this->render($response, 'pages/lookat.twig', $res);
       }
       else {
@@ -317,6 +330,32 @@ class PagesController extends Controller{
         include_once ('Functions.php');
         $res = reportevent($_SESSION['loggued_as'], $param, $pdo);
         print ($res);
+      }
+    }
+  }
+
+  public function likeUser(Request $request, Response $response) {
+    if(!empty($_SESSION['loggued_as']))
+    {
+    $param = $request->getParams();
+      if(isset($param['action']) && isset($param['to']) && $param['action'] == "like") {
+        $pdo = $this->pdo;
+        include_once ('Functions.php');
+        $res = likevent($_SESSION['id'], $param['to'], $pdo);
+        print json_encode($res);
+      }
+    }
+  }
+
+  public function blockUser(Request $request, Response $response) {
+    if(!empty($_SESSION['loggued_as']) && !empty($_SESSION['id']))
+    {
+    $param = $request->getParams();
+      if(isset($param['action']) && isset($param['to']) && $param['action'] == "block") {
+        $pdo = $this->pdo;
+        include_once ('Functions.php');
+        $res = blockevent($_SESSION['id'], $param['to'], $pdo);
+        print json_encode($res);
       }
     }
   }

@@ -358,7 +358,6 @@ function activefilter(filter_name) {
 
 var extracted = 0;
 
-
 function startsearch(status) {
   if(status === 'new') {
     extracted = 0;
@@ -423,7 +422,7 @@ function startsearch(status) {
           else {
             connect = "<i class='material-icons red-text'>lens</i>";
           }
-          newelem.innerHTML = "<div class='row' id='num"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='inline-flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2'>"+data['result'][numtmp]['age']+" </div><div class='col s2'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2"> </div><div class="col s1"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
+          newelem.innerHTML = "<div class='row' id='num"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2'>"+data['result'][numtmp]['age']+" </div><div class='col s2'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2"> </div><div class="col s1"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
 
           numtmp += 1;
           resultzone.appendChild(newelem);
@@ -451,26 +450,89 @@ function sortresult(action,ev) {
 
 }
 
-function likeuser(login) {
- console.log(login);
+function likeuser(login, ev) {
+ var target = ev.target;
+ var xhr = new XMLHttpRequest();
+ xhr.onreadystatechange = function() {
+    if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      var data = JSON.parse(xhr.responseText);
+      var loveshower = document.getElementById('love');
+      if(data['likes']){
+        if(data['likes']['toyou'] && data['likes']['fromyou']){
+          loveshower.innerText = 'favorite';
+        }
+        else if(data['likes']['toyou'] && !data['likes']['fromyou']){
+          loveshower.innerText = 'favorite_border';
+        }
+        else if(!data['likes']['toyou'] && data['likes']['fromyou']){
+          loveshower.innerText = 'favorite_border';
+        }
+        else{
+          loveshower.innerText = '';
+        }
+      }
+
+      if(!data['already']) {
+        target.innerText = 'Unlike';
+      }
+      else {
+        target.innerText = 'like';
+      }
+    }
+ };
+ xhr.open("POST", "likeUser", true);
+ xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+ xhr.send("action=like&to="+ encodeURIComponent(login));
 }
 
-function blockuser(login) {
+function blockuser(login,ev) {
  console.log(login);
+ var main = document.getElementById('maincontainer');
+
+
+ var xhr = new XMLHttpRequest();
+ xhr.onreadystatechange = function() {
+    if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      console.log(xhr.responseText);
+    }
+  };
+  xhr.open("POST", "blockUser", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send("action=block&to="+ encodeURIComponent(login));
+}
+
+function openblockpanel(login,ev) {
+   console.log(login);
+  if(!document.getElementById('block-menu')) {
+    var contextmenu = document.createElement('DIV');
+    contextmenu.setAttribute('id', 'block-menu');
+    contextmenu.innerHTML = '<p class="white-text" id="infoblock"> You are about to block this user, you won\'t be able to see him again, never ever, ever. If you are sure click on the \'bye bye\' button</p>';
+    contextmenu.className='centeritem absolute round';
+    var send = document.createElement('BUTTON');
+    send.className = 'round';
+    send.id = 'blocksender';
+    send.innerText= 'bye bye';
+    send.addEventListener('click', function(eve){ blockuser(login,eve)});
+    contextmenu.append(send);
+    document.getElementById('maincontainer').prepend(contextmenu);
+  }
+  else {
+    document.getElementById('block-menu').remove();
+  }
 }
 
 function openreportpanel(login, ev) {
   if(!document.getElementById('report-menu')) {
-  var contextmenu = document.createElement('DIV');
-  contextmenu.setAttribute('id', 'report-menu');
-  contextmenu.innerHTML = '<select id="reportstatus"><option value="1" selected>Message indesirable</option><option value="2">Fake profil</option><option value="3">Photo non conforme</option><option value="4">Other</option></select><textarea id="textreport" placeholder="reasons of report"></textarea>';
-  var send = document.createElement('BUTTON');
-  send.className = 'round';
-  send.id = 'reportsender';
-  send.innerText= 'send';
-  send.addEventListener('click', function(eve){ reportuser(login,eve)});
-  contextmenu.append(send);
-  document.getElementById('maincontainer').prepend(contextmenu);
+    var contextmenu = document.createElement('DIV');
+    contextmenu.setAttribute('id', 'report-menu');
+    contextmenu.innerHTML = '<select id="reportstatus"><option value="1" selected>Message indesirable</option><option value="2">Fake profil</option><option value="3">Photo non conforme</option><option value="4">Other</option></select><textarea id="textreport" placeholder="reasons of report"></textarea>';
+    var send = document.createElement('BUTTON');
+    send.className = 'round';
+    send.id = 'reportsender';
+    send.innerText= 'send';
+    send.addEventListener('click', function(eve){ reportuser(login,eve)});
+    contextmenu.append(send);
+    document.getElementById('maincontainer').prepend(contextmenu);
   }
   else {
     document.getElementById('report-menu').remove();
@@ -495,4 +557,8 @@ function reportuser(login, ev) {
   xhr.send("action=report&type="+ encodeURIComponent(type)+"&content="+ encodeURIComponent(content)+"&to="+ encodeURIComponent(login));
   ev.target.parentNode.remove();
   }
+}
+
+function sendmsg(login, ev) {
+  console.log (login);
 }

@@ -733,7 +733,6 @@ function lookathim($login, $pdo) {
 
   $result = [];
   try {
-
     $st = '0';
     $sql = $pdo->prepare("SELECT id_user,login, nom, prenom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, sexe, oriented, bio, profil_pict FROM members WHERE login = ?");
     $sql->bindParam(1, $login, PDO::PARAM_INT);
@@ -779,14 +778,35 @@ function lookathim($login, $pdo) {
     $sql->execute();
     $current= $sql->fetch(PDO::FETCH_ASSOC);
 
+    $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS fromyou FROM likes");
+    $sql->bindParam(1, $id, PDO::PARAM_INT);
+    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(4, $id, PDO::PARAM_INT);
+    $sql->execute();
+    $result['likes'] = $sql->fetch(PDO::FETCH_ASSOC);
+
     $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
     $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
+
+
     }
   } catch (PDOException $e) {
     print "error = ".$e." in lookathim stage=".$st;
     die();
   }
+  if($result) {
+    try {
+      $sql = $pdo->prepare("INSERT INTO visite (id_from, id_to, timeof) VALUES (? ,? , UNIX_TIMESTAMP() )");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->bindParam(2, $id, PDO::PARAM_INT);
+      $sql->execute();
+    } catch (PDOException $e) {
+      print "error = ".$e." in lookathim stage= add visite";
+      die();
+    }
 
+  }
   return $result;
 }
 
@@ -839,4 +859,54 @@ function reportevent($from, $param, $pdo) {
   }
   return $result;
 }
+
+function likevent($from, $to, $pdo) {
+  $time = time();
+  $tot = [];
+  try {
+    $sql = $pdo->prepare("SELECT id_like, id_user FROM likes INNER JOIN members ON id_to = id_user  WHERE id_from = ? AND members.login = ?");
+    $sql->bindParam(1, $from, PDO::PARAM_INT);
+    $sql->bindParam(2, $to, PDO::PARAM_STR);
+    $sql->execute();
+    $result = $sql->fetch();
+
+    if(empty($result) || $result == false) {
+      $sql = $pdo->prepare("INSERT INTO likes (id_from, id_to, timeof) VALUES (?,(SELECT id_user FROM members WHERE login = ?),UNIX_TIMESTAMP())");
+      $sql->bindParam(1, $from, PDO::PARAM_INT);
+      $sql->bindParam(2, $to, PDO::PARAM_STR);
+      $res['status'] = $sql->execute();
+      $res['id'] = $pdo->lastInsertId();
+      $res['action'] ='insert';
+    }
+    else if(!empty($result)) {
+      $sql = $pdo->prepare("DELETE FROM likes WHERE id_like = ?");
+      $sql->bindParam(1, $result['id_like'],PDO::PARAM_INT);
+      $res['status'] = $sql->execute();
+      $res['action'] = 'delete';
+    }
+
+    $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_user FROM  members WHERE login = ?) AS idd , (SELECT id_like FROM `likes` WHERE id_to = ? AND id_from = idd LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = idd LIMIT 1) AS fromyou FROM likes");
+    $sql->bindParam(1, $to, PDO::PARAM_STR);
+    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+
+    $sql->execute();
+    $tmp = $sql->fetch(PDO::FETCH_ASSOC);
+    $tot['likes'] = [];
+    $tot['likes']['toyou'] = $tmp['toyou'];
+    $tot['likes']['fromyou'] = $tmp['fromyou'];
+
+    $tot['already']= $result;
+    $tot['new'] = $res;
+  } catch (PDOException $e) {
+    print "error ". $e ." on likevent";
+    die();
+  }
+  return($tot);
+}
+
+function blockevent($from, $to, $pdo) {
+
+}
+
  ?>

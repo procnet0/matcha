@@ -43,5 +43,11 @@ if($container->debug)
   return $mailer;
 };
 
+$container['notFoundHandler'] = function($container) {
+  return function($request, $response) use ($container) {
+    $container->get('view')->render($response, 'pages/404.twig');
+    return $container['response']->withStatus(404);
+  };
+};
 
 ?>

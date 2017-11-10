@@ -46,5 +46,7 @@ $app->post("/getTagInfo", \App\Controllers\PagesController::class . ':getTagInfo
 $app->post("/updateTagInfo", \App\Controllers\PagesController::class . ':updateTagInfo');
 $app->post("/updatePosition", \App\Controllers\PagesController::class . ':updatePosition');
 $app->post("/lookat/reportUser", \App\Controllers\PagesController::class . ':reportUser');
+$app->post("/lookat/likeUser", \App\Controllers\PagesController::class . ':likeUser');
+$app->post("/lookat/blockUser", \App\Controllers\PagesController::class . ':blockUser');
 $app->run();
 ?>
