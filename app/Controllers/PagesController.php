@@ -297,6 +297,7 @@ class PagesController extends Controller{
 
       $res = lookathim($info['name'], $pdo);
       if($res){
+          $res['logs']['totaldate'] = date("m.d.y",$res['logs']['timeof']);
         $diff = abs(time() - $res['logs']['timeof']);
         $tmp = $diff;
         $res['logs']['sec'] = $tmp % 60 ;

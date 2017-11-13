@@ -486,10 +486,7 @@ function likeuser(login, ev) {
 }
 
 function blockuser(login,ev) {
- console.log(login);
  var main = document.getElementById('maincontainer');
-
-
  var xhr = new XMLHttpRequest();
  xhr.onreadystatechange = function() {
     if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {

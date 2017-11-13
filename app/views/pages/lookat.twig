@@ -2,9 +2,6 @@
 
 {% block content %}
 <div class="row">
-  <div id="mini-menu" >
-      <button type="button" class="round centeritem" onclick="sendmsg('{% if login %}{{ login }}{% endif %}', event)"><i class='material-icons black-text'>comment</i></button>
-    </div>
   <div class="col s6">
       {% if logs %}
         {% if logs.connected == 'yes' %}
@@ -32,26 +29,35 @@
       <button type="button" name="block" onclick="openblockpanel('{{ login }}', event)">block</button>
     {% endif %}
   </div>
-  <div class="col s6">
-    <div>
-      {% if nom %}<div  class="text-field">nom : {{ nom }}</div> {% endif %}
-      {% if prenom %}<div  class="text-field">prenom : {{ prenom }}</div> {% endif %}
-      {% if age %}<div  class="text-field">age : {{ age }}</div> {% endif %}
-      {% if sexe %}<div  class="text-field">sexe : {{ sexe }}</div> {% endif %}
-      {% if oriented %}<div  class="text-field">orientation : {{ oriented }}</div> {% endif %}
-      {% if logs and logs.connect != 'yes' %}
-      <div  class="text-field">last log :
-        {% if logs.year %} {{ logs.year }}y {% endif %}
-        {% if logs.month %} {{ logs.month }}m {% endif %}
-        {% if logs.day %} {{ logs.day }}d {% endif %}
-        {% if logs.hour %} {{ logs.hour }}h {% endif %}
-        {% if logs.min %} {{ logs.min }}mn {% endif %}
-        {% if logs.sec %} {{ logs.sec }}sc {% endif %}
+  <div class="col s4">
+      <div>
+        {% if nom %}<div  class="text-field">nom : {{ nom }}</div> {% endif %}
+        {% if prenom %}<div  class="text-field">prenom : {{ prenom }}</div> {% endif %}
+        {% if age %}<div  class="text-field">age : {{ age }}</div> {% endif %}
+        {% if sexe %}<div  class="text-field">sexe : {{ sexe }}</div> {% endif %}
+        {% if oriented %}<div  class="text-field">orientation : {{ oriented }}</div> {% endif %}
+        {% if logs and logs.connect != 'yes' %}
+      <div  class="text-field" id="lastlog">last log :
+        <div id="timeago">
+          {% if logs.year %}{{ logs.year }}y {% endif %}
+          {% if logs.month %}{{ logs.month }}m {% endif %}
+          {% if logs.day %}{{ logs.day }}d {% endif %}
+          {% if logs.hour %}{{ logs.hour }}h {% endif %}
+          {% if logs.min %}{{ logs.min }}mn {% endif %}
+          {% if logs.sec %}{{ logs.sec }}sc {% endif %}
+          ago
+        </div>
+        <div id="totaldate">
+          {% if logs.totaldate %}{{ logs.totaldate }} {% endif %}
+        </div>
       </div>
       {% endif %}
+
     </div>
-    <div>
-    </div>
+  </div>
+    <div class="col s2" id="mini-menu" >
+        <button type="button" class="round centeritem" onclick="sendmsg('{% if login %}{{ login }}{% endif %}', event)"><i class='material-icons black-text'>comment</i></button>
+
   </div>
 </div>
 <div class="col s12">

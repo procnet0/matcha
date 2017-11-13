@@ -35,7 +35,6 @@ $app->get("/lookat/{name}", \App\Controllers\PagesController::class . ':lookat')
 $app->post("/profil", \App\Controllers\PagesController::class . ':postAccount');
 $app->get("/recherche", \App\Controllers\PagesController::class . ':getSearch')->setName('recherche');
 $app->post("/recherche", \App\Controllers\PagesController::class . ':postSearch');
-
 $app->get("/signUp", \App\Controllers\PagesController::class . ':getMember')->setName('signUp');
 $app->post("/signUp", \App\Controllers\PagesController::class . ':postMember');
 $app->get("/logout", \App\Controllers\PagesController::class . ':logout')->setName('logout');

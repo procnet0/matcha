@@ -396,3 +396,16 @@ div.miniProfilPict {
   margin-left: 50px;
   margin-right: 50px;
 }
+
+
+#lastlog #totaldate {
+  display : none;
+}
+
+#lastlog:hover #totaldate {
+  display: block;
+}
+
+#lastlog:hover #timeago {
+  display:none;
+}
