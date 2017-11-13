@@ -360,5 +360,6 @@ class PagesController extends Controller{
       }
     }
   }
+
 }
  ?>

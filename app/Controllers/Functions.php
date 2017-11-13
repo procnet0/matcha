@@ -918,7 +918,34 @@ function likevent($from, $to, $pdo) {
 }
 
 function blockevent($from, $to, $pdo) {
+  $ret = [];
+  if(!empty($from) && !empty($to)) {
+    $sql = $pdo->prepare("SELECT id_user FROM members WHERE login = ?");
+    $sql->bindparam(1, $to, PDO::PARAM_STR);
+    $sql->execute();
+    $toinfo = $sql->fetch();
+      if($toinfo){
+        $to = $toinfo['id_user'];
+      }
+      else {
+        $ret['status'] = 'fail';
+        return $ret;
+      }
+    try {
+      $sql = $pdo->prepare("INSERT INTO blocked (id_from, id_to, timeof) VALUES (?,?,UNIX_TIMESTAMP())");
+      $sql->bindParam(1, $from, PDO::PARAM_INT);
+      $sql->bindParam(2, $to, PDO::PARAM_INT);
+      $sql->execute();
 
+    } catch (PDOException $e) {
+      $ret = [];
+      $ret['error'] = "error ". $e ." on blockevent";
+      $ret['status'] = "fail";
+      return $ret;
+    }
+    $ret['status'] = 'OK';
+    return $ret;
+  }
 }
 
  ?>

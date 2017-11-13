@@ -490,7 +490,13 @@ function blockuser(login,ev) {
  var xhr = new XMLHttpRequest();
  xhr.onreadystatechange = function() {
     if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-      console.log(xhr.responseText);
+      var data= JSON.parse(xhr.responseText);
+      if(data['status'] == 'OK') {
+        window.location.replace('/matcha/');
+      }
+      else {
+        console.log(xhr.responseText);
+      }
     }
   };
   xhr.open("POST", "blockUser", true);
