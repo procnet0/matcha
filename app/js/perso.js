@@ -565,3 +565,7 @@ function reportuser(login, ev) {
 function sendmsg(login, ev) {
   console.log (login);
 }
+
+function openblockmanager(ev) {
+  
+}

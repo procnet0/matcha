@@ -546,6 +546,24 @@ function Researcher($datas, $pdo) {
 
 
   try {
+    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `checkblock`");
+    $sql = $pdo->exec('CREATE DEFINER=`root`@`localhost` FUNCTION `checkblock`(`id1` INT, `id2` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
+    DECLARE cross1 INT;
+    DECLARE cross2 INT;
+    DECLARE tot INT;
+        SET cross1 = IFNULL((SELECT blocked.id_block FROM `blocked` WHERE blocked.id_from = id1 AND blocked.id_to = id2 LIMIT 1),0);
+    	SET cross2 = IFNULL((SELECT blocked.id_block FROM `blocked` WHERE blocked.id_from = id2 AND blocked.id_to = id1 LIMIT 1),0);
+
+        SET tot = cross1 + cross2;
+        RETURN  tot;
+    END');
+  } catch (PDOException $e) {
+    print 'error =>'. $e;
+    die();
+  }
+
+
+  try {
     $sql = $pdo->exec("DROP FUNCTION IF EXISTS `get_distance_km`");
     $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION get_distance_km (lat1 DOUBLE, lng1 DOUBLE, lat2 DOUBLE, lng2 DOUBLE) RETURNS DOUBLE
   BEGIN
@@ -655,6 +673,7 @@ function Researcher($datas, $pdo) {
     members.oriented,
     members.profil_pict,
     GROUP_CONCAT(tags_members.id_tag) AS tags,
+    checkblock(". $user['0']['id_user'].", members.id_user) AS blocki,
     get_distance_km(".$pos.",(SELECT latitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1),
     (SELECT longitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1)) AS dist, (SELECT COUNT(tags_members.id_tag) FROM tags_members WHERE tags_members.id_members = members.id_user AND tags_members.id_tag IN ('". str_replace(',',"','",$user['0']['nb'])."')) AS nb
   FROM
@@ -665,7 +684,7 @@ function Researcher($datas, $pdo) {
     $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
     $reqsql .= ' GROUP BY id_user
      HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
-     AND dist BETWEEN 0 AND '.$range['0'];
+     AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0';
 
     if(isset($tlist)) {
       foreach ($tlist as $elem) {
@@ -733,62 +752,70 @@ function lookathim($login, $pdo) {
 
   $result = [];
   try {
-    $st = '0';
-    $sql = $pdo->prepare("SELECT id_user,login, nom, prenom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, sexe, oriented, bio, profil_pict FROM members WHERE login = ?");
-    $sql->bindParam(1, $login, PDO::PARAM_INT);
+    $sql = $pdo->prepare("SELECT checkblock(?,id_user) as blocki FROM members WHERE login = ?");
+    $sql->bindParam(1,$_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(2,$login, PDO::PARAM_STR);
     $sql->execute();
-    $result = $sql->fetch(PDO::FETCH_ASSOC);
-    if($result) {
-      if($result['profil_pict'] == "#" || !file_exists($result['profil_pict'])) {
-        $result['profil_pict'] = 'app/css/image/Photo-non-disponible.png';
+    $block = $sql->fetch(PDO::FETCH_ASSOC);
+
+
+    if($block['blocki'] == 0) {
+      $st = '0';
+      $sql = $pdo->prepare("SELECT id_user,login, nom, prenom, TIMESTAMPDIFF( year,members.birthday,NOW()) AS age, sexe, oriented, bio, profil_pict FROM members WHERE login = ?");
+      $sql->bindParam(1, $login, PDO::PARAM_INT);
+      $sql->execute();
+      $result = $sql->fetch(PDO::FETCH_ASSOC);
+      if($result) {
+        if($result['profil_pict'] == "#" || !file_exists($result['profil_pict'])) {
+          $result['profil_pict'] = 'app/css/image/Photo-non-disponible.png';
+        }
+
+      $id = $result['id_user'];
+
+      $st= '1';
+      $sql = $pdo->prepare("SELECT pict1,pict2,pict3,pict4,pict5 FROM pictures WHERE id_user = ?");
+      $sql->bindParam(1, $id, PDO::PARAM_INT);
+      $sql->execute();
+      $result['pictures']= $sql->fetch(PDO::FETCH_ASSOC);
+      foreach($result['pictures'] as $key =>$elem) {
+        if ($elem == 'NULL' || !file_exists($elem)) {
+          $result['pictures'][$key] = 'app/css/image/Photo-non-disponible.png';
+        }
       }
+      $st = '2';
+      $sql = $pdo->prepare("SELECT tags_members.id_tag, name_tag FROM tags_members LEFT JOIN tags ON tags.id_tag= tags_members.id_tag WHERE id_members = ?");
+      $sql->bindParam(1, $id, PDO::PARAM_INT);
+      $sql->execute();
+      $tags = $sql->fetchall(PDO::FETCH_ASSOC);
+      $result['tags'] = $tags;
 
-    $id = $result['id_user'];
+      $sql = $pdo->prepare("SELECT id_user, timeof, IF(timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected FROM ping WHERE id_user = ?");
+      $sql->bindParam(1, $id, PDO::PARAM_INT);
+      $sql->execute();
+      $result['logs']= $sql->fetch(PDO::FETCH_ASSOC);
 
-    $st= '1';
-    $sql = $pdo->prepare("SELECT pict1,pict2,pict3,pict4,pict5 FROM pictures WHERE id_user = ?");
-    $sql->bindParam(1, $id, PDO::PARAM_INT);
-    $sql->execute();
-    $result['pictures']= $sql->fetch(PDO::FETCH_ASSOC);
-    foreach($result['pictures'] as $key =>$elem) {
-      if ($elem == 'NULL' || !file_exists($elem)) {
-        $result['pictures'][$key] = 'app/css/image/Photo-non-disponible.png';
+      $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? AND type = 'auto' ORDER BY timeof DESC LIMIT 1");
+      $sql->bindParam(1, $id, PDO::PARAM_INT);
+      $sql->execute();
+      $result['geoloc']= $sql->fetch(PDO::FETCH_ASSOC);
+      $result['geoloc']['info'] = getAddrWithCoord($result['geoloc']['latitude'],$result['geoloc']['longitude']);
+
+      $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? ORDER BY timeof DESC LIMIT 1");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $current= $sql->fetch(PDO::FETCH_ASSOC);
+
+      $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS fromyou FROM likes");
+      $sql->bindParam(1, $id, PDO::PARAM_INT);
+      $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->bindParam(4, $id, PDO::PARAM_INT);
+      $sql->execute();
+      $result['likes'] = $sql->fetch(PDO::FETCH_ASSOC);
+
+      $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
+      $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
       }
-    }
-    $st = '2';
-    $sql = $pdo->prepare("SELECT tags_members.id_tag, name_tag FROM tags_members LEFT JOIN tags ON tags.id_tag= tags_members.id_tag WHERE id_members = ?");
-    $sql->bindParam(1, $id, PDO::PARAM_INT);
-    $sql->execute();
-    $tags = $sql->fetchall(PDO::FETCH_ASSOC);
-    $result['tags'] = $tags;
-
-    $sql = $pdo->prepare("SELECT id_user, timeof, IF(timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected FROM ping WHERE id_user = ?");
-    $sql->bindParam(1, $id, PDO::PARAM_INT);
-    $sql->execute();
-    $result['logs']= $sql->fetch(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? AND type = 'auto' ORDER BY timeof DESC LIMIT 1");
-    $sql->bindParam(1, $id, PDO::PARAM_INT);
-    $sql->execute();
-    $result['geoloc']= $sql->fetch(PDO::FETCH_ASSOC);
-    $result['geoloc']['info'] = getAddrWithCoord($result['geoloc']['latitude'],$result['geoloc']['longitude']);
-
-    $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? ORDER BY timeof DESC LIMIT 1");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $current= $sql->fetch(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS fromyou FROM likes");
-    $sql->bindParam(1, $id, PDO::PARAM_INT);
-    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->bindParam(4, $id, PDO::PARAM_INT);
-    $sql->execute();
-    $result['likes'] = $sql->fetch(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
-    $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
-
 
     }
   } catch (PDOException $e) {
@@ -865,8 +892,9 @@ function likevent($from, $to, $pdo) {
   $tot = [];
 
   if(!empty($from) && !empty($to)) {
-  $sql = $pdo->prepare("SELECT id_user FROM members WHERE login = ?");
-  $sql->bindparam(1, $to, PDO::PARAM_STR);
+  $sql = $pdo->prepare("SELECT id_user, checkblock(?,id_user) AS blocki FROM members WHERE login = ? HAVING blocki = 0");
+  $sql->bindparam(1, $from, PDO::PARAM_STR);
+  $sql->bindparam(2, $to, PDO::PARAM_STR);
   $sql->execute();
   $toinfo = $sql->fetch();
   }
