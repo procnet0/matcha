@@ -567,5 +567,8 @@ function sendmsg(login, ev) {
 }
 
 function openblockmanager(ev) {
-  
+  var context = document.createElement('DIV');
+  var mainbox = document.getElementsByTagName('main');
+  context.innerHTML = '';
+  context.className = '';
 }
