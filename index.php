@@ -48,5 +48,7 @@ $app->post("/updatePosition", \App\Controllers\PagesController::class . ':update
 $app->post("/lookat/reportUser", \App\Controllers\PagesController::class . ':reportUser');
 $app->post("/lookat/likeUser", \App\Controllers\PagesController::class . ':likeUser');
 $app->post("/lookat/blockUser", \App\Controllers\PagesController::class . ':blockUser');
+$app->post("/get_block_list", \App\Controllers\PagesController::class . ':get_block_list');
+$app->post("/removeblock", \App\Controllers\PagesController::class . ':removeblock');
 $app->run();
 ?>

@@ -111,7 +111,7 @@ function OpenTagMenu() {
     }
   })
   var mainbox = document.getElementsByTagName('main');
-    menucontext.setAttribute('class', 'container section menucontext');
+    menucontext.setAttribute('class', 'section menucontext');
     menucontext.setAttribute('id', 'menucontext');
     menucontext.setAttribute('style', 'height:'+ mainbox['0'].offsetHeight+'px;width:'+ mainbox['0'].offsetWidth+'px;');
   var row = document.createElement('DIV');
@@ -567,8 +567,63 @@ function sendmsg(login, ev) {
 }
 
 function openblockmanager(ev) {
-  var context = document.createElement('DIV');
+  var menucontext2 = document.createElement('DIV');
   var mainbox = document.getElementsByTagName('main');
-  context.innerHTML = '';
-  context.className = '';
+    menucontext2.innerHTML = '<div class="col s12" style="text-align:center;color:lightgrey;">Clicker sur un utilisateur pour arreter de le blocker</div><div class="col s12" id="listcontainer"></div>';
+    menucontext2.setAttribute('class', 'section menucontext');
+    menucontext2.setAttribute('id', 'menucontext2');
+    menucontext2.setAttribute('style', 'height:'+ mainbox['0'].offsetHeight+'px;width:'+ mainbox['0'].offsetWidth+'px;');
+    mainbox['0'].prepend(menucontext2);
+    window.addEventListener('resize', function() {
+        var menucontext2 = document.getElementById('menucontext2');
+        var mainbox = document.getElementsByTagName('main');
+        if(menucontext2){
+          menucontext2.setAttribute('style', 'height:'+ mainbox['0'].offsetHeight+'px;width:'+  mainbox['0'].offsetWidth+'px;');
+        }
+      });
+
+      var menuclose = document.createElement('button');
+        menuclose.setAttribute('type', 'button');
+        menuclose.setAttribute('class', 'closer');
+        menuclose.setAttribute('id', 'blocklistcloser');
+        menuclose.innerHTML = 'Close';
+        menuclose.setAttribute('style', 'margin-left: 48%;');
+        menuclose.addEventListener('click', function(){
+
+        var target = document.getElementById('menucontext2');
+        target.parentNode.removeChild(target);
+      })
+      menucontext2.append(menuclose);
+
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      var data = JSON.parse(xhr.responseText);
+    console.log(data);
+    var listfield = document.getElementById('listcontainer');
+
+    if(undefined === data['error'] && listfield)
+    data.forEach(function (element) {
+      var vignet = document.createElement('DIV');
+      vignet.className = 'chip'
+      var suppr = document.createElement('I');
+      suppr.className = 'close material-icons';
+      suppr.innerHTML = 'close';
+
+      suppr.addEventListener('click', function(ev) {
+        var xhr = new XMLHttpRequest();
+        if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+          console.log(JSON.parse(xhr.responseText)['STATUS']);
+        }
+        xhr.open("POST", "removeblock", true);
+        xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+        xhr.send("subject=blkrmv&target="+element['login']);
+      });
+      vignet.innerHTML =  element['login'];
+      vignet.append(suppr);
+      listfield.append(vignet);
+    });}};
+  xhr.open("POST", "get_block_list", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send("subject=blklst");
 }

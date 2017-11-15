@@ -976,4 +976,33 @@ function blockevent($from, $to, $pdo) {
   }
 }
 
- ?>
+function getblocklist($pdo) {
+  $res = [];
+  try {
+    $sql = $pdo->prepare("SELECT id_block, id_to, members.login FROM blocked LEFT JOIN members ON id_to = members.id_user WHERE id_from = ?");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $res = $sql->fetchAll(PDO::FETCH_ASSOC);
+  } catch (PDOException $e) {
+    $res['error'] = 'Error in getblocklist =>'.$e;
+    return $res;
+  }
+  return $res;
+}
+
+function removeblocks($target, $pdo) {
+    $res = [];
+    try {
+      $sql = $pdo->prepare("DELETE blocked FROM blocked LEFT JOIN members ON id_to = members.id_user WHERE id_from=? AND members.login = ? AND id_to = members.id_user");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->bindParam(2, $target, PDO::PARAM_STR);
+      $sql->execute();
+      $res['STATUS'] = 'OK';
+    } catch (PDOException $e) {
+      $res['error'] = 'Error in getblocklist =>'.$e;
+      $res['STATUS'] = 'Error';
+      return $res;
+    }
+    return $res;
+  }
+?>

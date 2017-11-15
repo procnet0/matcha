@@ -397,7 +397,6 @@ div.miniProfilPict {
   margin-right: 50px;
 }
 
-
 #lastlog #totaldate {
   display : none;
 }
@@ -408,4 +407,8 @@ div.miniProfilPict {
 
 #lastlog:hover #timeago {
   display:none;
+}
+
+#listcontainer {
+  height: 95%;
 }
