@@ -35,6 +35,7 @@
         {% if prenom %}<div  class="text-field">prenom : {{ prenom }}</div> {% endif %}
         {% if age %}<div  class="text-field">age : {{ age }}</div> {% endif %}
         {% if sexe %}<div  class="text-field">sexe : {{ sexe }}</div> {% endif %}
+        {% if score %}<div  class="text-field">score : {{ score.result.score }}</div> {% endif %}
         {% if oriented %}<div  class="text-field">orientation : {{ oriented }}</div> {% endif %}
         {% if logs and logs.connect != 'yes' %}
       <div  class="text-field" id="lastlog">last log :

@@ -70,14 +70,6 @@ try {
     (5,'Drink')
     ");
 
-  $pdo->exec("CREATE TABLE IF NOT EXISTS likes
-    (
-      id_visit INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
-      id_from INT NOT NULL,
-      id_to INT NOT NULL,
-      timeof INT NOT NULL
-    )");
-
   $pdo->exec("CREATE TABLE IF NOT EXISTS geoloc
     (
       id_geoloc INT PRIMARY KEY AUTO_INCREMENT NOT NULL,

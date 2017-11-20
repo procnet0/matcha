@@ -275,6 +275,7 @@ class PagesController extends Controller{
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $ret = Researcher($datas, $pdo);
+      $ret['paramenter'] = $datas;
       print json_encode($ret);
     }
   }
@@ -316,8 +317,7 @@ class PagesController extends Controller{
       else {
           return $this->redirect($response, 'home');
       }
-    }
-    else {
+    } else {
       return $this->redirect($response, 'home');
     }
   }
@@ -360,5 +360,30 @@ class PagesController extends Controller{
       }
     }
   }
+
+  public function get_block_list(Request $request, Response $response) {
+    $param = $request->getParams();
+    $res =[];
+    if($_SESSION['loggued_as'] && $param['subject'] == 'blklst') {
+      $pdo = $this->pdo;
+        include_once ('Functions.php');
+      $res = getblocklist($pdo);
+    }
+    print json_encode($res);
+  }
+
+  public function removeblock(Request $request, Response $response) {
+    $param = $request->getParams();
+    $res = [];
+    if($_SESSION['loggued_as']  && $param['subject'] == 'blkrmv' && !empty($param['target'])) {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $res = removeblocks($param['target'],$pdo);
+    }
+    else{
+      $res['STATUS'] = 'error';
+    }
+    print (json_encode($res));
+  }
 }
- ?>
+?>
