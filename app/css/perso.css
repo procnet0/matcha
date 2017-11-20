@@ -49,6 +49,7 @@ font-weight: normal;
   max-width: 100px;
   min-width: 100px;
   min-height: 100px;
+  border-radius: 50%;
 }
 
 @-webkit-keyframes greenPulse {
@@ -409,6 +410,42 @@ div.miniProfilPict {
   display:none;
 }
 
+.cristalballz
+{
+  width: 100px;
+  position:absolute;
+  height: 100px;
+}
+
+@-webkit-keyframes TextGlow{
+  from{text-shadow: 0px 0px 0px black;}
+  50%{text-shadow: 0px 0px 6px #fffb6b;}
+  to{text-shadow: 0px 0px 0px black;}
+}
+
+.recherche
+{
+  display:none;
+  align-self: center;
+  font-family: fantasy;
+  align-self: center;
+  color: black;
+  font-size: 28px;
+  -webkit-animation-name: TextGlow;
+  -webkit-animation-duration: 2s;
+  -webkit-animation-iteration-count: infinite;
+}
+
+.cristalballz:hover .recherche{display:block;}
+
+.img_enveloppe, .notif_block
+{
+  width:100px;
+}
+
+.notif_block{margin:0 auto;}
+
+span.badge.new{position:relative; bottom:80px;}
 #listcontainer {
   height: 95%;
 }

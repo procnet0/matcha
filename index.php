@@ -6,7 +6,6 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE); ini_set('display_erro
 
 session_start();
 
-
 require 'vendor/autoload.php';
 
 include_once('app/config/database.php');
