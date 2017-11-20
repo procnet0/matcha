@@ -848,7 +848,6 @@ function lookathim($login, $pdo) {
       $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
       $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
       }
-
     }
   } catch (PDOException $e) {
     print "error = ".$e." in lookathim stage=".$st;
@@ -856,12 +855,22 @@ function lookathim($login, $pdo) {
   }
   if($result) {
     try {
+      $pdo->beginTransaction();
       $sql = $pdo->prepare("INSERT INTO visite (id_from, id_to, timeof) VALUES (? ,? , UNIX_TIMESTAMP() )");
       $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
       $sql->bindParam(2, $id, PDO::PARAM_INT);
       $sql->execute();
+      $last = $pdo->lastInsertId();
+
+      $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,?,?,'2',UNIX_TIMESTAMP())");
+      $sql->bindParam(1,$id, PDO::PARAM_INT);
+      $sql->bindParam(2,$last, PDO::PARAM_INT);
+      $sql->bindParam(3,$_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $pdo->commit();
     } catch (PDOException $e) {
       print "error = ".$e." in lookathim stage= add visite";
+      $pdo->rollBack();
       die();
     }
   }
@@ -932,6 +941,7 @@ function likevent($from, $to, $pdo) {
   if($toinfo) {
     $to = $toinfo['id_user'];
     try {
+      $pdo->beginTransaction();
       $sql = $pdo->prepare("SELECT id_like FROM likes WHERE id_from = ? AND id_to = ?");
       $sql->bindParam(1, $from, PDO::PARAM_INT);
       $sql->bindParam(2, $to, PDO::PARAM_INT);
@@ -939,35 +949,55 @@ function likevent($from, $to, $pdo) {
       $result = $sql->fetch();
 
       if(empty($result) || $result == false) {
+
         $sql = $pdo->prepare("INSERT INTO likes (id_from, id_to, timeof) VALUES (?,?,UNIX_TIMESTAMP())");
         $sql->bindParam(1, $from, PDO::PARAM_INT);
         $sql->bindParam(2, $to, PDO::PARAM_INT);
         $res['status'] = $sql->execute();
         $res['id'] = $pdo->lastInsertId();
         $res['action'] ='insert';
+        $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,?,?,'1',UNIX_TIMESTAMP())");
+        $sql->bindParam(1,$to, PDO::PARAM_INT);
+        $sql->bindParam(2,$res['id'], PDO::PARAM_INT);
+        $sql->bindParam(3,$from, PDO::PARAM_INT);
+        $sql->execute();
       }
       else if(!empty($result)) {
         $sql = $pdo->prepare("DELETE FROM likes WHERE id_like = ?");
         $sql->bindParam(1, $result['id_like'],PDO::PARAM_INT);
         $res['status'] = $sql->execute();
         $res['action'] = 'delete';
+        $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,'0',?,'5',UNIX_TIMESTAMP())");
+        $sql->bindParam(1,$to, PDO::PARAM_INT);
+        $sql->bindParam(2,$from, PDO::PARAM_INT);
+        $sql->execute();
       }
 
       $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_like FROM `likes` WHERE id_to = ? AND id_from = ? LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS fromyou FROM likes");
       $sql->bindParam(2, $to, PDO::PARAM_INT);
       $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
       $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
-        $sql->bindParam(4, $to, PDO::PARAM_INT);
+      $sql->bindParam(4, $to, PDO::PARAM_INT);
       $sql->execute();
       $tmp = $sql->fetch(PDO::FETCH_ASSOC);
       $tot['likes'] = [];
       $tot['likes']['toyou'] = $tmp['toyou'];
       $tot['likes']['fromyou'] = $tmp['fromyou'];
 
+      if( !empty($tot['likes']['toyou']) && !empty($tot['likes']['fromyou'])) {
+        $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,?,?,'4',UNIX_TIMESTAMP())");
+        $sql->bindParam(1,$to, PDO::PARAM_INT);
+        $sql->bindParam(2,$res['id'], PDO::PARAM_INT);
+        $sql->bindParam(3,$_SESSION['id'], PDO::PARAM_INT);
+        $sql->execute();
+      }
+
       $tot['already']= $result;
       $tot['new'] = $res;
       $tot['status'] = "OK";
+      $pdo->commit();
     } catch (PDOException $e) {
+      $pdo->rollBack();
       print "error ". $e ." on likevent";
       $tot['status'] = "fail";
       die();
@@ -1085,6 +1115,38 @@ function getscore($target, $pdo) {
       $ret['result'] = 'null';
       die();
     }
+  }
+  return $ret;
+}
+
+function GetMsgInterface($pdo) {
+  $ret = [];
+  $ret['notif'] = [];
+  $ret['notif'] = [];
+  $ret['msg'] = [];
+  try {
+    $sql = $pdo->prepare("SELECT COUNT(*) as Numb FROM notification WHERE notification.id_user = ?  AND new = 1 ");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif']['new'] = $sql->fetch(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT COUNT(id_notif) as numb , id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_from ");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT COUNT(*) as nb  FROM notification INNER JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ?  AND new = 1 AND type != 3 ORDER BY timeof DESC");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif']['other'] = $sql->fetch(PDO::FETCH_ASSOC);
+
+    if(!empty($ret['notif']['new']['msg'])) {
+    $FirstUserMsg = $ret['notif']['new']['msg']['0']['id_from'];
+    $ret['msg']['id'] = $FirstUserMsg;
+    }
+
+  } catch (PDOException $e) {
+    $ret['msg']['Error'] = $e . ' in GetMsgInterface';
   }
   return $ret;
 }

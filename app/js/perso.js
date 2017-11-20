@@ -314,7 +314,7 @@ function initsliders() {
   });
 
     noUiSlider.create(rangepop, {
-      start: [ 50, 100 ],
+      start: [ 0, 100 ],
       behaviour: 'snap',
       connect: true,
       tooltips: [wNumb({ decimals: 0 ,step: 1}),wNumb({ decimals: 0 ,step: 1})],
