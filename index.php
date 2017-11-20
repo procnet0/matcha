@@ -49,5 +49,7 @@ $app->post("/lookat/likeUser", \App\Controllers\PagesController::class . ':likeU
 $app->post("/lookat/blockUser", \App\Controllers\PagesController::class . ':blockUser');
 $app->post("/get_block_list", \App\Controllers\PagesController::class . ':get_block_list');
 $app->post("/removeblock", \App\Controllers\PagesController::class . ':removeblock');
+$app->get("/messenger", \App\Controllers\PagesController::class . ':getmessenger')->setName('messenger');
+$app->post("/messenger", \App\Controllers\PagesController::class . ':postmessenger');
 $app->run();
 ?>
