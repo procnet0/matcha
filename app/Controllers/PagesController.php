@@ -385,5 +385,14 @@ class PagesController extends Controller{
     }
     print (json_encode($res));
   }
+
+  public function getChat(Request $request, Response $response) {
+    if (!empty($_SESSION['loggued_as']))
+    {
+      $this->render($response, 'pages/chat.twig');
+    } else {
+      $this->render($response, 'pages/home.twig');
+    }
+  }
 }
 ?>

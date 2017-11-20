@@ -1,6 +1,7 @@
 <?php
 use \Psr\Http\Message\RequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
+use App\Controllers\PagesController;
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE); ini_set('display_errors','On');
 
@@ -49,5 +50,6 @@ $app->post("/lookat/likeUser", \App\Controllers\PagesController::class . ':likeU
 $app->post("/lookat/blockUser", \App\Controllers\PagesController::class . ':blockUser');
 $app->post("/get_block_list", \App\Controllers\PagesController::class . ':get_block_list');
 $app->post("/removeblock", \App\Controllers\PagesController::class . ':removeblock');
+$app->get("/messenger", \App\Controllers\PagesController::class . ':getChat')->setName('messenger');
 $app->run();
 ?>

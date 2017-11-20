@@ -419,6 +419,7 @@ div.miniProfilPict {
   width: 100px;
   position:absolute;
   height: 100px;
+  z-index: 1;
 }
 
 @-webkit-keyframes TextGlow{
