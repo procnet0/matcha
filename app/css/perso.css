@@ -410,6 +410,10 @@ div.miniProfilPict {
   display:none;
 }
 
+#listcontainer {
+  height: 95%;
+}
+
 .cristalballz
 {
   width: 100px;
