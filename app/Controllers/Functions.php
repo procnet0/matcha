@@ -546,6 +546,40 @@ function Researcher($datas, $pdo) {
 
 
   try {
+    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `GetScore`");
+    $sql = $pdo->exec('CREATE DEFINER=`root`@`localhost` FUNCTION `GetScore`(`id1` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
+    DECLARE tags INT;
+    DECLARE likes INT;
+    DECLARE visites INT;
+    DECLARE pictures INT;
+    DECLARE tot INT;
+    DECLARE ptags INT;
+    DECLARE plikes INT;
+    DECLARE pvis INT;
+    DECLARE ppict INT;
+
+    SET ptags = 10;
+    SET plikes = 50;
+    SET pvis = 25;
+    SET ppict = 15;
+    SET tags = IFNULL((SELECT COUNT(*) FROM `tags_members` WHERE id_members = id1),0);
+    SET likes = IFNULL((SELECT COUNT(*) FROM `likes` WHERE id_to = id1),0);
+    SET visites = IFNULL((SELECT COUNT(*) FROM `visite` WHERE id_to = id1  AND timeof >= (UNIX_TIMESTAMP() - 604800)),0);
+    SET pictures = IFNULL((SELECT (ISNULL(pict1) + ISNULL(pict2) + ISNULL(pict3) + ISNULL(pict4) + ISNULL(pict5)) as nbpict FROM `pictures` WHERE id_user = id1),0);
+
+    SET tags = (((tags * ptags )/100)*10);
+    SET likes = (((likes * plikes)/100)*50);
+    SET visites = (((visites * pvis)/100));
+    SET pictures = (((pictures * ppict )/100)*15);
+    SET tags = IF(tags > ptags, ptags, tags);
+    SET likes = IF(likes > plikes, plikes, likes);
+    SET  visites = IF(visites > pvis, pvis, visites);
+    SET pictures = IF(pictures > ppict, ppict, pictures);
+
+    SET tot = ( tags + likes + visites + pictures);
+        RETURN  tot;
+    END');
+
     $sql = $pdo->exec("DROP FUNCTION IF EXISTS `checkblock`");
     $sql = $pdo->exec('CREATE DEFINER=`root`@`localhost` FUNCTION `checkblock`(`id1` INT, `id2` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
     DECLARE cross1 INT;
@@ -561,7 +595,6 @@ function Researcher($datas, $pdo) {
     print 'error =>'. $e;
     die();
   }
-
 
   try {
     $sql = $pdo->exec("DROP FUNCTION IF EXISTS `get_distance_km`");
@@ -668,6 +701,7 @@ function Researcher($datas, $pdo) {
     members.id_user,
     members.prenom,
     members.nom,
+    GetScore(members.id_user) as score,
     TIMESTAMPDIFF(YEAR, members.birthday, NOW()) AS age,
     members.sexe,
     members.oriented,
@@ -684,7 +718,7 @@ function Researcher($datas, $pdo) {
     $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
     $reqsql .= ' GROUP BY id_user
      HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
-     AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0';
+     AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
 
     if(isset($tlist)) {
       foreach ($tlist as $elem) {
@@ -695,11 +729,9 @@ function Researcher($datas, $pdo) {
     $sql = $pdo->query($reqsql);
     $resultaa = $sql->fetchall(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
-
     print "Error!: DATABASE searching-> " . $e->getMessage() . " FAILED TO search<br/>";
     die();
   }
-
   if($resultaa){
     foreach($resultaa as $key =>$array) {
       if ($array['profil_pict'] == "#" || !file_exists($array['profil_pict'])) {
@@ -707,12 +739,10 @@ function Researcher($datas, $pdo) {
       }
     }
   }
-
   $idlist = [];
   foreach ($resultaa as $key=>$elem) {
     $idlist[$key] = $elem['id_user'];
   }
-
   $res = [];
   $res['online'] = getOnlineMembers($idlist, $pdo);
   $res['taglist']= isset($tlist) ? $tlist : '';
@@ -805,6 +835,8 @@ function lookathim($login, $pdo) {
       $sql->execute();
       $current= $sql->fetch(PDO::FETCH_ASSOC);
 
+      $result['score'] = getscore($id, $pdo);
+
       $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS fromyou FROM likes");
       $sql->bindParam(1, $id, PDO::PARAM_INT);
       $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
@@ -832,7 +864,6 @@ function lookathim($login, $pdo) {
       print "error = ".$e." in lookathim stage= add visite";
       die();
     }
-
   }
   return $result;
 }
@@ -1005,4 +1036,56 @@ function removeblocks($target, $pdo) {
     }
     return $res;
   }
+
+function getscore($target, $pdo) {
+  $ret = [];
+  if($target) {
+    try {
+      $sql = $pdo->exec("DROP FUNCTION IF EXISTS `GetScore`");
+      $sql = $pdo->exec('CREATE DEFINER=`root`@`localhost` FUNCTION `GetScore`(`id1` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
+      DECLARE tags INT;
+      DECLARE likes INT;
+      DECLARE visites INT;
+      DECLARE pictures INT;
+      DECLARE tot INT;
+      DECLARE ptags INT;
+      DECLARE plikes INT;
+      DECLARE pvis INT;
+      DECLARE ppict INT;
+
+      SET ptags = 10;
+      SET plikes = 50;
+      SET pvis = 25;
+      SET ppict = 15;
+      SET tags = IFNULL((SELECT COUNT(*) FROM `tags_members` WHERE id_members = id1),0);
+      SET likes = IFNULL((SELECT COUNT(*) FROM `likes` WHERE id_to = id1),0);
+      SET visites = IFNULL((SELECT COUNT(*) FROM `visite` WHERE id_to = id1  AND timeof >= (UNIX_TIMESTAMP() - 604800)),0);
+      SET pictures = IFNULL((SELECT (ISNULL(pict1) + ISNULL(pict2) + ISNULL(pict3) + ISNULL(pict4) + ISNULL(pict5)) as nbpict FROM `pictures` WHERE id_user = id1),0);
+
+      SET tags = (((tags * ptags )/100)*10);
+      SET likes = (((likes * plikes)/100)*50);
+      SET visites = (((visites * pvis)/100));
+      SET pictures = (((pictures * ppict )/100)*15);
+      SET tags = IF(tags > ptags, ptags, tags);
+      SET likes = IF(likes > plikes, plikes, likes);
+      SET  visites = IF(visites > pvis, pvis, visites);
+      SET pictures = IF(pictures > ppict, ppict, pictures);
+
+      SET tot = ( tags + likes + visites + pictures);
+          RETURN  tot;
+      END');
+
+      $sql = $pdo->prepare("SELECT GetScore(?) as score");
+      $sql-> bindParam(1, $target, PDO::PARAM_INT);
+      $sql->execute();
+      $ret['result'] = $sql->fetch(PDO::FETCH_ASSOC);
+
+    } catch (PDOException $e) {
+      $ret['error'] = $e . ' in getScore';
+      $ret['result'] = 'null';
+      die();
+    }
+  }
+  return $ret;
+}
 ?>

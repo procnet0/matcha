@@ -275,6 +275,7 @@ class PagesController extends Controller{
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $ret = Researcher($datas, $pdo);
+      $ret['paramenter'] = $datas;
       print json_encode($ret);
     }
   }
@@ -316,8 +317,7 @@ class PagesController extends Controller{
       else {
           return $this->redirect($response, 'home');
       }
-    }
-    else {
+    } else {
       return $this->redirect($response, 'home');
     }
   }
