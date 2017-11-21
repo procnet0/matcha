@@ -88,6 +88,14 @@ try {
       timeof INT NOT NULL
     )");
 
+  $pdo->exec("CREATE TABLE IF NOT EXISTS matchs (
+    id_match INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    id_1 INT NOT NULL,
+    id_2 INT NOT NULL,
+    timeof INT NOT NULL,
+    active TINYINT NOT NULL
+  )");
+
   $pdo->exec("CREATE TABLE IF NOT EXISTS visite
     (
       id_visite INT PRIMARY KEY AUTO_INCREMENT NOT NULL,

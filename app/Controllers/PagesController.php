@@ -392,8 +392,8 @@ class PagesController extends Controller{
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $res = GetMsgInterface($pdo);
-      var_dump($res['notif']);
-      var_dump($res['msg']);
+      var_dump($res);
+
     }
   }
 

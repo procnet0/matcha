@@ -456,6 +456,7 @@ function likeuser(login, ev) {
  xhr.onreadystatechange = function() {
     if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
       var data = JSON.parse(xhr.responseText);
+      console.log(data);
       var loveshower = document.getElementById('love');
       if(data['likes']){
         if(data['likes']['toyou'] && data['likes']['fromyou']){

@@ -992,6 +992,7 @@ function likevent($from, $to, $pdo) {
         $sql->execute();
       }
 
+      $tot['match'] = gestionmatch($from,$to,$pdo,$tot['likes']);
       $tot['already']= $result;
       $tot['new'] = $res;
       $tot['status'] = "OK";
@@ -1004,6 +1005,51 @@ function likevent($from, $to, $pdo) {
     }
   }
   return($tot);
+}
+
+function gestionmatch($from, $to, $pdo, $tab) {
+  if(!empty($from) && !empty($to) && !empty($tab)){
+    try {
+      $sql = $pdo->prepare("SELECT matchs.* FROM matchs WHERE( id_1 = ? AND id_2 = ?) OR ( id_1 = ? AND id_2 = ?)");
+      $sql->bindParam(1, $from,PDO::PARAM_INT);
+      $sql->bindParam(2, $to,PDO::PARAM_INT);
+      $sql->bindParam(3, $to,PDO::PARAM_INT);
+      $sql->bindParam(4, $from,PDO::PARAM_INT);
+      $sql->execute();
+      $match = $sql->fetch(PDO::FETCH_ASSOC);
+      $statut = 'match -';
+      if(!empty($match)) {
+         if(!empty($tab['toyou']) && !empty($tab['fromyou']))
+         {
+           $sql = $pdo->prepare("UPDATE matchs SET active = 1 , timeof = UNIX_TIMESTAMP() WHERE id_match = ? ");
+           $sql->bindParam(1, $match['id_match'], PDO::PARAM_INT);
+           $sql->execute();
+           $statut = 'match +';
+         }
+         else
+         {
+           $sql = $pdo->prepare("UPDATE matchs SET active = 0 , timeof = UNIX_TIMESTAMP() WHERE id_match = ? ");
+           $sql->bindParam(1, $match['id_match'], PDO::PARAM_INT);
+           $sql->execute();
+           $statut = 'match -';
+         }
+      }
+      else if ((!empty($tab['toyou']) && !empty($tab['fromyou']))) {
+          $sql = $pdo->prepare("INSERT INTO matchs (id_1, id_2 , timeof, active) VALUES
+          (?,?,UNIX_TIMESTAMP(),1)");
+          $sql->bindParam(1, $from, PDO::PARAM_INT);
+          $sql->bindParam(2, $to, PDO::PARAM_INT);
+          $sql->execute();
+          $statut = 'match +';
+        }
+      return $statut;
+      } catch (PDOException $e) {
+         return $e;
+      }
+  }
+  else {
+    return 'error';
+  }
 }
 
 function blockevent($from, $to, $pdo) {
@@ -1122,15 +1168,23 @@ function getscore($target, $pdo) {
 function GetMsgInterface($pdo) {
   $ret = [];
   $ret['notif'] = [];
-  $ret['notif'] = [];
+  $ret['UserActiv'] = [];
   $ret['msg'] = [];
   try {
-    $sql = $pdo->prepare("SELECT COUNT(*) as Numb FROM notification WHERE notification.id_user = ?  AND new = 1 ");
+
+    $sql = $pdo->prepare("SELECT id_match , timeof ,active, IF(id_1=? , id_2 , id_1) AS id FROM matchs WHERE (id_1 = ? OR id_2 = ?) AND active = 1");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification FROM notification WHERE notification.id_user = ?  AND new = 1 ");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
-    $ret['notif']['new'] = $sql->fetch(PDO::FETCH_ASSOC);
+    $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT COUNT(id_notif) as numb , id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_from ");
+    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num , id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_from ");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
