@@ -1,4 +1,5 @@
 <?php
+//$_SESSION['db_status'] = 0;
 if (!isset($_SESSION['db_status']) || $_SESSION['db_status'] != '1')
 {
 try {

@@ -10,12 +10,30 @@
             <div class="hide-on-small-only">
                 <div class="col m2 l2">
                     <div class="profiles_list_container">
-
+                        <ul class="collection">
+                        {% if UserActiv %}
+                            {% for elem in UserActiv %}
+                                <li class="collection-item avatar">
+                                    {% if elem.profil_pict == '#'%}
+                                        <img class="circle" src="app/css/image/Photo-non-disponible.png" alt="No profile pict"/>
+                                    {% else %}
+                                        <img class="circle" src="/matcha/{{elem.profil_pict}}" alt="Profile pict"/>
+                                    {% endif %}
+                                    <span class="title">{{elem.login}}</span>
+                                </li>
+                            {% endfor %}
+                        {% endif %}
+                        </ul>
                     </div>
                 </div>
                 <div class="col m8 l8">
                     <div class="messages_container">
+                        <div id="current_profil_info">
 
+                        </div>
+                        <div id="current_profil_messages">
+
+                        </div>
                     </div>
                 </div>
                 <div class="col m2 l2">
@@ -26,7 +44,7 @@
             </div>
         </div>
     </div>
-    <div id="notif_container">
+    <div id="notif_container" style="display:hidden">
 
     </div>
 </div>

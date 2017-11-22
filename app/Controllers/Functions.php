@@ -1169,13 +1169,14 @@ function GetMsgInterface($pdo) {
   $ret = [];
   $ret['notif'] = [];
   $ret['UserActiv'] = [];
+  $ret['ListUser'] = [];
   $ret['msg'] = [];
   try {
-
-    $sql = $pdo->prepare("SELECT id_match , timeof ,active, IF(id_1=? , id_2 , id_1) AS id FROM matchs WHERE (id_1 = ? OR id_2 = ?) AND active = 1");
+    $sql = $pdo->prepare("SELECT matchs.id_match , matchs.timeof, matchs.active, IF(matchs.id_1=? , matchs.id_2 , matchs.id_1) AS id, members.profil_pict, members.nom, members.prenom, members.login FROM matchs INNER JOIN members on IF(matchs.id_1=?, matchs.id_2, matchs.id_1)=members.id_user WHERE (id_1 = ? OR id_2 = ?) AND active = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(4, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 

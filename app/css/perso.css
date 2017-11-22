@@ -463,3 +463,8 @@ span.badge.new{position:relative; bottom:80px;}
 .notif_block:hover #notif {
   visibility: visible;
 }
+
+.profiles_list_container, .messages_container
+{
+  border:2px solid black;
+}

@@ -4,8 +4,7 @@ namespace App\Controllers;
 use \Psr\Http\Message\RequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-class PagesController extends Controller{
-
+  class PagesController extends Controller{
   public function home(Request $request, Response $response) {
     if(empty($_SESSION['loggued_as'])) {
     $this->render($response, 'pages/home.twig');
@@ -392,9 +391,11 @@ class PagesController extends Controller{
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $res = GetMsgInterface($pdo);
-      var_dump($res);
-
+      //var_dump($res);
+      $this->render($response, 'pages/chat.twig', $res);
     }
+    else
+      $this->render($response, 'pages/home.twig');
   }
 
   public function postmessenger(Request $request, Response $response, $info) {
