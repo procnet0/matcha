@@ -88,6 +88,14 @@ try {
       timeof INT NOT NULL
     )");
 
+  $pdo->exec("CREATE TABLE IF NOT EXISTS matchs (
+    id_match INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    id_1 INT NOT NULL,
+    id_2 INT NOT NULL,
+    timeof INT NOT NULL,
+    active TINYINT NOT NULL
+  )");
+
   $pdo->exec("CREATE TABLE IF NOT EXISTS visite
     (
       id_visite INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
@@ -127,6 +135,24 @@ try {
     id_from INT NOT NULL,
     id_to INT NOT NULL,
     timeof INT NOT NULL
+  )");
+
+  $pdo->exec("CREATE TABLE IF NOT EXISTS messages (
+    id_msg INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    id_from INT NOT NULL,
+    id_to INT NOT NULL,
+    timeof INT NOT NULL,
+    content TEXT
+  )");
+
+  $pdo->exec("CREATE TABLE IF NOT EXISTS notification (
+    id_notif INT PRIMARY KEY AUTO_INCREMENT NOT NULL,
+    id_user INT NOT NULL,
+    id_item INT NOT NULL,
+    id_from INT NOT NULL,
+    type TINYINT NOT NULL,
+    timeof INT NOT NULL,
+    new TINYINT DEFAULT '1' NOT NULL
   )");
 
   $_SESSION['db_status'] ='2';

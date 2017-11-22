@@ -386,13 +386,19 @@ class PagesController extends Controller{
     print (json_encode($res));
   }
 
-  public function getChat(Request $request, Response $response) {
-    if (!empty($_SESSION['loggued_as']))
-    {
-      $this->render($response, 'pages/chat.twig');
-    } else {
-      $this->render($response, 'pages/home.twig');
+  public function getmessenger(Request $request, Response $response) {
+
+    if(!empty($_SESSION['loggued_as']) && !empty($_SESSION['id'])) {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $res = GetMsgInterface($pdo);
+      var_dump($res);
+
     }
+  }
+
+  public function postmessenger(Request $request, Response $response, $info) {
+
   }
 }
 ?>

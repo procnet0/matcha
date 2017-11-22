@@ -454,3 +454,12 @@ span.badge.new{position:relative; bottom:80px;}
 #listcontainer {
   height: 95%;
 }
+
+#notif {
+  z-index: 1;
+  visibility: collapse;
+}
+
+.notif_block:hover #notif {
+  visibility: visible;
+}
