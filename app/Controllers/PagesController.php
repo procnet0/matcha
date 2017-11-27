@@ -392,13 +392,44 @@ class PagesController extends Controller{
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $res = GetMsgInterface($pdo);
-      var_dump($res);
-
+      if($res) {
+        $this->render($response, 'pages/chat.twig', $res);
+      }
+      else {
+      return $this->redirect($response, 'home');
+      }
     }
   }
 
-  public function postmessenger(Request $request, Response $response, $info) {
+  public function postmessenger(Request $request, Response $response) {
+    $info = $request->getParams();
+    if(!emtpy($_SESSION['loggued_as']) && !empty($info['id']) && !isset($info['content']))
+    {
+      $ret = [];
+      if(empty($info['content'])) {
+        $ret['status'] = 'Message is empty';
+      }
+      else {
+      $pdo = $this->pdo;
+      $ret['status'] = PostNewMsg($info['id'],$info['content'],$pdo);
+      }
+      print json_encode($ret);
+    }
+  }
 
+  public function updateNotif(Request $request, Response $response) {
+    $data = $request->getParams();
+    if(!empty($_SESSION['loggued_as']) && !empty($_SESSION['id']))
+    {
+      $ret = [];
+      if(!empty($data['id_notif'])) {
+        $ret['status'] = UpdateNotifStatus($data['id_notif'], $this->pdo);
+      }
+      else {
+        $ret['status'] = 'ERROR';
+      }
+      print json_encode($ret);
+    }
   }
 }
 ?>
