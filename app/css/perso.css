@@ -1,3 +1,4 @@
+
 .parchemin
 {
   margin: 0 auto;
@@ -464,7 +465,45 @@ span.badge.new{position:relative; bottom:80px;}
   visibility: visible;
 }
 
-.profiles_list_container, .messages_container
+.profiles_list_container
 {
   border:2px solid black;
+  max-height:200px;
+  overflow-y: auto;
 }
+
+.messages_container
+{
+  border:2px solid black;
+  max-height:600px;
+  overflow-y:auto;
+}
+
+.imgcontainer_square
+{
+  padding-bottom: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.imgcontainer_square .img
+{
+  position: absolute;
+  max-width: 90%;
+  max-height: 90%;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.profil_list_user
+{
+  box-shadow: inset 0 0 11px 2px black;
+}
+
+.profil_list_user:hover
+{
+  box-shadow: none;
+  cursor:pointer;
+}
+

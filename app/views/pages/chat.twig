@@ -10,20 +10,23 @@
             <div class="hide-on-small-only">
                 <div class="col m2 l2">
                     <div class="profiles_list_container">
-                        <ul class="collection">
                         {% if UserActiv %}
                             {% for elem in UserActiv %}
-                                <li class="collection-item avatar">
+                            <div class="profil_list_user" data-id="{{elem.id}}">
+                                <div class="profil_list_pict imgcontainer_square">
                                     {% if elem.profil_pict == '#'%}
-                                        <img class="circle" src="app/css/image/Photo-non-disponible.png" alt="No profile pict"/>
+                                        <img class="img responsive-img" src="app/css/image/Photo-non-disponible.png" alt="No profile pict"/>
                                     {% else %}
-                                        <img class="circle" src="/matcha/{{elem.profil_pict}}" alt="Profile pict"/>
+                                    <img class="img responsive-img" src="/matcha/{{elem.profil_pict}}" alt="Profile pict"/>
                                     {% endif %}
-                                    <span class="title">{{elem.login}}</span>
-                                </li>
+                                </div>
+                                <div class="profil_list_username">
+                                    <p style="margin:0;">{{elem.login}}</p>
+                                </div>
+                                <hr style="border:0"/>
+                            </div>
                             {% endfor %}
                         {% endif %}
-                        </ul>
                     </div>
                 </div>
                 <div class="col m8 l8">
@@ -32,6 +35,9 @@
 
                         </div>
                         <div id="current_profil_messages">
+
+                        </div>
+                        <div id="form_messages">
 
                         </div>
                     </div>
@@ -48,4 +54,8 @@
 
     </div>
 </div>
+<script>
+    var useractiv = '{{ UserActiv|json_encode|raw }}';
+</script>
+<script type="text/javascript" src="/matcha/app/js/chat.js"></script>
 {% endblock %}
