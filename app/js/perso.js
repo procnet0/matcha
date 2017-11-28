@@ -119,11 +119,8 @@ function OpenTagMenu() {
   var row2 = row.cloneNode(false);
     row.setAttribute('style', 'height: 80%; min-height: 250px;')
   var activetag =  document.createElement('DIV');
-    activetag.setAttribute('class', 'col s6 tag-box');
+    activetag.setAttribute('class', 'col s12 tag-box');
     activetag.setAttribute('id', 'active-tag');
-  var inactivetag =  document.createElement('DIV');
-    inactivetag.setAttribute('class', 'col s6 tag-box');
-    inactivetag.setAttribute('id', 'inactive-tag');
 
   var tagunit = document.createElement('DIV');
   var menuclose = document.createElement('button');
@@ -144,33 +141,37 @@ function OpenTagMenu() {
     validator.addEventListener('click', function()
     {
       var acnl = document.getElementById('active-tag').childNodes;
-      var innl = document.getElementById('inactive-tag').childNodes;
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
       if (xhr2.readyState == 4 && (xhr2.status == 200 || xhr2.status == 0)) {
-        //console.log(JSON.parse(xhr2.responseText));
+      //  console.log(JSON.parse(xhr2.responseText));
       }};
 
       var actives = [];
       for(var i = 0, len = acnl.length; i < len; i++) {
+
+        if( acnl[i].className.indexOf("tagitem") === -1 ) {
+          continue;
+        }
         actives.push({id_tag:acnl[i].id, name: acnl[i].innerText});
-      }
-      var inactives = [];
-      for(var i = 0, len = innl.length; i < len; i++) {
-          inactives.push({id_tag:innl[i].id, name: innl[i].innerText});
       }
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr2.send("subject=tagupdt&activeTag=" + JSON.stringify(actives) + "&inactiveTag=" + JSON.stringify(inactives));
+      xhr2.send("subject=tagupdt&activeTag=" + JSON.stringify(actives));
     });
   var border = document.createElement('DIV');
     border.setAttribute('class', 'border col s3');
   var border2 = border.cloneNode();
+  var autosearch = document.createElement('DIV');
+    autosearch.setAttribute('class', 'input-field tagselector col s6 offset-s3');
+    autosearch.setAttribute('id', 'auto-tag');
+    autosearch.innerHTML = '<i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label><button type="button" id="tagselectbut">send</button>'
+
 
   row.append(activetag);
-  row.append(inactivetag);
   row2.append(border);
   row2.append(divcont);
+  activetag.append(autosearch);
   divcont.append(validator);
   divcont.append(menuclose);
   row2.append(border2);
@@ -182,28 +183,36 @@ function OpenTagMenu() {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
   if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-    var data = JSON.parse(xhr.responseText);
-    if(data['active']) {
-      data['active'].forEach(function (item, index) {
+    var dat = JSON.parse(xhr.responseText);
+    if(dat['active']) {
+      dat['active'].forEach(function (item, index) {
         activetag.innerHTML = activetag.innerHTML + "<div class='tagitem chip' id='tagitem"+item['id_tag']+"'>"+item['name_tag']+"<i class='material-icons'></i></div>"
       });}
-    if(data['inactive']) {
-      data['inactive'].forEach(function (item, index) {
-        inactivetag.innerHTML = inactivetag.innerHTML + "<div class='tagitem chip' id='tagitem"+item['id_tag']+"'>"+item['name_tag']+"<i class='material-icons'></i></div>"
-      });}
+      console.log(dat['taglist']);
+      str = '{';
+      dat['taglist'].forEach(function (item, index) {
+        str += '"' + item['name_tag'] + '" : null ,';
+      });
+      str = str.substring(0,str.length -1);
+      str += '}';
+
+      console.log(str);
+        $('#autocomplete-input').autocomplete({
+          data: JSON.parse(str),
+          limit: 20,
+          onAutocomplete: function(val) {
+
+          },
+          minLength: 1,
+        });
     addEventListenerByClass('tagitem', 'click', function (event) {
-      parent = event.target.parentNode;
-      if(parent.id == "inactive-tag") {
-        document.getElementById('active-tag').append(event.target);
-      }
-      if(parent.id == "active-tag") {
-        document.getElementById('inactive-tag').append(event.target);
-      }
+      event.target.parentElement.removeChild(event.target);
     });
   }};
   xhr.open("POST", "getTagInfo", true);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send("subject=tagmbt");
+
 }
 
 function ShowMap() {

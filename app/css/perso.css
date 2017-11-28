@@ -165,7 +165,7 @@ div.menucontext {
 
 div.tag-box {
   min-height: 250px !important;
-  height: 90%;
+  height: 100%;
 }
 
 #active-tag {
@@ -461,4 +461,22 @@ span.badge.new{position:relative; bottom:80px;}
 
 .notif_block:hover #notif {
   visibility: visible;
+}
+
+.verticalparcho .dropdown-content {
+  background-image: url('image/Vertical-parch.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.tagselector {
+  position: absolute;
+  bottom: 25%;
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.tagselector ul {
+  position: absolute !important;
+  background-color: rgba(255, 0, 0, 0.5);
+    z-index: 2;
 }

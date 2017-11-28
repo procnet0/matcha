@@ -226,35 +226,18 @@ class PagesController extends Controller{
   public function updateTagInfo(Request $request, Response $response) {
     $subject = $request->getParam('subject');
     $active = json_decode($request->getParam('activeTag'), true);
-    $inactive = json_decode($request->getParam('inactiveTag'), true);
     $error = [];
     $x = 0;
     foreach($active as $key => $value)
     {
       $active[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
-      if($active[$key]['id_tag'] < 1 || $active[$key]['id_tag'] > 5)
-      {
-        $error[$x] = 'id error -> '.$active[$key]['id_tag'].'//  tag name was ->'.$active[$key]['name'];
-      }
-    }
-    foreach($inactive as $key => $value)
-    {
-      $inactive[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
-      if($inactive[$key]['id_tag'] < 1 || $inactive[$key]['id_tag'] > 5)
-      {
-        $error[$x] = 'id error -> '.$inactive[$key]['id_tag'].'// tag name was ->'.$inactive[$key]['name'];
-      }
     }
     if(isset($subject) && $subject = 'tagupdt' && empty($error))
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
-      $ret = updateTags($active, $inactive, $pdo);
+      $ret = updateTags($active, $pdo);
       print($ret);
-    }
-    else {
-      $ret = json_encode($error);
-      print $ret;
     }
 
   }

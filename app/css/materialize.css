@@ -5449,9 +5449,6 @@ button.btn-floating {
 }
 
 .dropdown-content {
-  background-image: url('image/Vertical-parch.png');
-  background-repeat: no-repeat;
-  background-size: contain;
   margin: 0;
   display: none;
   min-width: 100px;

@@ -343,17 +343,15 @@ function getTags($log,$pdo) {
     print "Error!: DATABASE TAGINFO-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
     die();
   }
-  $inactivlist = [];
-  $inactivlist = DiffArrayDepth1($taglist, $activelist);
   $ret = [];
   $ret['active'] =  $activelist;
-  $ret['inactive'] = $inactivlist;
+  $ret['taglist'] = $taglist;
   return json_encode($ret);
 }
 
 function checkTag($array, $tags) {
   $result = [];
-  $result['conform'] = true;
+  $result['absent'] = [];
   $result['doble'] = false;
   $result['result'] = false;
   $result['new'] = $array;
@@ -368,94 +366,128 @@ function checkTag($array, $tags) {
       $result['doble'] = true;
     }
     else if ($result[$key]['count'] == 0) {
-      $result['conform'] = false;
+      $result['absent'][] = $sub ;
     }
   }
-
-  if( $result['conform'] == true && $result['doble'] == false) {
+  if($result['doble'] == false) {
     $result['result'] = true;
   }
-
-
   return $result;
 }
 
-function updateTags($active,$inactive,$pdo) {
+function updateTags($active,$pdo) {
   try {
+    $debug = '';
     $pdo->beginTransaction();
     $sql = $pdo->prepare("SELECT id_tag, name_tag FROM tags");
     $sql->execute();
     $taglist = $sql->fetchAll(PDO::FETCH_ASSOC);
-    $sql2 = $pdo->prepare("SELECT tags.id_tag,name_tag FROM tags INNER JOIN tags_members ON tags_members.id_tag = tags.id_tag INNER JOIN members ON members.id_user = tags_members.id_members  WHERE members.login = ?");
-    $sql2->bindParam(1, $_SESSION['loggued_as'],PDO::PARAM_STR);
+    $iduser = $_SESSION['id'];
+    $sql2 = $pdo->prepare("SELECT tags.id_tag,name_tag FROM tags INNER JOIN tags_members ON tags_members.id_tag = tags.id_tag  WHERE tags_members.id_members = ?");
+    $sql2->bindParam(1, $_SESSION['id'],PDO::PARAM_STR);
     $sql2->execute();
     $activelist= $sql2->fetchAll(PDO::FETCH_ASSOC);
-    $sql3 = $pdo->prepare("SELECT id_user FROM members WHERE login = ?");
-    $sql3->bindParam(1, $_SESSION['loggued_as'], PDO::PARAM_STR);
-    $sql3->execute();
-    $iduser = $sql3->fetch(PDO::FETCH_ASSOC);
+
     $pdo->commit();
   } catch (PDOException $e) {
     $pdo->rollBack();
     print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
     die();
   }
-  $check = checkTag(array_merge($active,$inactive),$taglist);
+  $check = checkTag($active,$taglist);
+  $debug = $check;
+
   if($check['result'] == true){
+
      $error = 'none';
      $removed = DiffArrayDepth1($activelist, $active);
      $added = DiffArrayDepth1($active, $activelist);
+
      if($added) {
+       try {
+         $pdo->beginTransaction();
+         $query = "INSERT INTO tags_members (id_tag, id_members) VALUES ";
+         $qpart = array_fill(0, count($added), "(?,?)");
+         $query .= implode(",", $qpart);
+         $sql = $pdo->prepare($query);
+         $i = 1;
+         foreach($added as $item) {
+           $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
+           $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
+         }
+         $sql->execute();
+         $pdo->commit();
+       } catch (PDOException $e) {
+         $pdo->rollBack();
+         print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
+         die();
+       }
+   }
+     if($removed) {
+         try {
+           $pdo->beginTransaction();
+           $query = "DELETE FROM tags_members WHERE id_members = ? AND id_tag IN (";
+           $qpart2 = array_fill(0, count($removed), "?");
+           $query .= implode(",", $qpart2).")";
+           $sql = $pdo->prepare($query);
+           $i = 1;
+           $binded = 0;
+           $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
+         foreach($removed as $item) {
+           $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
+           $binded += 1;
+         }
+         $ret['rquery']= $query;
+         $sql->execute();
+         $pdo->commit();
+       } catch (PDOException $e) {
+         $pdo->rollBack();
+         print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
+         die();
+       }
+   }
+   if(!empty($check['absent'])) {
      try {
        $pdo->beginTransaction();
+
+      $query = "INSERT INTO tags (name_tag) VALUES ";
+      $qpart = array_fill(0, count($check['absent']), "(?)");
+      $query .= implode(",", $qpart);
+      $sql = $pdo->prepare($query);
+      $i = 1;
+      foreach($check['absent'] as $item) {
+        $sql->bindValue($i++, $item['name'], PDO::PARAM_STR);
+      }
+      $sql->execute();
+
        $query = "INSERT INTO tags_members (id_tag, id_members) VALUES ";
-       $qpart = array_fill(0, count($added), "(?,?)");
+       $qpart = array_fill(0, count($check['absent']), "((SELECT tags.id_tag FROM tags WHERE name_tag = ?),?)");
        $query .= implode(",", $qpart);
        $sql = $pdo->prepare($query);
        $i = 1;
-       foreach($added as $item) {
-         $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
-         $sql->bindValue($i++, $iduser['id_user'], PDO::PARAM_STR);
+       foreach($check['absent'] as $item) {
+         $sql->bindValue($i++, $item['name'], PDO::PARAM_STR);
+         $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
        }
        $sql->execute();
        $pdo->commit();
      } catch (PDOException $e) {
        $pdo->rollBack();
-       print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
+       print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD TO DB<br/>";
        die();
      }
    }
-   if($removed) {
-     try {
-       $pdo->beginTransaction();
-       $query = "DELETE FROM tags_members WHERE id_members = ? AND id_tag IN (";
-       $qpart2 = array_fill(0, count($removed), "?");
-       $query .= implode(",", $qpart2).")";
-       $sql = $pdo->prepare($query);
-       $i = 1;
-       $binded = 0;
-       $sql->bindValue($i++, $iduser['id_user'], PDO::PARAM_STR);
-     foreach($removed as $item) {
-       $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
-       $binded += 1;
-     }
-     $ret['rquery']= $query;
-     $sql->execute();
-     $pdo->commit();
-   } catch (PDOException $e) {
-     $pdo->rollBack();
-     print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
-     die();
-   }
-  }
+
   }
   else {
+    $debug = $check;
     $error = 'Wrong data sended no modification made';
     $removed = [];
     $added = [];
   }
   $ret = [];
-  $ret['added'] =$added;
+  $ret['debug'] = $debug;
+  $ret['added'] = $added;
   $ret['removed'] = $removed;
   $ret['error'] = $error;
   return json_encode($ret);
