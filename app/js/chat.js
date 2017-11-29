@@ -8,12 +8,14 @@ $(document).ready(function()
             if (data[i]['id'] == id)
             {
                 console.log(data[i]);
-                var info = document.getElementById("current_profil_info");
-                info.innerHTML = "";
-                if (data[i]['profil_pict'] != "#")
-                    info.innerHTML += '<img style="width:100px;" src="'+data[i]['profil_pict']+'"/>';
+                $("#current_profil_info").find(".default_profil_info").hide();
+                $("#profil_name, #profil_image, #profil_link").show();
+                $("#profil_name").children("p").html(data[i]['login']);
+                if (data[i]['profil_pict'] == "#")
+                    $("#profil_image").children("img").attr("src", "/matcha/app/css/image/Photo-non-disponible.png");
                 else
-                    info.innerHTML += '<img style="width:100px;" src="/matcha/app/css/image/Photo-non-disponible.png    "/>';
+                    $("#profil_image").children("img").attr("src", data[i]['profil_pict']);
+                $("#profil_link").children("a").attr("href", "/matcha/lookat/"+data[i]['login']);
                 break;
             }
         }
@@ -24,5 +26,15 @@ $(document).ready(function()
             var id = $(this).data('id');
             select_user(id);
         })
+    });
+
+    $("#notif_button").click(function(){
+        $("#chat_container").css("display", "none");
+        $("#notif_container").css("display", "block");
+    });
+
+    $("#chat_button").click(function(){
+        $("#chat_container").css("display", "block");
+        $("#notif_container").css("display", "none");
     });
 });

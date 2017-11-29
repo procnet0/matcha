@@ -225,35 +225,18 @@ use \Psr\Http\Message\ResponseInterface as Response;
   public function updateTagInfo(Request $request, Response $response) {
     $subject = $request->getParam('subject');
     $active = json_decode($request->getParam('activeTag'), true);
-    $inactive = json_decode($request->getParam('inactiveTag'), true);
     $error = [];
     $x = 0;
     foreach($active as $key => $value)
     {
       $active[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
-      if($active[$key]['id_tag'] < 1 || $active[$key]['id_tag'] > 5)
-      {
-        $error[$x] = 'id error -> '.$active[$key]['id_tag'].'//  tag name was ->'.$active[$key]['name'];
-      }
-    }
-    foreach($inactive as $key => $value)
-    {
-      $inactive[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
-      if($inactive[$key]['id_tag'] < 1 || $inactive[$key]['id_tag'] > 5)
-      {
-        $error[$x] = 'id error -> '.$inactive[$key]['id_tag'].'// tag name was ->'.$inactive[$key]['name'];
-      }
     }
     if(isset($subject) && $subject = 'tagupdt' && empty($error))
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
-      $ret = updateTags($active, $inactive, $pdo);
+      $ret = updateTags($active, $pdo);
       print($ret);
-    }
-    else {
-      $ret = json_encode($error);
-      print $ret;
     }
 
   }
@@ -391,15 +374,46 @@ use \Psr\Http\Message\ResponseInterface as Response;
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $res = GetMsgInterface($pdo);
-      //var_dump($res);
-      $this->render($response, 'pages/chat.twig', $res);
+      if($res) {
+        $this->render($response, 'pages/chat.twig', $res);
+      }
+      else {
+      return $this->redirect($response, 'home');
+      }
     }
     else
       $this->render($response, 'pages/home.twig');
   }
 
-  public function postmessenger(Request $request, Response $response, $info) {
+  public function postmessenger(Request $request, Response $response) {
+    $info = $request->getParams();
+    if(!emtpy($_SESSION['loggued_as']) && !empty($info['id']) && !isset($info['content']))
+    {
+      $ret = [];
+      if(empty($info['content'])) {
+        $ret['status'] = 'Message is empty';
+      }
+      else {
+      $pdo = $this->pdo;
+      $ret['status'] = PostNewMsg($info['id'],$info['content'],$pdo);
+      }
+      print json_encode($ret);
+    }
+  }
 
+  public function updateNotif(Request $request, Response $response) {
+    $data = $request->getParams();
+    if(!empty($_SESSION['loggued_as']) && !empty($_SESSION['id']))
+    {
+      $ret = [];
+      if(!empty($data['id_notif'])) {
+        $ret['status'] = UpdateNotifStatus($data['id_notif'], $this->pdo);
+      }
+      else {
+        $ret['status'] = 'ERROR';
+      }
+      print json_encode($ret);
+    }
   }
 }
 ?>
