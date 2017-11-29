@@ -10,7 +10,10 @@ $(document).ready(function()
                 console.log(data[i]);
                 var info = document.getElementById("current_profil_info");
                 info.innerHTML = "";
-                info.innerHTML += '<img style="width:100px;" src="'+data[i]['profil_pict']+'"/>';
+                if (data[i]['profil_pict'] != "#")
+                    info.innerHTML += '<img style="width:100px;" src="'+data[i]['profil_pict']+'"/>';
+                else
+                    info.innerHTML += '<img style="width:100px;" src="/matcha/app/css/image/Photo-non-disponible.png    "/>';
                 break;
             }
         }

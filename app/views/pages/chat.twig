@@ -26,16 +26,23 @@
                                 <hr style="border:0"/>
                             </div>
                             {% endfor %}
+                        {% else %}
+                            <div class="no_chat">
+                                No chat
+                            </div>
                         {% endif %}
                     </div>
                 </div>
                 <div class="col m8 l8">
                     <div class="messages_container">
                         <div id="current_profil_info">
-
+                            <div class="default_profil_info">
+                                <p class="default_message">Choisissez ici une personne<br/> a qui parler</p>
+                                <img style="width:33%" src="/matcha/app/css/image/fleche_gauche.png" alt="" class="responsive-img" />
+                            </div>
                         </div>
-                        <div id="current_profil_messages">
-
+                        <div id="current_profil_messages" style="text-align: center">
+                            
                         </div>
                         <div id="form_messages">
 
@@ -43,8 +50,8 @@
                     </div>
                 </div>
                 <div class="col m2 l2">
-                    <div class="chat_sidebutton_container">
-
+                    <div class="chat_sidebutton_container" style="width:100%; height:100%;">
+                       <button class="waves-effect waves-light btn real_btn" id="notif_button">Notifications</button>
                     </div>
                 </div>
             </div>

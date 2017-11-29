@@ -4,6 +4,7 @@
   margin: 0 auto;
   width: 90%;
   min-height: 33%;
+  max-width:1300px;
 background-image: url("image/parch.jpg");
 background-size: 100% 100%;
 background-repeat: no-repeat;
@@ -26,6 +27,23 @@ box-shadow: 10px 10px 5px black;
 font-family: "Angels";
 src: local(Angel),url("../fonts/Calling Angels Personal Use.woff") format("woff");
 font-weight: normal;
+}
+
+@font-face{
+  font-family:"Carmenci";
+  src: url("../fonts/carmenci.ttf");
+}
+
+@font-face
+{
+  font-family: "Northwood";
+  src: url("../fonts/Northwood_High.ttf");
+}
+
+@font-face
+{
+  font-family: "SketchGoth";
+  src: url("../fonts/Sketch Gothic School.ttf");
 }
 
 .scrib {
@@ -150,7 +168,7 @@ position: absolute;
 
 #maincontainer {
   -webkit-animation-name: FadeIn;
-  -webkit-animation-duration: 4s;
+  -webkit-animation-duration: 2s;
   -webkit-animation-iteration-count: 1;
 }
 
@@ -468,14 +486,12 @@ span.badge.new{position:relative; bottom:80px;}
 .profiles_list_container
 {
   border:2px solid black;
-  max-height:200px;
+  max-height:600px;
   overflow-y: auto;
 }
 
 .messages_container
 {
-  border:2px solid black;
-  max-height:600px;
   overflow-y:auto;
 }
 
@@ -507,3 +523,24 @@ span.badge.new{position:relative; bottom:80px;}
   cursor:pointer;
 }
 
+.default_message
+{
+  font-family: "Northwood";
+  font-size:2em;
+  opacity:0.8;
+  margin-bottom:0;
+}
+
+.real_btn, .real_btn:focus
+{
+  background-color: #3e0550;
+  width:100%;
+  padding:0;
+  opacity:0.8;
+}
+
+.real_btn:hover
+{
+  background-color:#690009;
+  opacity:1;
+}
