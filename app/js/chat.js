@@ -37,4 +37,6 @@ $(document).ready(function()
         $("#chat_container").css("display", "block");
         $("#notif_container").css("display", "none");
     });
+
+    
 });

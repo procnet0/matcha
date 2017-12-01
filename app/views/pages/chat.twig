@@ -40,17 +40,17 @@
                                 <p class="default_message">Choisissez une personne<br/> a qui parler</p>
                                 <img style="width:33%" src="/matcha/app/css/image/fleche_gauche.png" alt="" class="responsive-img" />
                             </div>
-                            <div id="profil_name" class="hidden">
+                            <div id="profil_name" class="hidden center">
                                 <p></p>
                             </div>
                             <div id="profil_image" class="hidden">
                                 <img src="#" alt="" class="responsive-img" style="width:40%;">
                             </div>
-                            <div id="profil_link" class="hidden">
+                            <div id="profil_link" class="hidden center">
                                 <a href="#">Voir le profil</a>
                             </div>
                         </div>
-                        <div id="current_profil_messages" style="text-align: center">
+                        <div id="current_profil_messages" class="center">
                             
                         </div>
                         <div id="form_messages">
@@ -72,17 +72,74 @@
 
             </div>
             <div class="col m8 l8">
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
-                <p class="notif_list">Notif list</p>
+                <ul class="collapsible" data-collapsible="accordion">
+                {% if notif %}
+                    <li>
+                    <div class="collapsible-header">Likes <span class="like badge">{{notif.like_count}}<span class="likeback"> {{notif.likeback_count}}</span><span class="unlike"> {{notif.unlike_count}}</span></span></div>
+                        <div class="collapsible-body">
+                            {% if notif.likes %}
+                            <ul class="collection">
+                                {% for elem in notif.likes %}
+                                <li class="collection-item avatar">
+                                    <img src="/matcha/app/css/image/Photo-non-disponible.png" alt="" class="circle">
+                                    <span class="title">User : {{elem.login}}</span>
+                                    <p>Date : {{elem.timeof|date("m/d/Y", "Europe/Paris")}} <br />
+                                        {% if elem.type == 1 %}
+                                            Like
+                                        {% elseif elem.type == 4 %}
+                                            Likeback
+                                        {% else %}
+                                            Unlike
+                                        {% endif %}
+                                    </p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                                <span>Aucun like</span>
+                            {% endif %}
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Visites <span class="badge">1</span></div>
+                        <div class="collapsible-body">
+                            {% if notif.visits %}
+                            <ul class="collection">
+                                {% for elem in notif.visits %}
+                                <li class="collection-item avatar">
+                                    <img src="/matcha/app/css/image/Photo-non-disponible.png" alt="" class="circle">
+                                    <span class="title">User : {{elem.login}}</span>
+                                    <p>Date : {{elem.timeof|date("m/d/Y", "Europe/Paris")}}</p>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                                <span>Aucune visite</span>
+                            {% endif %}
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Messages</div>
+                        <div class="collapsible-body">
+                            {% if notif.msg %}
+                            <ul class="collection">
+                                {% for elem in notif.msg %}
+                               <li class="collection-item avatar">
+                                   <img src="/matcha/app/css/image/Photo-non-disponible.png" alt="" class="circle">
+                                    <span class="title">User : {{elem.login}}</span>
+                                    <p>Date : {{elem.timeof|date("m/d/Y", "Europe/Paris")}}</p>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                                <span>Aucun Message</span>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% else %}
+                    <span>Aucune notification pour le moment</span>
+                {% endif %}
+                </ul>
             </div>
             <div class="col m2 l2">
                 <button class="waves-effect waves-light btn real_btn" id="chat_button">Messages</button>

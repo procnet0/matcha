@@ -593,3 +593,9 @@ span.badge.new{position:relative; bottom:80px;}
 #profil_link{
   width: 33%;
 }
+
+span.like{color:red;}
+
+.unlike{color:black;}
+
+.likeback{color:pink;}

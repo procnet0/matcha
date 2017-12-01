@@ -1201,7 +1201,6 @@ function GetMsgInterface($pdo) {
   $ret = [];
   $ret['notif'] = [];
   $ret['UserActiv'] = [];
-  $ret['ListUser'] = [];
   $ret['msg'] = [];
   try {
 
@@ -1213,15 +1212,25 @@ function GetMsgInterface($pdo) {
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification FROM notification WHERE notification.id_user = ?  AND new = 1 ");
+    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count, COUNT(IF(type = 4,1,NULL)) as likeback_count, COUNT(IF(type = 5,1,NULL)) as unlike_count FROM notification WHERE notification.id_user = 2 AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num , id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_from ");
+    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num, timeof, id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_from ");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT type, new, id_from, timeof, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND (type = 1 OR type = 4 OR type = 5)");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif']['likes'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT new, id_from, timeof, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 2 GROUP BY id_from ");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif']['visits'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 
     $sql = $pdo->prepare("SELECT COUNT(*) as nb  FROM notification INNER JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ?  AND new = 1 AND type != 3 ORDER BY timeof DESC");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
@@ -1236,7 +1245,6 @@ function GetMsgInterface($pdo) {
   } catch (PDOException $e) {
     $ret['msg']['Error'] = $e . ' in GetMsgInterface';
   }
-
   return $ret;
 }
 
