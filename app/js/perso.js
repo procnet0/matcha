@@ -131,7 +131,7 @@ function OpenTagMenu() {
 
     var target = document.getElementById('menucontext');
     target.parentNode.removeChild(target);
-  })
+  });
   var divcont = document.createElement('DIV');
     divcont.setAttribute('class', 'bot-divcont col s6');
   var validator = document.createElement('button');
@@ -144,7 +144,7 @@ function OpenTagMenu() {
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
       if (xhr2.readyState == 4 && (xhr2.status == 200 || xhr2.status == 0)) {
-      //  console.log(JSON.parse(xhr2.responseText));
+        console.log(JSON.parse(xhr2.responseText));
       }};
 
       var actives = [];
@@ -165,8 +165,20 @@ function OpenTagMenu() {
   var autosearch = document.createElement('DIV');
     autosearch.setAttribute('class', 'input-field tagselector col s6 offset-s3');
     autosearch.setAttribute('id', 'auto-tag');
-    autosearch.innerHTML = '<i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label><button type="button" id="tagselectbut">send</button>'
-
+    autosearch.innerHTML = '<i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label>'
+  var sender = document.createElement('BUTTON');
+    sender.setAttribute('class','tag_select_button');
+    sender.setAttribute('type', 'button');
+    sender.innerHTML = 'send';
+    sender.addEventListener("click", function() {
+      var val = document.getElementById('autocomplete-input').value;
+      var newtag = document.createElement('DIV');
+      newtag.className = 'tagitem chip';
+      newtag.id = 'tagitem';
+      newtag.innerHTML = val+"<i class='material-icons'></i>";
+      document.getElementById('active-tag').append(newtag);
+    });
+  divcont.append(sender);
 
   row.append(activetag);
   row2.append(border);
@@ -195,8 +207,6 @@ function OpenTagMenu() {
       });
       str = str.substring(0,str.length -1);
       str += '}';
-
-      console.log(str);
         $('#autocomplete-input').autocomplete({
           data: JSON.parse(str),
           limit: 20,

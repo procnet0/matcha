@@ -183,6 +183,7 @@ function updateAccountInfo($login, $post,$pdo) {
   return;
 }
 
+// modifie la photo de profil
 function updatePict($data, $pdo) {
 
   $data['profil_pict'] = str_replace('http://'.$_SERVER['HTTP_HOST'].'/matcha/','',$data['profil_pict']);
@@ -221,6 +222,7 @@ function updatePict($data, $pdo) {
   return true;
 }
 
+// ajoute (<5) ou modifie (5) la photo active du carrousel
 function AddOrChangePicturePhp($data, $pdo) {
 
   try {
@@ -301,6 +303,7 @@ function AddOrChangePicturePhp($data, $pdo) {
   return json_encode($ret);
 }
 
+// compare 2 tableau en profondeur 1 (utile pour comparer les object javascript)
 function DiffArrayDepth1($array1 , $array2) {
   $arrayret = [];
   $x = 0;
@@ -325,6 +328,7 @@ function DiffArrayDepth1($array1 , $array2) {
 
 }
 
+// recupere les tags d un utilisateur
 function getTags($log,$pdo) {
 
   try {
@@ -349,32 +353,53 @@ function getTags($log,$pdo) {
   return json_encode($ret);
 }
 
+// verifie que le tableau de tag est valid / present dans la db / ne contien pas de doublon
 function checkTag($array, $tags) {
   $result = [];
   $result['absent'] = [];
   $result['doble'] = false;
-  $result['result'] = false;
+  $result['result'] = true;
   $result['new'] = $array;
   foreach ($array as $key =>$sub)
   {
     $result[$key]['count'] = 0;
-    foreach ($tags as $keys => $subs) {
-      if($sub['id_tag'] == $subs['id_tag'] && $sub['name'] == $subs['name_tag'])
-      { $result[$key]['count'] += 1; }
+    $result[$key]['doblecount'] = 0;
+
+    foreach ($array as $keys => $items)
+    {
+        if($items['name'] == $sub['name'])
+        {
+          $result[$key]['doblecount'] += 1;
+        }
     }
-    if( $result[$key]['count'] > 1) {
+    if($result[$key]['doblecount'] > 1)
+    {
       $result['doble'] = true;
     }
-    else if ($result[$key]['count'] == 0) {
+
+    foreach ($tags as $keys => $subs)
+    {
+      if($sub['name'] == $subs['name_tag'])
+      {
+         $result[$key]['count'] += 1;
+
+      }
+    }
+    if ($result[$key]['count'] == 0)
+    {
       $result['absent'][] = $sub ;
     }
   }
-  if($result['doble'] == false) {
-    $result['result'] = true;
+  if(!empty($result['absent'])) {
+    $result['new'] = DiffArrayDepth1($result['new'], $result['absent']);
+  }
+  if($result['doble'] != false) {
+    $result['result'] = false;
   }
   return $result;
 }
 
+// Ajout nouveaux tags + manage l
 function updateTags($active,$pdo) {
   try {
     $debug = '';
@@ -394,6 +419,9 @@ function updateTags($active,$pdo) {
     print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
     die();
   }
+  foreach($active as $key => $sub) {
+    $active[$key]['name'] = ucfirst(strtolower($sub['name']));
+  }
   $check = checkTag($active,$taglist);
   $debug = $check;
 
@@ -402,25 +430,25 @@ function updateTags($active,$pdo) {
      $error = 'none';
      $removed = DiffArrayDepth1($activelist, $active);
      $added = DiffArrayDepth1($active, $activelist);
+     $added = DiffArrayDepth1($added, $check['absent']);
 
      if($added) {
        try {
          $pdo->beginTransaction();
          $query = "INSERT INTO tags_members (id_tag, id_members) VALUES ";
-         $qpart = array_fill(0, count($added), "(?,?)");
+         $qpart = array_fill(0, count($added), "((SELECT tags.id_tag FROM tags WHERE name_tag = ? LIMIT 1),?)");
          $query .= implode(",", $qpart);
          $sql = $pdo->prepare($query);
          $i = 1;
          foreach($added as $item) {
-           $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
+           $sql->bindValue($i++, $item['name'], PDO::PARAM_STR);
            $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
          }
          $sql->execute();
          $pdo->commit();
        } catch (PDOException $e) {
          $pdo->rollBack();
-         print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
-         die();
+         $error = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
        }
    }
      if($removed) {
@@ -442,8 +470,8 @@ function updateTags($active,$pdo) {
          $pdo->commit();
        } catch (PDOException $e) {
          $pdo->rollBack();
-         print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
-         die();
+         $error  = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
+
        }
    }
    if(!empty($check['absent'])) {
@@ -473,8 +501,7 @@ function updateTags($active,$pdo) {
        $pdo->commit();
      } catch (PDOException $e) {
        $pdo->rollBack();
-       print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD TO DB<br/>";
-       die();
+       $error  = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD TO DB<br/>";
      }
    }
 
@@ -493,6 +520,7 @@ function updateTags($active,$pdo) {
   return json_encode($ret);
 }
 
+//recupere l addresse avec lat et lng
 function getAddrWithCoord($lat , $lng) {
   $url ="https://maps.googleapis.com/maps/api/geocode/json?latlng=".$lat.','.$lng."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
 
@@ -507,7 +535,9 @@ function getAddrWithCoord($lat , $lng) {
  return $ret;
 }
 
+//change la location de l utilisateur courant
 function updateLocation($data, $pdo) {
+  //user input location
   if(!empty($data['input'])) {
     $url="https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($data['input'])."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
     $ret = [];
@@ -531,6 +561,7 @@ function updateLocation($data, $pdo) {
         return $informations['results']['0']['formatted_address'];
       }
   }
+  // auto locate
   else if (!empty($data['latitude']) && !empty($data['longitude'])) {
       $info = getAddrWithCoord($data['latitude'], $data['longitude']);
      if(!empty($info))
@@ -551,10 +582,11 @@ function updateLocation($data, $pdo) {
     }
   }
   else {
-  return 'error';
+    return 'error';
   }
 }
 
+//distance entre 2 coordoneer
 function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_long, $decimals = 2) {
 
   $degrees = rad2deg(acos((sin(deg2rad($point1_lat))*sin(deg2rad($point2_lat))) + (cos(deg2rad($point1_lat))*cos(deg2rad($point2_lat))*cos(deg2rad($point1_long-$point2_long)))));
@@ -563,6 +595,7 @@ function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_lon
   return round($distance, $decimals);
 }
 
+// recupere la liste des utilisateur correspondant au parametre
 function Researcher($datas, $pdo) {
 
   $age = explode(',',$datas['age']);
@@ -784,6 +817,7 @@ function Researcher($datas, $pdo) {
   return($res);
 }
 
+//recupere la list des membre connecté
 function getOnlineMembers($array_id_user, $pdo) {
   $res = [];
   if($array_id_user) {
@@ -810,6 +844,7 @@ function getOnlineMembers($array_id_user, $pdo) {
   return $res;
 }
 
+//recuper les info du target
 function lookathim($login, $pdo) {
 
   $result = [];
@@ -909,6 +944,7 @@ function lookathim($login, $pdo) {
   return $result;
 }
 
+// Add un report dans la db
 function reportevent($from, $param, $pdo) {
   $to = $param['to'];
   $type = $param['type'];
@@ -959,6 +995,7 @@ function reportevent($from, $param, $pdo) {
   return $result;
 }
 
+// gere les like unlike
 function likevent($from, $to, $pdo) {
   $time = time();
   $tot = [];
@@ -1039,6 +1076,7 @@ function likevent($from, $to, $pdo) {
   return($tot);
 }
 
+// Gere les match
 function gestionmatch($from, $to, $pdo, $tab) {
   if(!empty($from) && !empty($to) && !empty($tab)){
     try {
@@ -1084,6 +1122,7 @@ function gestionmatch($from, $to, $pdo, $tab) {
   }
 }
 
+// Creer un block entre from et to
 function blockevent($from, $to, $pdo) {
   $ret = [];
   if(!empty($from) && !empty($to)) {
@@ -1115,6 +1154,7 @@ function blockevent($from, $to, $pdo) {
   }
 }
 
+//recupere la list des blocks
 function getblocklist($pdo) {
   $res = [];
   try {
@@ -1129,6 +1169,7 @@ function getblocklist($pdo) {
   return $res;
 }
 
+//unblock le target
 function removeblocks($target, $pdo) {
     $res = [];
     try {
@@ -1145,6 +1186,7 @@ function removeblocks($target, $pdo) {
     return $res;
   }
 
+// Recupe le score du target
 function getscore($target, $pdo) {
   $ret = [];
   if($target) {
@@ -1197,6 +1239,7 @@ function getscore($target, $pdo) {
   return $ret;
 }
 
+//msg et notif interface
 function GetMsgInterface($pdo) {
   $ret = [];
   $ret['notif'] = [];
@@ -1239,6 +1282,7 @@ function GetMsgInterface($pdo) {
   return $ret;
 }
 
+//contenu des MSG
 function RedeemMsg($id_user, $offset ,$pdo) {
   $ret = [];
   $ret['status'] = 'OK';
@@ -1259,6 +1303,7 @@ function RedeemMsg($id_user, $offset ,$pdo) {
   return($ret);
 }
 
+// Insert new MSG in db
 function PostNewMsg($id_user, $content, $pdo) {
   $ret = 'OK';
   try {
@@ -1284,10 +1329,10 @@ function PostNewMsg($id_user, $content, $pdo) {
   return $ret;
 }
 
+// Recup Notif  ancien / news     avec les types / logins
 function RedeemNotifContent($pdo) {
   $ret = [];
   $ret['status'] = 'OK';
-  $ret['msg'] = [];
   try {
     $sql = $pdo->prepare("SELECT notification.*, members.login, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type != 3 HAVING blocki = 0 ORDER BY timeof");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
@@ -1304,6 +1349,7 @@ function RedeemNotifContent($pdo) {
   return($ret);
 }
 
+// Change le statuts non lu --> lu
 function UpdateNotifStatus($id_notif , $pdo) {
   $ret = [];
   $ret['status'] = 'OK';
@@ -1320,6 +1366,7 @@ function UpdateNotifStatus($id_notif , $pdo) {
   return($ret);
 }
 
+// Recupere le nombre de nouvel notif ( total msg et autre )
 function RNewNotif($pdo) {
   $ret = [];
   $ret['status'] = 'OK';
