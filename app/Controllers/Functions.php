@@ -564,6 +564,7 @@ function updateLocation($data, $pdo) {
   // auto locate
   else if (!empty($data['latitude']) && !empty($data['longitude'])) {
       $info = getAddrWithCoord($data['latitude'], $data['longitude']);
+
      if(!empty($info))
      {
        try {

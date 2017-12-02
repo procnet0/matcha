@@ -414,5 +414,21 @@ class PagesController extends Controller{
       print json_encode($ret);
     }
   }
+
+  public function Auto_notif(Request $request, Response $response) {
+    header("Content-Type: text/event-stream");
+    header("Cache-Control: no-cache");
+    ob_end_clean();
+    ob_implicit_flush();
+    if(!empty($_SESSION['loggued_as'])) {
+
+        include_once ('Functions.php');
+        $data = RNewNotif($this->pdo);
+        print "data: {$data['nb']}\n\nretry: 3000\n\n";
+      }
+    else {
+      print "data: Error\n\nretry: 3000\n\n";
+    }
+  }
 }
 ?>

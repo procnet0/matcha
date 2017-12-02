@@ -647,3 +647,17 @@ function openblockmanager(ev) {
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send("subject=blklst");
 }
+
+function GetNewNotif() {
+  var container = document.getElementById('notif');
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      var data = xhr.responseText;
+      console.log(data);
+    }
+  }
+  xhr.open("POST", "Auto_notif", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send("action=Notifier");
+}

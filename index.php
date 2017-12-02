@@ -51,5 +51,6 @@ $app->post("/get_block_list", \App\Controllers\PagesController::class . ':get_bl
 $app->post("/removeblock", \App\Controllers\PagesController::class . ':removeblock');
 $app->get("/messenger", \App\Controllers\PagesController::class . ':getmessenger')->setName('messenger');
 $app->post("/messenger", \App\Controllers\PagesController::class . ':postmessenger');
+$app->get("/notif", \App\Controllers\PagesController::class . ':Auto_notif');
 $app->run();
 ?>
