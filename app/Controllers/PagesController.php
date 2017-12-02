@@ -394,7 +394,9 @@ class PagesController extends Controller{
       }
       else {
       $pdo = $this->pdo;
-      $ret['status'] = PostNewMsg($info['id'],$info['content'],$pdo);
+      $ret['status'] = 'OK';
+        include_once ('Functions.php');
+        $ret['content'] = PostNewMsg($info['id'],$info['content'],$pdo);
       }
       print json_encode($ret);
     }
@@ -406,6 +408,7 @@ class PagesController extends Controller{
     {
       $ret = [];
       if(!empty($data['id_notif'])) {
+          include_once ('Functions.php');
         $ret['status'] = UpdateNotifStatus($data['id_notif'], $this->pdo);
       }
       else {
