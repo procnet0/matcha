@@ -1,0 +1,26 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+ <div class="container section">
+  <div class="row">
+     <form action="{{ path_for('Recover')}}" method="post">
+       <div class="col s6">
+       <div class="form-group">
+         <label class="scrib " for="login"> Votre login </label>
+         <input type="text" class="form-control" name="login" id="login">
+       </div>
+     </div>
+     <div class="col s6">
+       <div class="form-group">
+         <label class="scrib " for="secret"> Votre reponse secrete</label>
+         <input type="text" class="form-control" name="secret" id="secret">
+       </div>
+     </div>
+     <div class="col  offset-s4 ">
+       <div class="form-group">
+         <input type="submit" class="btn btn-primary" value="Recover">
+       </div>
+    </form>
+  </div>
+ </div>
+{% endblock %}

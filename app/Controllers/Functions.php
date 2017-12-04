@@ -657,6 +657,45 @@ function Researcher($datas, $pdo) {
         SET tot = cross1 + cross2;
         RETURN  tot;
     END');
+
+    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `IsValid`");
+    $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION `IsValid`(`sexcase` INT, `idtarget` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER
+    BEGIN
+    DECLARE orient INT;
+    DECLARE sexc INT;
+	  DECLARE valid INT;
+    DECLARE summ INT ;
+    SET orient = (SELECT CASE oriented
+    						WHEN 'bi' THEN 10
+    						WHEN 'homo' THEN 20
+    						WHEN 'hetero' THEN 30
+    						ELSE 0
+      				  	END as orientcase
+                        FROM members WHERE id_user = idtarget);
+    SET sexc = (SELECT CASE sexe
+    						WHEN 'male' THEN 100
+    						WHEN 'female' THEN 200
+    						WHEN 'other' THEN 300
+    						ELSE 0
+      				  	END as sexc
+                        FROM members WHERE id_user = idtarget);
+
+    SET summ = sexcase + sexc + orient;
+    SET valid =  CASE
+    			WHEN summ IN(112,114,115,117) THEN 1
+    			WHEN summ IN(127,124) THEN 1
+                WHEN summ IN(132,135) THEN 1
+                WHEN summ IN(211,214,215,218) THEN 1
+                WHEN summ IN(225,228) THEN 1
+                WHEN summ IN(231,234) THEN 1
+                WHEN summ IN(313,316,319,323,326,329,333,336,339) THEN 1
+                ELSE 0
+    		END;
+
+    RETURN valid;
+    END");
+
+
   } catch (PDOException $e) {
     print 'error =>'. $e;
     die();
@@ -742,23 +781,31 @@ function Researcher($datas, $pdo) {
     $or = "members.sexe IN (";
     switch($sexnor)  {
       case array('male','hetero'):
-      $or .= "'female'"; break;
+      $or .= "'female'";$SexCase = '1'; break;
+
       case array('female','hetero'):
-      $or .= "'male'"; break;
+      $or .= "'male'";$SexCase = '2'; break;
+
       case array('other','hetero'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '3'; break;
+
       case array('male','bi'):
-      $or .= "'female','male','other'"; break;
-      case array('female','bi'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '4'; break;
+
+      case array('female','bi');
+      $or .= "'female','male','other'";$SexCase = '5'; break;
+
       case array('other','bi'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '6'; break;
+
       case array('male','homo'):
-      $or .= "'male'"; break;
+      $or .= "'male'";$SexCase = '7'; break;
+
       case array('female','homo'):
-      $or .= "'female'"; break;
+      $or .= "'female'";$SexCase = '8'; break;
+
       case array('other','homo'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '9'; break;
     }
     $or .= ")";
 
@@ -770,6 +817,7 @@ function Researcher($datas, $pdo) {
     GetScore(members.id_user) as score,
     TIMESTAMPDIFF(YEAR, members.birthday, NOW()) AS age,
     members.sexe,
+    IsValid(". $SexCase .", members.id_user) as Valid,
     members.oriented,
     members.profil_pict,
     GROUP_CONCAT(tags_members.id_tag) AS tags,
@@ -784,7 +832,7 @@ function Researcher($datas, $pdo) {
     $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
     $reqsql .= ' GROUP BY id_user
      HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
-     AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
+     AND Valid = 1 AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
 
     if(isset($tlist)) {
       foreach ($tlist as $elem) {
@@ -1351,6 +1399,7 @@ function RedeemNotifContent($pdo) {
 }
 
 // Change le statuts non lu --> lu
+
 function UpdateNotifStatus($id_notif , $pdo) {
   $ret = [];
   $ret['status'] = 'OK';
@@ -1382,6 +1431,48 @@ function RNewNotif($pdo) {
     $ret['status'] = $e;
   }
   return ($ret);
+}
+
+function recoverPassword($log,$answer,$pdo) {
+  $ret = [];
+  try {
+    $sql = $pdo->prepare("SELECT count(id_user) as result, email FROM members WHERE login = ? AND secret_answer = ? GROUP BY id_user");
+    $sql->bindParam(1, $log, PDO::PARAM_STR);
+    $sql->bindParam(2, $answer, PDO::PARAM_STR);
+    $sql->execute();
+    $res = $sql->fetch(PDO::FETCH_ASSOC);
+    $ret['data'] = $res;
+    if($res['result'] == 1)
+    {
+      $ret['status'] = 'OK';
+    }
+    else
+    {
+      $ret['status'] = 'Mauvaise informations';
+    }
+  } catch (PDOException $e) {
+    $ret['status'] = 'Error';
+    $ret['error'] = $e;
+  }
+  return $ret;
+}
+
+function resetPassword($log, $pass, $pdo) {
+  $pass =  hash('whirlpool', $pass);
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare('UPDATE members SET password = ? WHERE login = ?');
+    $sql->bindParam(1, $pass, PDO::PARAM_STR);
+    $sql->bindParam(2, $log, PDO::PARAM_STR);
+    $sql->execute();
+    $status = 1;
+    $pdo->commit();
+  } catch (PDOException $e) {
+    $pdo->rollback();
+    print 'error'. $e;
+    $status = 0;
+  }
+  return $status;
 }
 
 ?>

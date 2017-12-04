@@ -157,7 +157,7 @@ function OpenTagMenu() {
       }
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr2.send("subject=tagupdt&activeTag=" + JSON.stringify(actives));
+      xhr2.send("subject=tagupdt&activeTag=" + encodeURIComponent(JSON.stringify(actives)));
     });
   var border = document.createElement('DIV');
     border.setAttribute('class', 'border col s3');

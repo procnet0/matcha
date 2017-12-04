@@ -23,6 +23,7 @@ class PagesController extends Controller{
       include_once ('Functions.php');
       $info = [];
       $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+      $_SESSION['id'] = $info['profil']['id_user'];
       $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
       $this->render($response, 'pages/account.twig', $info);
     }
@@ -76,26 +77,22 @@ class PagesController extends Controller{
       {
         $_SESSION['loggued_as'] = $param['name'];
         $_SESSION['Alert'] = "Connexion Succeeded";
-        $info = [];
-        $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
-        $_SESSION['id'] = $info['profil']['id_user'];
-        $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
         updateLocation($param,$pdo);
-        $this->render($response, 'pages/account.twig', $info);
-      }
-      else if($result['name'] == True && $result['password'] == False)
-      {
-        $_SESSION['loggued_as'] = "";
-        $_SESSION['id'] = "";
-        $_SESSION['Alert'] = "Wrong password";
-        $this->render($response, 'pages/home.twig');
+          return $this->redirect($response ,'profil');
       }
       else if($result['name'] != True)
       {
         $_SESSION['loggued_as'] = "";
         $_SESSION['id'] = "";
-        $info = "Login not Found, Please Sign up";
-        $this->render($response, 'pages/signUp.twig', array('login' => filter_var($param['name'], FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES)));
+        $_SESSION['flash'] = array('login' => "Login not Found, Please Sign up");
+        return $this->redirect($response ,'home');
+      }
+      else if($result['name'] == True && $result['password'] == False)
+      {
+        $_SESSION['loggued_as'] = "";
+        $_SESSION['id'] = "";
+        $_SESSION['flash'] = array('pass'=> "Wrong password");
+        return $this->redirect($response ,'home');
       }
     }
     else {
@@ -432,6 +429,71 @@ class PagesController extends Controller{
     else {
       print "data: Error\n\nretry: 3000\n\n";
     }
+  }
+
+  public function getRecover(Request $request, Response $response) {
+    $this->render($response, 'pages/recover.twig');
+  }
+
+  public function postRecover(Request $request, Response $response) {
+    $data = $request->getParams();
+    if(!empty($data['login'] && !empty($data['secret']))) {
+      include_once ('Functions.php');
+      $ret =  recoverPassword($data['login'], $data['secret'], $this->pdo);
+      if(!empty($ret['status']) && $ret['status'] == 'OK') {
+        $prekey = microtime() . 'recover';
+        $key = hash('whirlpool', $prekey);
+        $url = $_SERVER['HTTP_HOST'].str_replace('index.php','Reset',$_SERVER['PHP_SELF']).'/'.$key;
+        $_SESSION['key'] = $key;
+        $_SESSION['recover'] = $data['login'];
+        $message = \Swift_Message::newInstance('Reinitialiser Password')
+          ->setFrom(['password_recover@matcha.fr' => 'A-bra-ca-da-matcha'])
+          ->setTo([$ret['data']['email'] => $data['login']])
+          ->setBody("Hello {$data['login']} click sur ce lien => http://{$url} <= pour changer ton mot de pass.");
+        $result = $this->mailer->send($message);
+        $_SESSION['flash'] = array('status' => 'Message envoyer');
+        return $this->redirect($response, 'home');
+      }
+    }
+  }
+
+  public function getReset(Request $request, Response $response, $key) {
+    var_dump($key);
+    if(!empty($_SESSION['key']) && $key['key'] == $_SESSION['key'])
+    {
+      $key = hash('whirlpool', $key['key'].time());
+      $_SESSION['key'] = $key;
+      $this->render($response, 'pages/Reset.twig', array('key' => $key));
+    }
+    else {
+      $_SESSION['flash'] = array('error' => 'Clé invalid try again');
+      $_SESSION['key'] = '';
+      $_SESSION['recover'] = '';
+      return $this->redirect($response, 'Recover');
+    }
+  }
+
+  public function postReset(Request $request, Response $response) {
+    $data = $request->getParams();
+    if( !empty($data['key']) && $data['key'] == $_SESSION['key'] && !empty($_SESSION['recover'])) {
+      $_SESSION['key'] = '';
+      include_once ('Functions.php');
+      $ret = resetPassword($_SESSION['recover'], $data['password'], $this->pdo);
+      $_SESSION['recover'] = '';
+      if($ret) {
+          $_SESSION['flash'] = array('status' => 'Password Reset Success');
+        }
+      else {
+          $_SESSION['flash'] = array('status' => 'Password Reset FAIL contact the webmaster');
+        }
+      return $this->redirect($response, 'home');
+    }
+    else {
+        $_SESSION['key'] = '';
+        $_SESSION['recover'] = '';
+        return $this->redirect($response, 'Recover');
+    }
+
   }
 }
 ?>

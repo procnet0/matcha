@@ -38,6 +38,7 @@
           <div id="map"></div>
         </div>
       </div>
+      {% if Connector == 1 %}
       <div class="col s4 m4 l4">
         <div class="notif_block">
           <a href="{{ path_for('messenger') }}">
@@ -47,6 +48,7 @@
           </a>
         </div>
       </div>
+      {% endif %}
       <div class="col s2 m2 l2">
           <a href="{{ path_for('logout')}}"><img src="/matcha/app/css/image/potion-oubli.png" class="logout" alt="potion d'oubli"></a>
      </div>
@@ -95,7 +97,7 @@ $(document).ready(function() {
     closeOnSelect: false,
     max: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
   });
-  if(typeof(EventSource) !== "undefined") {
+  if(typeof(EventSource) !== "undefined" && document.getElementById("notif")) {
      var source = new EventSource("notif");
       source.onmessage = function(event) {
           var notif = document.getElementById("notif");

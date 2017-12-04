@@ -1,0 +1,35 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+ <div class="container section">
+  <div class="row">
+     <form action="{{ path_for('NewPass') }}" method="post">
+       <div class="col s6">
+       <div class="form-group">
+         <label class="scrib " for="password"> Votre Nouveau Password </label>
+         <input type="password" class="form-control" name="password" id="password">
+       </div>
+     </div>
+     <div class="col s6">
+       <div class="form-group">
+         <label class="scrib " for="confirm"> Confirm Password</label>
+         <input type="password" class="form-control" name="confirm" id="confirm">
+       </div>
+     </div>
+     <div class="col  offset-s4 ">
+       <div class="form-group">
+            <input type="hidden" name="key" id="key" {% if key %} value="{{ key }}" {% endif %}>
+         <input type="submit" class="btn btn-primary" value="Recover">
+       </div>
+    </form>
+    <script type="text/javascript">
+    $('#password, #confirm').on('keyup', function () {
+    if ($('#password').val() == $('#confirm').val()) {
+      $('#confirm').css('color', 'lime');
+    } else
+      $('#confirm').css('color', 'red');
+  });
+    </script>
+  </div>
+ </div>
+{% endblock %}

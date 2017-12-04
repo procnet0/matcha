@@ -11,3 +11,5 @@ geolocalisation + modification du lieu par le client (fait mais empeche la loc a
 
 
 filtre + trie
+
+proteger la fonction research =P
