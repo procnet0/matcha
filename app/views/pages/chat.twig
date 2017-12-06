@@ -73,9 +73,8 @@
             </div>
             <div class="col m8 l8">
                 <ul class="collapsible" data-collapsible="accordion">
-                {% if notif %}
                     <li>
-                    <div class="collapsible-header">Likes <span class="like badge">{{notif.like_count}}<span class="likeback"> {{notif.likeback_count}}</span><span class="unlike"> {{notif.unlike_count}}</span></span></div>
+                    <div class="collapsible-header">Likes <span class="like badge"></span></div>
                         <div class="collapsible-body">
                             {% if notif.likes %}
                             <ul class="collection">
@@ -83,15 +82,6 @@
                                 <li class="collection-item avatar">
                                     <img src="/matcha/app/css/image/Photo-non-disponible.png" alt="" class="circle">
                                     <span class="title">User : {{elem.login}}</span>
-                                    <p>Date : {{elem.timeof|date("m/d/Y", "Europe/Paris")}} <br />
-                                        {% if elem.type == 1 %}
-                                            Like
-                                        {% elseif elem.type == 4 %}
-                                            Likeback
-                                        {% else %}
-                                            Unlike
-                                        {% endif %}
-                                    </p>
                                 </li>
                                 {% endfor %}
                             </ul>
@@ -136,9 +126,6 @@
                             {% endif %}
                         </div>
                     </li>
-                {% else %}
-                    <span>Aucune notification pour le moment</span>
-                {% endif %}
                 </ul>
             </div>
             <div class="col m2 l2">

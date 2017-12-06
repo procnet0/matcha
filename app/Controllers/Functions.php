@@ -183,6 +183,7 @@ function updateAccountInfo($login, $post,$pdo) {
   return;
 }
 
+// modifie la photo de profil
 function updatePict($data, $pdo) {
 
   $data['profil_pict'] = str_replace('http://'.$_SERVER['HTTP_HOST'].'/matcha/','',$data['profil_pict']);
@@ -221,6 +222,7 @@ function updatePict($data, $pdo) {
   return true;
 }
 
+// ajoute (<5) ou modifie (5) la photo active du carrousel
 function AddOrChangePicturePhp($data, $pdo) {
 
   try {
@@ -301,6 +303,7 @@ function AddOrChangePicturePhp($data, $pdo) {
   return json_encode($ret);
 }
 
+// compare 2 tableau en profondeur 1 (utile pour comparer les object javascript)
 function DiffArrayDepth1($array1 , $array2) {
   $arrayret = [];
   $x = 0;
@@ -325,6 +328,7 @@ function DiffArrayDepth1($array1 , $array2) {
 
 }
 
+// recupere les tags d un utilisateur
 function getTags($log,$pdo) {
 
   try {
@@ -349,32 +353,53 @@ function getTags($log,$pdo) {
   return json_encode($ret);
 }
 
+// verifie que le tableau de tag est valid / present dans la db / ne contien pas de doublon
 function checkTag($array, $tags) {
   $result = [];
   $result['absent'] = [];
   $result['doble'] = false;
-  $result['result'] = false;
+  $result['result'] = true;
   $result['new'] = $array;
   foreach ($array as $key =>$sub)
   {
     $result[$key]['count'] = 0;
-    foreach ($tags as $keys => $subs) {
-      if($sub['id_tag'] == $subs['id_tag'] && $sub['name'] == $subs['name_tag'])
-      { $result[$key]['count'] += 1; }
+    $result[$key]['doblecount'] = 0;
+
+    foreach ($array as $keys => $items)
+    {
+        if($items['name'] == $sub['name'])
+        {
+          $result[$key]['doblecount'] += 1;
+        }
     }
-    if( $result[$key]['count'] > 1) {
+    if($result[$key]['doblecount'] > 1)
+    {
       $result['doble'] = true;
     }
-    else if ($result[$key]['count'] == 0) {
+
+    foreach ($tags as $keys => $subs)
+    {
+      if($sub['name'] == $subs['name_tag'])
+      {
+         $result[$key]['count'] += 1;
+
+      }
+    }
+    if ($result[$key]['count'] == 0)
+    {
       $result['absent'][] = $sub ;
     }
   }
-  if($result['doble'] == false) {
-    $result['result'] = true;
+  if(!empty($result['absent'])) {
+    $result['new'] = DiffArrayDepth1($result['new'], $result['absent']);
+  }
+  if($result['doble'] != false) {
+    $result['result'] = false;
   }
   return $result;
 }
 
+// Ajout nouveaux tags + manage l
 function updateTags($active,$pdo) {
   try {
     $debug = '';
@@ -394,6 +419,9 @@ function updateTags($active,$pdo) {
     print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
     die();
   }
+  foreach($active as $key => $sub) {
+    $active[$key]['name'] = ucfirst(strtolower($sub['name']));
+  }
   $check = checkTag($active,$taglist);
   $debug = $check;
 
@@ -402,25 +430,25 @@ function updateTags($active,$pdo) {
      $error = 'none';
      $removed = DiffArrayDepth1($activelist, $active);
      $added = DiffArrayDepth1($active, $activelist);
+     $added = DiffArrayDepth1($added, $check['absent']);
 
      if($added) {
        try {
          $pdo->beginTransaction();
          $query = "INSERT INTO tags_members (id_tag, id_members) VALUES ";
-         $qpart = array_fill(0, count($added), "(?,?)");
+         $qpart = array_fill(0, count($added), "((SELECT tags.id_tag FROM tags WHERE name_tag = ? LIMIT 1),?)");
          $query .= implode(",", $qpart);
          $sql = $pdo->prepare($query);
          $i = 1;
          foreach($added as $item) {
-           $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
+           $sql->bindValue($i++, $item['name'], PDO::PARAM_STR);
            $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
          }
          $sql->execute();
          $pdo->commit();
        } catch (PDOException $e) {
          $pdo->rollBack();
-         print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
-         die();
+         $error = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
        }
    }
      if($removed) {
@@ -442,8 +470,8 @@ function updateTags($active,$pdo) {
          $pdo->commit();
        } catch (PDOException $e) {
          $pdo->rollBack();
-         print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
-         die();
+         $error  = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
+
        }
    }
    if(!empty($check['absent'])) {
@@ -473,8 +501,7 @@ function updateTags($active,$pdo) {
        $pdo->commit();
      } catch (PDOException $e) {
        $pdo->rollBack();
-       print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD TO DB<br/>";
-       die();
+       $error  = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD TO DB<br/>";
      }
    }
 
@@ -493,6 +520,7 @@ function updateTags($active,$pdo) {
   return json_encode($ret);
 }
 
+//recupere l addresse avec lat et lng
 function getAddrWithCoord($lat , $lng) {
   $url ="https://maps.googleapis.com/maps/api/geocode/json?latlng=".$lat.','.$lng."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
 
@@ -507,7 +535,9 @@ function getAddrWithCoord($lat , $lng) {
  return $ret;
 }
 
+//change la location de l utilisateur courant
 function updateLocation($data, $pdo) {
+  //user input location
   if(!empty($data['input'])) {
     $url="https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($data['input'])."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
     $ret = [];
@@ -531,8 +561,10 @@ function updateLocation($data, $pdo) {
         return $informations['results']['0']['formatted_address'];
       }
   }
+  // auto locate
   else if (!empty($data['latitude']) && !empty($data['longitude'])) {
       $info = getAddrWithCoord($data['latitude'], $data['longitude']);
+
      if(!empty($info))
      {
        try {
@@ -551,10 +583,11 @@ function updateLocation($data, $pdo) {
     }
   }
   else {
-  return 'error';
+    return 'error';
   }
 }
 
+//distance entre 2 coordoneer
 function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_long, $decimals = 2) {
 
   $degrees = rad2deg(acos((sin(deg2rad($point1_lat))*sin(deg2rad($point2_lat))) + (cos(deg2rad($point1_lat))*cos(deg2rad($point2_lat))*cos(deg2rad($point1_long-$point2_long)))));
@@ -563,6 +596,7 @@ function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_lon
   return round($distance, $decimals);
 }
 
+// recupere la liste des utilisateur correspondant au parametre
 function Researcher($datas, $pdo) {
 
   $age = explode(',',$datas['age']);
@@ -623,6 +657,45 @@ function Researcher($datas, $pdo) {
         SET tot = cross1 + cross2;
         RETURN  tot;
     END');
+
+    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `IsValid`");
+    $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION `IsValid`(`sexcase` INT, `idtarget` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER
+    BEGIN
+    DECLARE orient INT;
+    DECLARE sexc INT;
+	  DECLARE valid INT;
+    DECLARE summ INT ;
+    SET orient = (SELECT CASE oriented
+    						WHEN 'bi' THEN 10
+    						WHEN 'homo' THEN 20
+    						WHEN 'hetero' THEN 30
+    						ELSE 0
+      				  	END as orientcase
+                        FROM members WHERE id_user = idtarget);
+    SET sexc = (SELECT CASE sexe
+    						WHEN 'male' THEN 100
+    						WHEN 'female' THEN 200
+    						WHEN 'other' THEN 300
+    						ELSE 0
+      				  	END as sexc
+                        FROM members WHERE id_user = idtarget);
+
+    SET summ = sexcase + sexc + orient;
+    SET valid =  CASE
+    			WHEN summ IN(112,114,115,117) THEN 1
+    			WHEN summ IN(127,124) THEN 1
+                WHEN summ IN(132,135) THEN 1
+                WHEN summ IN(211,214,215,218) THEN 1
+                WHEN summ IN(225,228) THEN 1
+                WHEN summ IN(231,234) THEN 1
+                WHEN summ IN(313,316,319,323,326,329,333,336,339) THEN 1
+                ELSE 0
+    		END;
+
+    RETURN valid;
+    END");
+
+
   } catch (PDOException $e) {
     print 'error =>'. $e;
     die();
@@ -708,23 +781,31 @@ function Researcher($datas, $pdo) {
     $or = "members.sexe IN (";
     switch($sexnor)  {
       case array('male','hetero'):
-      $or .= "'female'"; break;
+      $or .= "'female'";$SexCase = '1'; break;
+
       case array('female','hetero'):
-      $or .= "'male'"; break;
+      $or .= "'male'";$SexCase = '2'; break;
+
       case array('other','hetero'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '3'; break;
+
       case array('male','bi'):
-      $or .= "'female','male','other'"; break;
-      case array('female','bi'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '4'; break;
+
+      case array('female','bi');
+      $or .= "'female','male','other'";$SexCase = '5'; break;
+
       case array('other','bi'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '6'; break;
+
       case array('male','homo'):
-      $or .= "'male'"; break;
+      $or .= "'male'";$SexCase = '7'; break;
+
       case array('female','homo'):
-      $or .= "'female'"; break;
+      $or .= "'female'";$SexCase = '8'; break;
+
       case array('other','homo'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '9'; break;
     }
     $or .= ")";
 
@@ -736,6 +817,7 @@ function Researcher($datas, $pdo) {
     GetScore(members.id_user) as score,
     TIMESTAMPDIFF(YEAR, members.birthday, NOW()) AS age,
     members.sexe,
+    IsValid(". $SexCase .", members.id_user) as Valid,
     members.oriented,
     members.profil_pict,
     GROUP_CONCAT(tags_members.id_tag) AS tags,
@@ -750,7 +832,7 @@ function Researcher($datas, $pdo) {
     $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
     $reqsql .= ' GROUP BY id_user
      HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
-     AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
+     AND Valid = 1 AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
 
     if(isset($tlist)) {
       foreach ($tlist as $elem) {
@@ -784,6 +866,7 @@ function Researcher($datas, $pdo) {
   return($res);
 }
 
+//recupere la list des membre connecté
 function getOnlineMembers($array_id_user, $pdo) {
   $res = [];
   if($array_id_user) {
@@ -810,6 +893,7 @@ function getOnlineMembers($array_id_user, $pdo) {
   return $res;
 }
 
+//recuper les info du target
 function lookathim($login, $pdo) {
 
   $result = [];
@@ -909,6 +993,7 @@ function lookathim($login, $pdo) {
   return $result;
 }
 
+// Add un report dans la db
 function reportevent($from, $param, $pdo) {
   $to = $param['to'];
   $type = $param['type'];
@@ -959,6 +1044,7 @@ function reportevent($from, $param, $pdo) {
   return $result;
 }
 
+// gere les like unlike
 function likevent($from, $to, $pdo) {
   $time = time();
   $tot = [];
@@ -1039,6 +1125,7 @@ function likevent($from, $to, $pdo) {
   return($tot);
 }
 
+// Gere les match
 function gestionmatch($from, $to, $pdo, $tab) {
   if(!empty($from) && !empty($to) && !empty($tab)){
     try {
@@ -1084,6 +1171,7 @@ function gestionmatch($from, $to, $pdo, $tab) {
   }
 }
 
+// Creer un block entre from et to
 function blockevent($from, $to, $pdo) {
   $ret = [];
   if(!empty($from) && !empty($to)) {
@@ -1115,6 +1203,7 @@ function blockevent($from, $to, $pdo) {
   }
 }
 
+//recupere la list des blocks
 function getblocklist($pdo) {
   $res = [];
   try {
@@ -1129,6 +1218,7 @@ function getblocklist($pdo) {
   return $res;
 }
 
+//unblock le target
 function removeblocks($target, $pdo) {
     $res = [];
     try {
@@ -1145,6 +1235,7 @@ function removeblocks($target, $pdo) {
     return $res;
   }
 
+// Recupe le score du target
 function getscore($target, $pdo) {
   $ret = [];
   if($target) {
@@ -1197,6 +1288,7 @@ function getscore($target, $pdo) {
   return $ret;
 }
 
+//msg et notif interface
 function GetMsgInterface($pdo) {
   $ret = [];
   $ret['notif'] = [];
@@ -1222,21 +1314,6 @@ function GetMsgInterface($pdo) {
     $sql->execute();
     $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT type, new, id_from, timeof, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND (type = 1 OR type = 4 OR type = 5)");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['notif']['likes'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT new, id_from, timeof, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 2 GROUP BY id_from ");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['notif']['visits'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT COUNT(*) as nb  FROM notification INNER JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ?  AND new = 1 AND type != 3 ORDER BY timeof DESC");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['notif']['other'] = $sql->fetch(PDO::FETCH_ASSOC);
-
     if(!empty($ret['notif']['new']['msg'])) {
     $FirstUserMsg = $ret['notif']['new']['msg']['0']['id_from'];
     $ret['msg']['id'] = $FirstUserMsg;
@@ -1248,6 +1325,7 @@ function GetMsgInterface($pdo) {
   return $ret;
 }
 
+//contenu des MSG
 function RedeemMsg($id_user, $offset ,$pdo) {
   $ret = [];
   $ret['status'] = 'OK';
@@ -1268,6 +1346,7 @@ function RedeemMsg($id_user, $offset ,$pdo) {
   return($ret);
 }
 
+// Insert new MSG in db
 function PostNewMsg($id_user, $content, $pdo) {
   $ret = 'OK';
   try {
@@ -1293,10 +1372,10 @@ function PostNewMsg($id_user, $content, $pdo) {
   return $ret;
 }
 
+// Recup Notif  ancien / news     avec les types / logins
 function RedeemNotifContent($pdo) {
   $ret = [];
   $ret['status'] = 'OK';
-  $ret['msg'] = [];
   try {
     $sql = $pdo->prepare("SELECT notification.*, members.login, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type != 3 HAVING blocki = 0 ORDER BY timeof");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
@@ -1312,6 +1391,8 @@ function RedeemNotifContent($pdo) {
   }
   return($ret);
 }
+
+// Change le statuts non lu --> lu
 
 function UpdateNotifStatus($id_notif , $pdo) {
   $ret = [];
@@ -1329,6 +1410,7 @@ function UpdateNotifStatus($id_notif , $pdo) {
   return($ret);
 }
 
+// Recupere le nombre de nouvel notif ( total msg et autre )
 function RNewNotif($pdo) {
   $ret = [];
   $ret['status'] = 'OK';
@@ -1343,6 +1425,48 @@ function RNewNotif($pdo) {
     $ret['status'] = $e;
   }
   return ($ret);
+}
+
+function recoverPassword($log,$answer,$pdo) {
+  $ret = [];
+  try {
+    $sql = $pdo->prepare("SELECT count(id_user) as result, email FROM members WHERE login = ? AND secret_answer = ? GROUP BY id_user");
+    $sql->bindParam(1, $log, PDO::PARAM_STR);
+    $sql->bindParam(2, $answer, PDO::PARAM_STR);
+    $sql->execute();
+    $res = $sql->fetch(PDO::FETCH_ASSOC);
+    $ret['data'] = $res;
+    if($res['result'] == 1)
+    {
+      $ret['status'] = 'OK';
+    }
+    else
+    {
+      $ret['status'] = 'Mauvaise informations';
+    }
+  } catch (PDOException $e) {
+    $ret['status'] = 'Error';
+    $ret['error'] = $e;
+  }
+  return $ret;
+}
+
+function resetPassword($log, $pass, $pdo) {
+  $pass =  hash('whirlpool', $pass);
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare('UPDATE members SET password = ? WHERE login = ?');
+    $sql->bindParam(1, $pass, PDO::PARAM_STR);
+    $sql->bindParam(2, $log, PDO::PARAM_STR);
+    $sql->execute();
+    $status = 1;
+    $pdo->commit();
+  } catch (PDOException $e) {
+    $pdo->rollback();
+    print 'error'. $e;
+    $status = 0;
+  }
+  return $status;
 }
 
 ?>

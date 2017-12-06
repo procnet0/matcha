@@ -27,15 +27,28 @@ $(document).ready(function()
             select_user(id);
         })
     });
-
+var nb_notif = 0;
     $("#notif_button").click(function(){
-        $("#chat_container").css("display", "none");
-        $("#notif_container").css("display", "block");
+        $.ajax({
+            url: 'notif_list',
+            type: 'POST',
+            data: 'action=notif&nb='+nb_notif,
+            dataType: 'json',
+            success: function(tab, status){
+                console.log(tab);
+                nb_notif += tab['news'].length;
+            },
+            error: function(res, status, error){
+                console.log(error);
+            }
+        });
+        $("#chat_container").hide();
+        $("#notif_container").show();
     });
 
     $("#chat_button").click(function(){
-        $("#chat_container").css("display", "block");
-        $("#notif_container").css("display", "none");
+        $("#chat_container").show();
+        $("#notif_container").hide();
     });
 
     

@@ -131,7 +131,7 @@ function OpenTagMenu() {
 
     var target = document.getElementById('menucontext');
     target.parentNode.removeChild(target);
-  })
+  });
   var divcont = document.createElement('DIV');
     divcont.setAttribute('class', 'bot-divcont col s6');
   var validator = document.createElement('button');
@@ -144,7 +144,7 @@ function OpenTagMenu() {
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
       if (xhr2.readyState == 4 && (xhr2.status == 200 || xhr2.status == 0)) {
-      //  console.log(JSON.parse(xhr2.responseText));
+        console.log(JSON.parse(xhr2.responseText));
       }};
 
       var actives = [];
@@ -157,7 +157,7 @@ function OpenTagMenu() {
       }
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr2.send("subject=tagupdt&activeTag=" + JSON.stringify(actives));
+      xhr2.send("subject=tagupdt&activeTag=" + encodeURIComponent(JSON.stringify(actives)));
     });
   var border = document.createElement('DIV');
     border.setAttribute('class', 'border col s3');
@@ -165,8 +165,20 @@ function OpenTagMenu() {
   var autosearch = document.createElement('DIV');
     autosearch.setAttribute('class', 'input-field tagselector col s6 offset-s3');
     autosearch.setAttribute('id', 'auto-tag');
-    autosearch.innerHTML = '<i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label><button type="button" id="tagselectbut">send</button>'
-
+    autosearch.innerHTML = '<i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label>'
+  var sender = document.createElement('BUTTON');
+    sender.setAttribute('class','tag_select_button');
+    sender.setAttribute('type', 'button');
+    sender.innerHTML = 'send';
+    sender.addEventListener("click", function() {
+      var val = document.getElementById('autocomplete-input').value;
+      var newtag = document.createElement('DIV');
+      newtag.className = 'tagitem chip';
+      newtag.id = 'tagitem';
+      newtag.innerHTML = val+"<i class='material-icons'></i>";
+      document.getElementById('active-tag').append(newtag);
+    });
+  divcont.append(sender);
 
   row.append(activetag);
   row2.append(border);
@@ -195,8 +207,6 @@ function OpenTagMenu() {
       });
       str = str.substring(0,str.length -1);
       str += '}';
-
-      console.log(str);
         $('#autocomplete-input').autocomplete({
           data: JSON.parse(str),
           limit: 20,
@@ -636,4 +646,18 @@ function openblockmanager(ev) {
   xhr.open("POST", "get_block_list", true);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send("subject=blklst");
+}
+
+function GetNewNotif() {
+  var container = document.getElementById('notif');
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      var data = xhr.responseText;
+      console.log(data);
+    }
+  }
+  xhr.open("POST", "Auto_notif", true);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  xhr.send("action=Notifier");
 }
