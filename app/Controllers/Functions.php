@@ -1304,7 +1304,7 @@ function GetMsgInterface($pdo) {
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count, COUNT(IF(type = 4,1,NULL)) as likeback_count, COUNT(IF(type = 5,1,NULL)) as unlike_count FROM notification WHERE notification.id_user = 2 AND new = 1");
+    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count, COUNT(IF(type = 4,1,NULL)) as likeback_count, COUNT(IF(type = 5,1,NULL)) as unlike_count FROM notification WHERE notification.id_user = ? AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);

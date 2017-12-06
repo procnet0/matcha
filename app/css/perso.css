@@ -599,3 +599,21 @@ span.like{color:red;}
 .unlike{color:black;}
 
 .likeback{color:pink;}
+
+.tag-picker{
+  display: flex;
+}
+
+#autotag{
+  visibility: collapse;
+}
+
+#autotag ul{
+  background:rgba(255, 0, 0, 0.5);
+  position: absolute;
+  z-index: 2;
+}
+
+.over{
+  z-index: 30;
+}

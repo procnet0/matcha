@@ -4,7 +4,7 @@ namespace App\Controllers;
 use \Psr\Http\Message\RequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-  class PagesController extends Controller{
+class PagesController extends Controller{
   public function home(Request $request, Response $response) {
     if(empty($_SESSION['loggued_as'])) {
     $this->render($response, 'pages/home.twig');

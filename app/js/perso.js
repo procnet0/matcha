@@ -351,26 +351,82 @@ function initsliders() {
     });
 }
 
-function Tagchooserdisplay(targetname) {
-  var contain = document.getElementById(targetname);
+function Tagchooserdisplay(e) {
+  var contain = document.getElementById('tag-container');
+  var chooser = document.getElementById('autotag');
   if(contain.style.visibility != 'visible') {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      var dat = JSON.parse(xhr.responseText);
+        str = '{';
+        dat['taglist'].forEach(function (item, index) {
+          str += '"' + item['name_tag'] + '" : null ,';
+        });
+        str = str.substring(0,str.length -1);
+        str += '}';
+          $('#autocomplete-input').autocomplete({
+            data: JSON.parse(str),
+            limit: 20,
+            onAutocomplete: function(val) {
+              var container = document.getElementById('tag-container').getElementsByTagName('ul');
+              var newitem = document.createElement('li');
+              var innerdiv = document.createElement('DIV');
+              var suppresor = document.createElement('I');
+              suppresor.className = 'material-icons over';
+              suppresor.innerHTML = 'close';
+
+              innerdiv.className = 'tagitem';
+              innerdiv.innerHTML = val;
+              newitem.addEventListener('click', function(ev) { manageactivity(val,ev);});
+              suppresor.addEventListener('click', function(ev) {ev.stopPropagation();supprelem(newitem,val,ev);});
+              innerdiv.appendChild(suppresor);
+              newitem.appendChild(innerdiv);
+              container[0].appendChild(newitem);
+            },
+            minLength: 1,
+          });
+    }};
+    xhr.open("POST", "getTagInfo", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send("subject=tagmbt");
   contain.style.visibility = 'visible';
+  chooser.style.visibility = 'visible';
   }
   else {
     contain.style.visibility = 'collapse';
+    chooser.style.visibility = 'collapse';
   }
 }
 
-function manageactivity(name_tag, ev) {
+var tagarray = [];
 
+function supprelem(item,val,ev) {
+  item.parentElement.removeChild(item);
+  var index = tagarray.indexOf(val);
+  if( index !== -1) {
+    tagarray.splice(index, 1);
+  }
+  console.log('value = '+val+ ' index ='+ index);
+}
+
+function manageactivity(name_tag, ev) {
+  console.log('BITEBITEBITE');
  var clas = ev.target.className;
-  if(clas.search('activated') == -1) {
+  if(clas.search('activated') === -1) {
   ev.target.setAttribute('class', ev.target.className + ' activated');
   ev.target.style.background = 'radial-gradient(circle at center, transparent ,  rgba(0,255,0, 0.8) 76%, transparent)';
+  if(tagarray.indexOf(name_tag) === -1){
+    tagarray.push(name_tag);
+    }
   }
   else {
     ev.target.className = clas.replace(' activated', '');
     ev.target.style.background = 'radial-gradient(circle at center, transparent ,  rgba(255,255,255, 0.8) 76%, transparent)';
+    var index = tagarray.indexOf(name_tag);
+    if( index !== -1) {
+      tagarray.splice(index, 1);
+    }
   }
 }
 
@@ -382,6 +438,7 @@ function activefilter(filter_name) {
 var extracted = 0;
 
 function startsearch(status) {
+    console.log(tagarray);
   if(status === 'new') {
     extracted = 0;
     document.getElementById('search_content_area').innerHTML = '';
@@ -390,14 +447,13 @@ function startsearch(status) {
   var range = document.getElementById('range-picker');
   var rangeorigin = document.getElementById('range-origin');
   var pop = document.getElementById('range-popularity');
-  var tags = document.getElementsByClassName('tagitem activated');
+  var tags = tagarray;
 
   var actives = [];
   if(tags) {
     for (var tag in tags) {
       if (tags.hasOwnProperty(tag)) {
-      actives.push(tags[tag].innerHTML.replace(/ |\n|\r/g, ""));
-      console.log(actives);
+      actives.push(tags[tag]);
       }
     }
   }
