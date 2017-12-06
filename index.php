@@ -1,6 +1,7 @@
 <?php
 use \Psr\Http\Message\RequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
+use App\Controllers\PagesController;
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE); ini_set('display_errors','On');
 
@@ -58,6 +59,6 @@ $app->post("/removeblock", \App\Controllers\PagesController::class . ':removeblo
 $app->get("/messenger", \App\Controllers\PagesController::class . ':getmessenger')->setName('messenger');
 $app->post("/messenger", \App\Controllers\PagesController::class . ':postmessenger');
 $app->post("/notif", \App\Controllers\PagesController::class . ':Auto_notif');
-
+$app->post("/notif_list", \App\Controllers\PagesController::class . ':getNotifList');
 $app->run();
 ?>
