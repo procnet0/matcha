@@ -251,7 +251,11 @@ function updateMap(data) {
     center: {lat: 48.895443, lng: 2.318076},
     zoom: 15
   });
-  var marker = new google.maps.Marker({position: pos,map: map,title: 'You'});
+  var marker = new google.maps.Marker({
+    position: pos,
+    map: map,
+    title: 'You'
+  });
    map.setCenter(pos);
 }
 
@@ -648,16 +652,17 @@ function openblockmanager(ev) {
   xhr.send("subject=blklst");
 }
 
-function GetNewNotif() {
-  var container = document.getElementById('notif');
-  var xhr = new XMLHttpRequest();
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-      var data = xhr.responseText;
-      console.log(data);
-    }
+function autonotif() {
+  if($('#notif')) { $.post('/matcha/notif', function(data) {
+    if(data != 0 ) {
+      $('#notif').html(data);
+      $('#notif').css('visibility', 'visible');}
+    else
+    {
+      $('#notif').html(data);
+      $('#notif').css('visibility', 'collapse');}
+    });
+      setTimeout(autonotif , 3000);
   }
-  xhr.open("POST", "Auto_notif", true);
-  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  xhr.send("action=Notifier");
+
 }
