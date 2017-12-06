@@ -11,7 +11,11 @@ class PagesController extends Controller{
     $this->render($response, 'pages/home.twig');
     }
     else {
-      $this->render($response, 'pages/preview.twig');
+      $data = array('age' => '18,100' , 'range' => '25' , 'pop' => '0,100' , 'tags' => '', 'area' =>'', 'extracted' => '0');
+      include_once ('Functions.php');
+      $res = Researcher($data, $this->pdo);
+      var_dump(array('profils'=>$res['result']));
+      $this->render($response, 'pages/preview.twig', array('profils'=>$res['result']));
     }
   }
 
@@ -416,18 +420,14 @@ class PagesController extends Controller{
   }
 
   public function Auto_notif(Request $request, Response $response) {
-    header("Content-Type: text/event-stream");
-    header("Cache-Control: no-cache");
-    ob_end_clean();
-    ob_implicit_flush();
     if(!empty($_SESSION['loggued_as'])) {
 
         include_once ('Functions.php');
         $data = RNewNotif($this->pdo);
-        print "data: {$data['nb']}\n\nretry: 3000\n\n";
+        print "{$data['nb']}";
       }
     else {
-      print "data: Error\n\nretry: 3000\n\n";
+      print "Error";
     }
   }
 

@@ -26,6 +26,7 @@ require('app/container.php');
 $container = $app->getContainer();
 
 $app->add(new \App\Middlewares\FlashMiddleware($container->view->getEnvironment()));
+
 $app->add(new \App\Middlewares\ConnectorMiddleware($container->view->getEnvironment()));
 
 $app->get("/", \App\Controllers\PagesController::class . ':home')->setName('home');
@@ -38,13 +39,10 @@ $app->get("/recherche", \App\Controllers\PagesController::class . ':getSearch')-
 $app->post("/recherche", \App\Controllers\PagesController::class . ':postSearch');
 $app->get("/signUp", \App\Controllers\PagesController::class . ':getMember')->setName('signUp');
 $app->post("/signUp", \App\Controllers\PagesController::class . ':postMember');
-
 $app->get("/RecoverPass", \App\Controllers\PagesController::class . ':getRecover')->setName('Recover');
 $app->post("/RecoverPass", \App\Controllers\PagesController::class . ':postRecover');
-
 $app->get("/Reset/{key}", \App\Controllers\PagesController::class . ':getReset')->setName('Reset');
 $app->post("/Reset", \App\Controllers\PagesController::class . ':postReset')->setName('NewPass');
-
 $app->get("/logout", \App\Controllers\PagesController::class . ':logout')->setName('logout');
 $app->post("/UpdateProfil", \App\Controllers\PagesController::class . ':UpdateProfil')->setName('UpdateProfil');
 $app->post("/setAsProfil", \App\Controllers\PagesController::class . ':setAsProfil');
@@ -59,6 +57,7 @@ $app->post("/get_block_list", \App\Controllers\PagesController::class . ':get_bl
 $app->post("/removeblock", \App\Controllers\PagesController::class . ':removeblock');
 $app->get("/messenger", \App\Controllers\PagesController::class . ':getmessenger')->setName('messenger');
 $app->post("/messenger", \App\Controllers\PagesController::class . ':postmessenger');
-$app->get("/notif", \App\Controllers\PagesController::class . ':Auto_notif');
+$app->post("/notif", \App\Controllers\PagesController::class . ':Auto_notif');
+
 $app->run();
 ?>

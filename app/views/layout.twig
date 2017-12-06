@@ -97,16 +97,10 @@ $(document).ready(function() {
     closeOnSelect: false,
     max: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
   });
-  if(typeof(EventSource) !== "undefined" && document.getElementById("notif")) {
-     var source = new EventSource("notif");
-      source.onmessage = function(event) {
-          var notif = document.getElementById("notif");
-          if(event.data !== 0) {
-          notif.innerHTML = event.data;
-          notif.style.visibility = 'visible';
-          }
-      };
-    }
+
+
+  autonotif();
+
 });
  </script>
  <script>
