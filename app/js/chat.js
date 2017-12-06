@@ -27,21 +27,9 @@ $(document).ready(function()
             select_user(id);
         })
     });
-var nb_notif = 0;
+
+
     $("#notif_button").click(function(){
-        $.ajax({
-            url: 'notif_list',
-            type: 'POST',
-            data: 'action=notif&nb='+nb_notif,
-            dataType: 'json',
-            success: function(tab, status){
-                console.log(tab);
-                nb_notif += tab['news'].length;
-            },
-            error: function(res, status, error){
-                console.log(error);
-            }
-        });
         $("#chat_container").hide();
         $("#notif_container").show();
     });
@@ -51,5 +39,102 @@ var nb_notif = 0;
         $("#notif_container").hide();
     });
 
-    
+    var like_visible = 0;
+    $("#like_block").click(function(){
+        if (like_visible != 1)
+        {
+            $.ajax({
+                url: 'notif_list',
+                type: 'POST',
+                data: 'action=notif&type=1',
+                dataType: 'json',
+                success: function(tab, status){
+                    for (var i = 0; i < tab['news'].length; i++)
+                    {
+                        var htmlcode = "";
+                        var notif = document.createElement("LI");
+                        notif.className = "collection-item avatar new_notif";
+                        if(tab['news'][i]['profil_pict'] == "#")
+                            htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
+                        else
+                            htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
+                        htmlcode += "<span class=\"title\">"+tab['news'][i]['login']+"</span>";
+                        if (tab['news'][i]['type'] == 1)
+                            htmlcode += "<p>Like</p>";
+                        else if (tab['news'][i]['type'] == 4)
+                            htmlcode += "<p>Match</p>";
+                        else
+                            htmlcode += "<p>Unlike</p>";
+                        notif.innerHTML = htmlcode;
+                        notif.addEventListener("mouseover", set_old, false);
+                        notif.id_notif = tab['news'][i]['id_notif'];
+                        document.getElementById("like_block_content").getElementsByTagName("UL")[0].appendChild(notif);
+                    }
+                    console.log(tab);
+                },
+                error: function(res, status, error){
+                    console.log(error);
+                }
+            });
+        }
+        like_visible = 1;
+    });
+
+    var visit_visible = 0;
+    $("#visits_block").click(function(){
+        if (visit_visible != 1)
+        {
+            $.ajax({
+                url: 'notif_list',
+                type: 'POST',
+                data: 'action=notif&type=2',
+                dataType: 'json',
+                success: function(tab, status){
+                    for (var i = 0; i < tab['news'].length; i++)
+                    {
+                        var htmlcode = "";
+                        var notif = document.createElement("LI");
+                        notif.className = "collection-item avatar new_notif";
+                        if(tab['news'][i]['profil_pict'] == "#")
+                            htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
+                        else
+                            htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
+                        htmlcode += "<span class=\"title\">"+tab['news'][i]['login']+"</span>";
+                        notif.innerHTML = htmlcode;
+                        notif.addEventListener("mouseover", set_old);
+                        notif.id_notif = tab['news'][i]['id_notif'];
+                        document.getElementById("visits_block_content").getElementsByTagName("UL")[0].appendChild(notif);
+                    }
+                    console.log(tab);
+                },
+                error: function(res, status, error){
+                    console.log(error);
+                }
+            });
+        }
+        visit_visible = 1;
+    });
+
+
+    function set_old(evt)
+    {
+        //console.log(evt.currentTarget);
+        var real = evt.currentTarget;
+        $.post(
+            'set_new_to_old',
+            'action=newold&notif=' + real.id_notif,
+            function (text){
+                if (text == "ok")
+                {
+                    console.log(real);
+                    real.className = "collection-item avatar old_notif";
+                    real.removeEventListener("mouseover", set_old);
+                }
+                else
+                    console.log(text);
+            },
+            'text' 
+        );
+
+    }
 });

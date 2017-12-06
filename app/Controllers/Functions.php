@@ -1304,7 +1304,7 @@ function GetMsgInterface($pdo) {
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count, COUNT(IF(type = 4,1,NULL)) as likeback_count, COUNT(IF(type = 5,1,NULL)) as unlike_count FROM notification WHERE notification.id_user = 2 AND new = 1");
+    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1 OR type = 4 OR type = 5,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count FROM notification WHERE notification.id_user = ? AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);
@@ -1373,19 +1373,30 @@ function PostNewMsg($id_user, $content, $pdo) {
 }
 
 // Recup Notif  ancien / news     avec les types / logins
-function RedeemNotifContent($pdo) {
+function RedeemNotifContent($pdo, $nb, $type, $isold) {
   $ret = [];
   $ret['status'] = 'OK';
   try {
-    $sql = $pdo->prepare("SELECT notification.*, members.login, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type != 3 HAVING blocki = 0 ORDER BY timeof");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['news'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT notification.*, members.login, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 0 AND type != 3 HAVING blocki = 0 ORDER BY timeof");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['olds'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    if ($type == 1)
+      $actual = 'IN (1,4,5)';
+    else {
+      $actual = '= 2';
+    }
+    if ($isold != 1)
+    {
+      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type $actual HAVING blocki = 0 ORDER BY timeof");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $ret['news'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
+    else
+    {
+      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 0 AND type $actual HAVING blocki = 0 ORDER BY timeof LIMIT ?,10");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->bindParam(2, $nb, PDO::PARAM_INT);
+      $sql->execute();
+      $ret['olds'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
   } catch (PDOException $e) {
     $ret['status'] = $e;
   }

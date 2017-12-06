@@ -423,12 +423,16 @@ use \Psr\Http\Message\ResponseInterface as Response;
   public function getNotifList(Request $request, Response $response) {
     header('Content-type: application/json');
     $data = $request->getParams();
-    if ($data['action'] == 'notif')
+    if ($data['action'] == 'notif' && !empty($data['type']))
     {
       if (!empty($_SESSION['loggued_as']))
       {
-        include_once ('Functions.php');
-        $tab = RedeemNotifContent($this->pdo);
+        include_once('Functions.php');
+        if (isset($data['nb']))
+          $tab = RedeemNotifContent($this->pdo, $data['nb'], $data['type'], 1);
+        else {
+          $tab = RedeemNotifContent($this->pdo, NULL, $data['type'], 0);
+        }
         return json_encode($tab);
       }
     }
@@ -508,6 +512,22 @@ use \Psr\Http\Message\ResponseInterface as Response;
         return $this->redirect($response, 'Recover');
     }
 
+  }
+
+  public function setNewToOld(Request $request, Response $response) {
+    $data = $request->getParams();
+    if ($data['action'] != 'newold' && !isset($data['notif']))
+    {
+      echo "error";
+    } else {
+      include_once('Functions.php');
+      $ret = UpdateNotifStatus($data['notif'], $this->pdo);
+      if ($ret['status'] != "OK")
+        echo $ret['status'];
+      else {
+        echo "ok";
+      }
+    }
   }
 }
 ?>

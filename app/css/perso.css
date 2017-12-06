@@ -594,8 +594,11 @@ span.badge.new{position:relative; bottom:80px;}
   width: 33%;
 }
 
-span.like{color:red;}
+.collection .collection-item.avatar{
+  border:1px solid black;
+  min-height:65px;
+}
 
-.unlike{color:black;}
-
-.likeback{color:pink;}
+.collection .collection-item.new_notif{
+  background-color:rgb(141, 129, 0);
+}
