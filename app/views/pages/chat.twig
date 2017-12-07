@@ -50,11 +50,18 @@
                                 <a href="#">Voir le profil</a>
                             </div>
                         </div>
-                        <div id="current_profil_messages" class="center">
-                            
-                        </div>
-                        <div id="form_messages">
+                        <div class="chat-container hidden" id="chat_msg" style="border:1px solid black">
+                            <div id="next" class="nextbtn">10 messages suivants</div>
+                            <ul id="messages">
 
+                            </ul>
+                        </div>
+                        <div class="input-field center hidden" id="form_block">
+                            <form action="" method="POST" id="form_messages">
+                                <textarea style="resize:none;border:2px solid black; width:95%;" class="materialize-textarea" id="text_content"></textarea>
+                                <input type="hidden" id="user_id" value="" />
+                                <button type="submit" id="submit_btn" class="waves-effect waves-light btn real_btn">Envoyer</button>
+                            </form>
                         </div>
                     </div>
                 </div>

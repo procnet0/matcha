@@ -1,25 +1,97 @@
 $(document).ready(function()
 {
+    var loaded = 0;
     var data = JSON.parse(useractiv);
     function select_user(id)
     {
+        loaded = 0;
         for(var i = 0; i < data.length; i++)
         {
             if (data[i]['id'] == id)
             {
-                console.log(data[i]);
                 $("#current_profil_info").find(".default_profil_info").hide();
-                $("#profil_name, #profil_image, #profil_link").show();
+                $("#profil_name, #profil_image, #profil_link, #form_block, #chat_msg").show();
                 $("#profil_name").children("p").html(data[i]['login']);
                 if (data[i]['profil_pict'] == "#")
                     $("#profil_image").children("img").attr("src", "/matcha/app/css/image/Photo-non-disponible.png");
                 else
                     $("#profil_image").children("img").attr("src", data[i]['profil_pict']);
                 $("#profil_link").children("a").attr("href", "/matcha/lookat/"+data[i]['login']);
+                $("#user_id").attr("value", id);
+
+                $.ajax({
+                    url: 'msglist',
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        nb: loaded
+                    },
+                    dataType: 'json',
+                    success: function (tab, status){
+                        if (tab['status'] == "OK")
+                        {
+                            for (var i = 0; i < tab['msg'].length; i++)
+                            {
+                                var rl = "";
+                                var isnew = "";
+
+                                if (tab['msg'][i]['fromyou'] == "1")
+                                    rl = "right-align";
+                                else
+                                    rl = "left-align";
+                                if (tab['msg'][i]['new'] == "1")
+                                    isnew = "newmsg"
+                                else
+                                    isnew = "oldmsg";
+                                $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+tab['msg'][i]['content']+"</li>");
+                            }
+                        }
+                    },
+                    error: function (msg){
+                        console.log("Error messages" + msg);
+                    }
+                });
+                $("#next").click(function(){
+                    loaded = loaded + 10;
+                    $.ajax({
+                        url: 'msglist',
+                        type: 'POST',
+                        data: {
+                            id: id,
+                            nb: loaded
+                        },
+                        dataType: 'json',
+                        success: function (tab, status){
+                            if (tab['status'] == "OK")
+                            {
+                                for (var i = 0; i < tab['msg'].length; i++)
+                                {
+                                    var rl = "";
+                                    var isnew = "";
+            
+                                    if (tab['msg'][i]['fromyou'] == "1")
+                                        rl = "right-align";
+                                    else
+                                        rl = "left-align";
+                                    if (tab['msg'][i]['new'] == "1")
+                                        isnew = "newmsg"
+                                    else
+                                        isnew = "oldmsg";
+                                    $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+tab['msg'][i]['content']+"</li>");
+                                }
+                            }
+                        },
+                        error: function (msg){
+                            console.log("Error messages" + msg);
+                        }
+                    });
+                });
                 break;
             }
         }
     }
+
+    
 
     $(".profil_list_user").each(function(){
         $(this).click(function(){
@@ -28,6 +100,34 @@ $(document).ready(function()
         })
     });
 
+    $("#form_messages").submit(function(ev){
+        var txt = $("#text_content");
+        var user_id = $("#user_id");
+        txt.css("border", "2px solid black");
+        if (txt.val() == "" || user_id.val() == "")
+            txt.css("border", "2px solid red");
+        else
+        {
+            $.ajax({
+                url: 'messenger',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    id: user_id.val(),
+                    content: txt.val()
+                },
+                success: function(tab, status){
+                    if (tab['content'] == "OK")
+                    {
+                        $("#messages").append("<li class=\"message right-align new\">"+txt.val()+"</li>");
+                        console.log(txt.val());
+                        txt.val("");
+                    }
+                }
+            });
+        }
+        ev.preventDefault();
+    });
 
     $("#notif_button").click(function(){
         $("#chat_container").hide();
@@ -135,6 +235,5 @@ $(document).ready(function()
             },
             'text' 
         );
-
     }
 });

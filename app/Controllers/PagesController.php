@@ -387,8 +387,9 @@ use \Psr\Http\Message\ResponseInterface as Response;
   }
 
   public function postmessenger(Request $request, Response $response) {
+    header('Content-type: application/json');
     $info = $request->getParams();
-    if(!emtpy($_SESSION['loggued_as']) && !empty($info['id']) && !isset($info['content']))
+    if(!empty($_SESSION['loggued_as']) && !empty($info['id']) && isset($info['content']))
     {
       $ret = [];
       if(empty($info['content'])) {
@@ -401,6 +402,18 @@ use \Psr\Http\Message\ResponseInterface as Response;
         $ret['content'] = PostNewMsg($info['id'],$info['content'],$pdo);
       }
       print json_encode($ret);
+    }
+  }
+
+  public function getMsgList(Request $request, Response $response) {
+    header("Content-type: application/json");
+    $data = $request->getParams();
+    $ret = [];
+    if (!empty($_SESSION['loggued_as']) && isset($data['nb']) && !empty($data['id']))
+    {
+      include_once('Functions.php');
+      $ret = RedeemMsg($data['id'], $data['nb'], $this->pdo);
+      return json_encode($ret);
     }
   }
 

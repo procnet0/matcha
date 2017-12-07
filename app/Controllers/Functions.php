@@ -1326,18 +1326,18 @@ function GetMsgInterface($pdo) {
 }
 
 //contenu des MSG
-function RedeemMsg($id_user, $offset ,$pdo) {
+function RedeemMsg($id_user, $offset, $pdo) {
   $ret = [];
   $ret['status'] = 'OK';
   $ret['msg'] = [];
   try {
-    $sql = $pdo->prepare("SELECT timeof, content , IF(id_from = ?, '1', '0') as fromyou FROM messages WHERE (id_from = ? AND id_to = ?) OR (id_from = ? AND id_to = ?) ORDER BY timeof DESC LIMIT ?, 10");
+    $sql = $pdo->prepare("SELECT notification.new, messages.timeof, content, IF(messages.id_from = ?, '1', '0') as fromyou FROM messages INNER JOIN notification WHERE notification.id_item = messages.id_msg AND ((messages.id_from = ? AND id_to = ?) OR (messages.id_from = ? AND id_to = ?)) ORDER BY timeof DESC LIMIT ?, 10");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(3, $id_user, PDO::PARAM_INT);
     $sql->bindParam(4, $id_user, PDO::PARAM_INT);
     $sql->bindParam(5, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->bindParam(6, $offset, PDO::PARAM_INT);
+    $sql->bindValue(6, intval($offset), PDO::PARAM_INT);
     $sql->execute();
     $ret['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
@@ -1352,22 +1352,32 @@ function PostNewMsg($id_user, $content, $pdo) {
   try {
     $pdo->beginTransaction();
 
-    $sql= $pdo->prepare("SELECT checkblock(?, ?) AS blocki");
+    $sql= $pdo->prepare("SELECT checkblock(?, ?) AS blocki, active as matchi FROM matchs WHERE IF(id_1 = ?,id_2, id_1)=? AND IF(id_2=?, id_1, id_2)=?");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(4, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(5, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(6, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $block = $sql->fetch(PDO::FETCH_ASSOC);
-    if($block['blocki'] == 0) {
-      $sql=  $pdo->prepare("INSERT INTO messages (id_from, id_to, timeof, content) VALUES (?,?,UNIX_TIMESTAMP(),?)");
+    if($block['blocki'] == 0 && $block['matchi'] == 1) {
+      $sql = $pdo->prepare("INSERT INTO messages (id_from, id_to, timeof, content) VALUES (?,?,UNIX_TIMESTAMP(),?)");
       $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
       $sql->bindParam(2, $id_user, PDO::PARAM_INT);
       $sql->bindParam(3, $content, PDO::PARAM_STR);
+      $sql->execute();
+      $last_id = $pdo->lastInsertId();
+      $sql->closeCursor();
+      $sql = $pdo->prepare("INSERT INTO notification VALUES (null, ?, $last_id, ?, 3, UNIX_TIMESTAMP(), 1)");
+      $sql->bindParam(1, $id_user, PDO::PARAM_INT);
+      $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
       $sql->execute();
     }
     $pdo->commit();
     } catch (PDOException $e) {
       $pdo->rollBack();
-      $ret  = $e;
+      $ret = $e;
   }
   return $ret;
 }
