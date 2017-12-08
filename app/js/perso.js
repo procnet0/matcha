@@ -652,17 +652,38 @@ function openblockmanager(ev) {
   xhr.send("subject=blklst");
 }
 
-function autonotif() {
-  if($('#notif')) { $.post('/matcha/notif', function(data) {
-    if(data != 0 ) {
-      $('#notif').html(data);
-      $('#notif').css('visibility', 'visible');}
-    else
-    {
-      $('#notif').html(data);
-      $('#notif').css('visibility', 'collapse');}
-    });
-      setTimeout(autonotif , 3000);
-  }
+id_user = -1;
 
+function autonotif() {
+  console.log(id_user);
+  if ($("#notif"))
+  {
+    $.ajax({
+        url: '/matcha/notif',
+        type: 'POST',
+        dataType: 'json',
+        data:{
+          id: id_user
+        },
+        success: function(data){
+          if(data['nb'] != 0 ) {
+            $('#notif').html(data['nb']);
+            $('#notif').css('visibility', 'visible');
+          }
+          else
+          {
+            $('#notif').html(data['nb']);
+            $('#notif').css('visibility', 'collapse');
+          }
+          if (data['msg'])
+          {
+            for(i = 0; i < data['msg'].length; i++)
+            {
+              $("#messages").append("<li class=\"message left-align old\">"+data['msg'][i]['content']+"</li>");
+            }
+          }
+        }
+      });
+    setTimeout(autonotif , 3000);
+  }
 }

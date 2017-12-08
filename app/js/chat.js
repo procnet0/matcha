@@ -1,24 +1,38 @@
 $(document).ready(function()
 {
+    function escapeHTML(text) {
+        var map = {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+    
     var loaded = 0;
     var data = JSON.parse(useractiv);
     function select_user(id)
     {
-        loaded = 0;
+        
         for(var i = 0; i < data.length; i++)
         {
             if (data[i]['id'] == id)
             {
+                id_user = id;
                 $("#current_profil_info").find(".default_profil_info").hide();
                 $("#profil_name, #profil_image, #profil_link, #form_block, #chat_msg").show();
                 $("#profil_name").children("p").html(data[i]['login']);
+                $("#next").html("Afficher les prochains messages");
                 if (data[i]['profil_pict'] == "#")
                     $("#profil_image").children("img").attr("src", "/matcha/app/css/image/Photo-non-disponible.png");
                 else
                     $("#profil_image").children("img").attr("src", data[i]['profil_pict']);
-                $("#profil_link").children("a").attr("href", "/matcha/lookat/"+data[i]['login']);
+                $("#profil_link").children("a").attr("href", "/matcha/lookat/"+encodeURI(data[i]['login']));
                 $("#user_id").attr("value", id);
-
+                document.getElementById("messages").innerHTML = "";
+                loaded = 0;
                 $.ajax({
                     url: 'msglist',
                     type: 'POST',
@@ -30,11 +44,12 @@ $(document).ready(function()
                     success: function (tab, status){
                         if (tab['status'] == "OK")
                         {
+                            loaded = loaded + tab['msg'].length;
+                            console.log(tab['msg']);
                             for (var i = 0; i < tab['msg'].length; i++)
                             {
                                 var rl = "";
                                 var isnew = "";
-
                                 if (tab['msg'][i]['fromyou'] == "1")
                                     rl = "right-align";
                                 else
@@ -43,7 +58,8 @@ $(document).ready(function()
                                     isnew = "newmsg"
                                 else
                                     isnew = "oldmsg";
-                                $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+tab['msg'][i]['content']+"</li>");
+                                $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
+
                             }
                         }
                     },
@@ -51,40 +67,52 @@ $(document).ready(function()
                         console.log("Error messages" + msg);
                     }
                 });
-                $("#next").click(function(){
-                    loaded = loaded + 10;
-                    $.ajax({
-                        url: 'msglist',
-                        type: 'POST',
-                        data: {
-                            id: id,
-                            nb: loaded
-                        },
-                        dataType: 'json',
-                        success: function (tab, status){
-                            if (tab['status'] == "OK")
-                            {
-                                for (var i = 0; i < tab['msg'].length; i++)
+                $("#next").off("click");
+                $count = 0;
+                $("#next").on("click", function(){
+                    console.log(loaded);
+                    if (loaded != $count)
+                    {
+                        $.ajax({
+                            url: 'msglist',
+                            type: 'POST',
+                            data: {
+                                id: id,
+                                nb: loaded
+                            },
+                            dataType: 'json',
+                            success: function (tab, status){
+                                if (tab['status'] == "OK")
                                 {
-                                    var rl = "";
-                                    var isnew = "";
-            
-                                    if (tab['msg'][i]['fromyou'] == "1")
-                                        rl = "right-align";
-                                    else
-                                        rl = "left-align";
-                                    if (tab['msg'][i]['new'] == "1")
-                                        isnew = "newmsg"
-                                    else
-                                        isnew = "oldmsg";
-                                    $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+tab['msg'][i]['content']+"</li>");
+                                    $count = tab['counter']                
+                                    if (loaded != tab['counter'])
+                                    {
+                                        for (var i = 0; i < tab['msg'].length; i++)
+                                        {
+                                            var rl = "";
+                                            var isnew = "";
+                                            
+                                            if (tab['msg'][i]['fromyou'] == "1")
+                                                rl = "right-align";
+                                            else
+                                                rl = "left-align";
+                                            if (tab['msg'][i]['new'] == "1")
+                                                isnew = "newmsg"
+                                            else
+                                                isnew = "oldmsg";
+                                            $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
+                                        }
+                                    }
+                                    loaded = loaded+tab['msg'].length;
+                                    if (loaded == tab['counter'])
+                                        $("#next").html("Tout les messages ont été chargés");
                                 }
+                            },
+                            error: function (msg){
+                                console.log("Error messages" + msg);
                             }
-                        },
-                        error: function (msg){
-                            console.log("Error messages" + msg);
-                        }
-                    });
+                        });
+                    }
                 });
                 break;
             }
@@ -119,7 +147,7 @@ $(document).ready(function()
                 success: function(tab, status){
                     if (tab['content'] == "OK")
                     {
-                        $("#messages").append("<li class=\"message right-align new\">"+txt.val()+"</li>");
+                        $("#messages").append("<li class=\"message right-align new\">"+escapeHTML(txt.val())+"</li>");
                         console.log(txt.val());
                         txt.val("");
                     }
@@ -158,7 +186,7 @@ $(document).ready(function()
                             htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
                         else
                             htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
-                        htmlcode += "<span class=\"title\">"+tab['news'][i]['login']+"</span>";
+                        htmlcode += "<span class=\"title\">"+escapeHTML(tab['news'][i]['login'])+"</span>";
                         if (tab['news'][i]['type'] == 1)
                             htmlcode += "<p>Like</p>";
                         else if (tab['news'][i]['type'] == 4)
@@ -199,7 +227,7 @@ $(document).ready(function()
                             htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
                         else
                             htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
-                        htmlcode += "<span class=\"title\">"+tab['news'][i]['login']+"</span>";
+                        htmlcode += "<span class=\"title\">"+escapeHTML(tab['news'][i]['login'])+"</span>";
                         notif.innerHTML = htmlcode;
                         notif.addEventListener("mouseover", set_old);
                         notif.id_notif = tab['news'][i]['id_notif'];

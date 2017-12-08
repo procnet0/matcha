@@ -452,11 +452,13 @@ use \Psr\Http\Message\ResponseInterface as Response;
   }
 
   public function Auto_notif(Request $request, Response $response) {
+    header("Content-type: application/json");
+    $data = $request->getParams();
     if(!empty($_SESSION['loggued_as'])) {
-        include_once('Functions.php');
-        $data = RNewNotif($this->pdo);
-        print "{$data['nb']}";
-      }
+      include_once('Functions.php');
+      $ret = RNewNotif($data['id'], $this->pdo);
+      print json_encode($ret);
+    }
     else {
       print "Error";
     }

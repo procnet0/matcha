@@ -124,10 +124,6 @@ fieldset.profil {
   border-image-source: url('image/runesProfil Benediction.png');
 }
 
-.picture-field {
-
-}
-
 button.pict_selector {
 height: 75px;
 width: 75px;
@@ -345,10 +341,6 @@ div.miniProfilPict {
 
 .absolute {
   position: absolute;
-}
-
-.text-field {
-
 }
 
 .centeritem{
@@ -612,4 +604,11 @@ span.badge.new{position:relative; bottom:80px;}
   vertical-align:middle;
   border-bottom:2px solid white;
   cursor:pointer;
+}
+
+.no_select{
+  -webkit-user-select: none;
+  -moz-user-select:none;
+  -khtml-user-select:none;
+  -ms-user-select:none;
 }
