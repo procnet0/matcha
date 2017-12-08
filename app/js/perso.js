@@ -430,13 +430,105 @@ function manageactivity(name_tag, ev) {
   }
 }
 
-function activefilter(filter_name) {
-  console.log(filter_name);
+function sortDiv(container, divlist , callback) {
+  $.each(divlist, callback);
+
 
 }
 
-var extracted = 0;
+function filterDiv(divlist, range,callback) {
+  $.each(divlist, callback);
 
+
+}
+
+
+function activefilter(filter_name) {
+  var valid = ['Age','Pop','Tags','Area'].indexOf(filter_name);
+  if(valid != -1 && valid < 4) {
+    var container = document.getElementById("search_content_area");
+    var divlist = $("div[id^='user']");
+    if(container !== 'undefined' && divlist !== 'undefined') {
+      switch(valid) {
+        case 0:
+         var range = document.getElementById('age-picker').noUiSlider.get();
+         console.log(range);
+          filterDiv(divlist, range,function (key,elem)
+          {
+            var age = parseInt($(elem).find('.col-age')[0].innerHTML);
+            if( Number.isInteger(age) == true)
+            {
+              if(age <= range[1] && age >= range[0])
+              {
+                $(elem).show();
+              }
+              else{
+                $(elem).hide();
+              }
+            }
+          });
+          break;
+        case 1:
+        var range = document.getElementById('range-popularity').noUiSlider.get();
+        console.log(range);
+         filterDiv(divlist, range,function (key,elem)
+         {
+           var pop = parseInt($(elem).find('.col-score')[0].innerHTML);
+           if( Number.isInteger(pop) == true)
+           {
+             if(pop <= range[1] && pop >= range[0])
+             {
+               $(elem).show();
+             }
+             else{
+               $(elem).hide();
+             }
+           }
+         });
+          break;
+        case 2:
+        var range = document.getElementsByClassName('tagitem activated');
+        console.log(range);
+         filterDiv(divlist, range,function (key,elem)
+         {
+           var age = parseInt($(elem).find('.col-tags')[0].innerHTML);
+           if( Number.isInteger(age) == true)
+           {
+             if(age <= range[1] && age >= range[0])
+             {
+               $(elem).show();
+             }
+             else{
+               $(elem).hide();
+             }
+           }
+         });
+          break;
+        case 3:
+        var range = document.getElementById('range-picker').noUiSlider.get();
+        console.log(range);
+         filterDiv(divlist, range,function (key,elem)
+         {
+           var dist = parseInt($(elem).find('.col-km')[0].innerHTML);
+           if( Number.isInteger(dist) == true)
+           {
+             if(dist <= range)
+             {
+               $(elem).show();
+             }
+             else{
+               $(elem).hide();
+             }
+           }
+         });
+          break;
+      }
+    }
+  }
+}
+
+var extracted = 0;
+var requestor = '';
 function startsearch(status) {
     console.log(tagarray);
   if(status === 'new') {
@@ -487,6 +579,7 @@ function startsearch(status) {
         data['result'].forEach(function (element) {
           var newelem = document.createElement('DIV');
           num += 1;
+          newelem.setAttribute('id', 'user'+num);
           var tag = data['result'][numtmp]['tags'];
           if(tag !== null){
             nbtag = tag.split(",").length;
@@ -501,12 +594,13 @@ function startsearch(status) {
           else {
             connect = "<i class='material-icons red-text'>lens</i>";
           }
-          newelem.innerHTML = "<div class='row' id='num"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2'>"+data['result'][numtmp]['age']+" </div><div class='col s2'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2">'+ data['result'][numtmp]['score']+'</div><div class="col s1"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
+          newelem.innerHTML = "<div class='row' id='row"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
 
           numtmp += 1;
           resultzone.appendChild(newelem);
         });
         console.log(data);
+        requestor = data['req'];
       }
     }
     xhr.open("POST", "recherche", true);
@@ -523,10 +617,9 @@ function sortresult(action,ev) {
     if(inner.search('down') != -1) {
       ev.target.innerText = inner.replace('down' , 'up'); }
     else {
-    ev.target.innerText = inner.replace('up' , 'down');
+      ev.target.innerText = inner.replace('up' , 'down');
     }
   }
-
 }
 
 function likeuser(login, ev) {
