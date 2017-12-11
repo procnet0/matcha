@@ -183,7 +183,7 @@ class PagesController extends Controller{
     if (empty($errors)) {
       $message = \Swift_Message::newInstance('Message de contact')
         ->setFrom([$request->getParam('email') => $request->getParam('pseudo')])
-        ->setTo('vincent.balart@hotmail.fr')
+        ->setTo('vincent_balart@hotmail.fr')
         ->setBody("Ceci est une copie du message que vous avez envoyé : {$request->getParam('email')} have send {$request->getParam('content')}");
       $this->mailer->send($message);
       $this->flash('Votre message a bien été envoyé');
@@ -468,6 +468,10 @@ class PagesController extends Controller{
         $_SESSION['flash'] = array('status' => 'Message envoyer');
         return $this->redirect($response, 'home');
       }
+    }
+    else {
+      $_SESSION['flash'] = array('status' => 'Secret erroner');
+      return $this->redirect($response, 'Recover');
     }
   }
 

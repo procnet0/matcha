@@ -351,6 +351,8 @@ function initsliders() {
     });
 }
 
+idarray = {};
+
 function Tagchooserdisplay(e) {
   var contain = document.getElementById('tag-container');
   var chooser = document.getElementById('autotag');
@@ -359,6 +361,10 @@ function Tagchooserdisplay(e) {
     xhr.onreadystatechange = function() {
     if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
       var dat = JSON.parse(xhr.responseText);
+    idarray = {};
+    dat['taglist'].forEach(function (item,index) {
+      idarray[item['name_tag']] = item['id_tag'];
+    });
         str = '{';
         dat['taglist'].forEach(function (item, index) {
           str += '"' + item['name_tag'] + '" : null ,';
@@ -438,8 +444,33 @@ function sortDiv(container, divlist , callback) {
 
 function filterDiv(divlist, range,callback) {
   $.each(divlist, callback);
+}
 
+var requestor = undefined;
+var filtrator = {'0':undefined,'1':undefined,'2':undefined,'3':undefined};
+var triator = {'order': undefined, 'by': undefined};
 
+function tagIsInArray(filtre, tags) {
+
+var count = 0;
+  $.each(filtre, function(key, elem){
+
+    if(idarray[elem] !== undefined)
+    {
+      if(tags.indexOf(idarray[elem]) >= 0)
+      {
+        count += 1;
+      }
+    }
+  });
+  console.log('count = '+ count + ' lenght =' + filtre.length);
+  if(count == filtre.length)
+  {
+    return true;
+  }
+  else {
+    return false;
+  }
 }
 
 
@@ -451,8 +482,8 @@ function activefilter(filter_name) {
     if(container !== 'undefined' && divlist !== 'undefined') {
       switch(valid) {
         case 0:
-         var range = document.getElementById('age-picker').noUiSlider.get();
-         console.log(range);
+        var range = document.getElementById('age-picker').noUiSlider.get();
+        console.log(range);
           filterDiv(divlist, range,function (key,elem)
           {
             var age = parseInt($(elem).find('.col-age')[0].innerHTML);
@@ -467,6 +498,7 @@ function activefilter(filter_name) {
               }
             }
           });
+          filtrator['0'] = range;
           break;
         case 1:
         var range = document.getElementById('range-popularity').noUiSlider.get();
@@ -485,24 +517,27 @@ function activefilter(filter_name) {
              }
            }
          });
+         filtrator['1'] = range;
           break;
         case 2:
-        var range = document.getElementsByClassName('tagitem activated');
-        console.log(range);
-         filterDiv(divlist, range,function (key,elem)
+         filterDiv(divlist, tagarray,function (key,elem)
          {
-           var age = parseInt($(elem).find('.col-tags')[0].innerHTML);
-           if( Number.isInteger(age) == true)
-           {
-             if(age <= range[1] && age >= range[0])
-             {
-               $(elem).show();
+           var tags = $(elem).find('.col-tags').attr('data');
+             tags = tags.split(',');
+             if(tags !== undefined){
+               if(tagIsInArray(tagarray,tags) == true)
+               {
+                 $(elem).show();
+               }
+               else{
+                 $(elem).hide();
+               }
              }
-             else{
-               $(elem).hide();
+             else {
+                $(elem).show();
              }
-           }
          });
+         filtrator['2'] = range;
           break;
         case 3:
         var range = document.getElementById('range-picker').noUiSlider.get();
@@ -521,6 +556,7 @@ function activefilter(filter_name) {
              }
            }
          });
+         filtrator['3'] = range;
           break;
       }
     }
@@ -528,13 +564,15 @@ function activefilter(filter_name) {
 }
 
 var extracted = 0;
-var requestor = '';
+
 function startsearch(status) {
-    console.log(tagarray);
   if(status === 'new') {
     extracted = 0;
     document.getElementById('search_content_area').innerHTML = '';
   }
+  requestor = undefined;
+  filtrator = {'0':undefined,'1':undefined,'2':undefined,'3':undefined};
+  triator = {'order': undefined, 'by': undefined};
   var age = document.getElementById('age-picker');
   var range = document.getElementById('range-picker');
   var rangeorigin = document.getElementById('range-origin');
@@ -594,13 +632,13 @@ function startsearch(status) {
           else {
             connect = "<i class='material-icons red-text'>lens</i>";
           }
-          newelem.innerHTML = "<div class='row' id='row"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
+          newelem.innerHTML = "<div class='row' id='row"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"  data="'+ tag +'"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
 
           numtmp += 1;
           resultzone.appendChild(newelem);
         });
         console.log(data);
-        requestor = data['req'];
+        requestor = data['paramenter'];
       }
     }
     xhr.open("POST", "recherche", true);
@@ -608,6 +646,55 @@ function startsearch(status) {
     xhr.send("age="+ encodeURIComponent(age) +"&range="+ encodeURIComponent(range)+ "&pop="+encodeURIComponent(pop)+"&area="+encodeURIComponent(address)+"&tags="+encodeURIComponent(actives)+"&extracted="+encodeURIComponent(extracted));
     });
   }
+}
+
+function infiniteScroll() {
+  var e =  document.getElementById('search_content_area');
+  e.addEventListener('scroll', function(e) {
+     if(e.target.scrollTop + e.target.clientHeight >= e.target.scrollHeight)
+     {
+       if(requestor !== undefined && requestor !== '')
+       {
+         var xhr = new XMLHttpRequest();
+         xhr.onreadystatechange = function() {
+           if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+             var data = JSON.parse(xhr.responseText);
+             var num = extracted;
+             var numtmp = 0;
+             var connect = '';
+             extracted += data['extracted'];
+             var resultzone = document.getElementById('search_content_area');
+             data['result'].forEach(function (element) {
+               var newelem = document.createElement('DIV');
+               num += 1;
+               newelem.setAttribute('id', 'user'+num);
+               var tag = data['result'][numtmp]['tags'];
+               if(tag !== null){
+                 nbtag = tag.split(",").length;
+               }
+               else {
+                 nbtag = 0;
+               }
+
+               if(data['online'][data['result'][numtmp]['id_user']] == 'yes') {
+                 connect = "<i class='material-icons green-text'>lens</i>";
+               }
+               else {
+                 connect = "<i class='material-icons red-text'>lens</i>";
+               }
+               newelem.innerHTML = "<div class='row' id='row"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags" data="' + tag + '"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
+               numtmp += 1;
+               resultzone.appendChild(newelem);
+             });
+             requestor = data['paramenter'];
+           }
+         }
+         xhr.open("POST", "recherche", true);
+         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+         xhr.send("age="+ encodeURIComponent(requestor['age']) +"&range="+ encodeURIComponent(requestor['range'])+ "&pop="+encodeURIComponent(requestor['pop'])+"&area="+encodeURIComponent(requestor['area'])+"&tags="+encodeURIComponent(requestor['actives'])+"&extracted="+encodeURIComponent(extracted));
+       }
+     }
+  });
 }
 
 function sortresult(action,ev) {
