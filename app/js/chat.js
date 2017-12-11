@@ -1,15 +1,5 @@
 $(document).ready(function()
 {
-    function escapeHTML(text) {
-        var map = {
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#039;'
-        };
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
-    }
     
     var loaded = 0;
     var data = JSON.parse(useractiv);
@@ -25,6 +15,7 @@ $(document).ready(function()
                 $("#profil_name, #profil_image, #profil_link, #form_block, #chat_msg").show();
                 $("#profil_name").children("p").html(data[i]['login']);
                 $("#next").html("Afficher les prochains messages");
+                $("#text_content").css("border", "2px solid black");
                 if (data[i]['profil_pict'] == "#")
                     $("#profil_image").children("img").attr("src", "/matcha/app/css/image/Photo-non-disponible.png");
                 else
@@ -42,10 +33,10 @@ $(document).ready(function()
                     },
                     dataType: 'json',
                     success: function (tab, status){
+                        console.log(tab['status']);
                         if (tab['status'] == "OK")
                         {
                             loaded = loaded + tab['msg'].length;
-                            console.log(tab['msg']);
                             for (var i = 0; i < tab['msg'].length; i++)
                             {
                                 var rl = "";
@@ -59,7 +50,6 @@ $(document).ready(function()
                                 else
                                     isnew = "oldmsg";
                                 $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
-
                             }
                         }
                     },
@@ -70,7 +60,6 @@ $(document).ready(function()
                 $("#next").off("click");
                 $count = 0;
                 $("#next").on("click", function(){
-                    console.log(loaded);
                     if (loaded != $count)
                     {
                         $.ajax({
@@ -145,14 +134,17 @@ $(document).ready(function()
                     content: txt.val()
                 },
                 success: function(tab, status){
-                    if (tab['content'] == "OK")
+                    if (tab['content'] == "Error")
                     {
-                        $("#messages").append("<li class=\"message right-align new\">"+escapeHTML(txt.val())+"</li>");
-                        console.log(txt.val());
-                        txt.val("");
+                        $("#messages").append("<li class=\"message right-align new\">Erreur lors de l'envoi du messages, veuillez actualiser la page</li>");
+                    }
+                    else
+                    {
+                        $("#messages").append("<li class=\"message right-align new\">"+escapeHTML(tab['content'])+"</li>");
                     }
                 }
             });
+            txt.val("");
         }
         ev.preventDefault();
     });
@@ -177,28 +169,38 @@ $(document).ready(function()
                 data: 'action=notif&type=1',
                 dataType: 'json',
                 success: function(tab, status){
-                    for (var i = 0; i < tab['news'].length; i++)
+                    var like_block = document.getElementById("like_block_content");
+                    if (tab['news'].length > 0)
                     {
-                        var htmlcode = "";
-                        var notif = document.createElement("LI");
-                        notif.className = "collection-item avatar new_notif";
-                        if(tab['news'][i]['profil_pict'] == "#")
-                            htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
-                        else
-                            htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
-                        htmlcode += "<span class=\"title\">"+escapeHTML(tab['news'][i]['login'])+"</span>";
-                        if (tab['news'][i]['type'] == 1)
-                            htmlcode += "<p>Like</p>";
-                        else if (tab['news'][i]['type'] == 4)
-                            htmlcode += "<p>Match</p>";
-                        else
-                            htmlcode += "<p>Unlike</p>";
-                        notif.innerHTML = htmlcode;
-                        notif.addEventListener("mouseover", set_old, false);
-                        notif.id_notif = tab['news'][i]['id_notif'];
-                        document.getElementById("like_block_content").getElementsByTagName("UL")[0].appendChild(notif);
+                        for (var i = 0; i < tab['news'].length; i++)
+                        {
+                            var htmlcode = "";
+                            var notif = document.createElement("a");
+                            notif.setAttribute("href", escapeHTML("/matcha/lookat/"+tab['news'][i]['login']));
+                            notif.className = "collection-item avatar new_notif";
+                            if(tab['news'][i]['profil_pict'] == "#")
+                                htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
+                            else
+                                htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
+                            htmlcode += "<span class=\"title\">"+escapeHTML(tab['news'][i]['login'])+"</span>";
+                            if (tab['news'][i]['type'] == 1)
+                                htmlcode += "<p>Like</p>";
+                            else if (tab['news'][i]['type'] == 4)
+                                htmlcode += "<p>Match</p>";
+                            else
+                                htmlcode += "<p>Unlike</p>";
+                            notif.innerHTML = htmlcode;
+                            notif.addEventListener("mouseover", set_old, false);
+                            notif.id_notif = tab['news'][i]['id_notif'];
+                            like_block.getElementsByTagName("UL")[0].appendChild(notif);
+                        }
                     }
-                    console.log(tab);
+                    else
+                    {
+                        var msg = document.createElement("p");
+                        msg.innerHTML = "Aucune nouvelle notification";
+                        like_block.appendChild(msg);
+                    }
                 },
                 error: function(res, status, error){
                     console.log(error);
@@ -218,10 +220,12 @@ $(document).ready(function()
                 data: 'action=notif&type=2',
                 dataType: 'json',
                 success: function(tab, status){
+                    console.log(tab);
                     for (var i = 0; i < tab['news'].length; i++)
                     {
                         var htmlcode = "";
-                        var notif = document.createElement("LI");
+                        var notif = document.createElement("a");
+                        notif.setAttribute("href", escapeHTML("/matcha/lookat/"+tab['news'][i]['login']));
                         notif.className = "collection-item avatar new_notif";
                         if(tab['news'][i]['profil_pict'] == "#")
                             htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
@@ -233,7 +237,6 @@ $(document).ready(function()
                         notif.id_notif = tab['news'][i]['id_notif'];
                         document.getElementById("visits_block_content").getElementsByTagName("UL")[0].appendChild(notif);
                     }
-                    console.log(tab);
                 },
                 error: function(res, status, error){
                     console.log(error);
@@ -264,4 +267,44 @@ $(document).ready(function()
             'text' 
         );
     }
+
+    var notif_visite_visible = 0
+    $(document.getElementById("next_visite")).click(function(){
+        if (notif_visite_visible != 1)
+        {
+            $.ajax({
+                url: 'notif_list',
+                type: 'POST',
+                data: {
+                    action:'notif',
+                    type: 2,
+                    nb:0,
+                    isold: 1
+                },
+                dataType: 'json',
+                success: function(tab, status){
+                    console.log(tab);
+                    for (var i = 0; i < tab['olds'].length; i++)
+                    {
+                        var htmlcode = "";
+                        var notif = document.createElement("a");
+                        notif.setAttribute("href", escapeHTML("/matcha/lookat/"+tab['olds'][i]['login']));
+                        notif.className = "collection-item avatar old_notif";
+                        if(tab['olds'][i]['profil_pict'] == "#")
+                            htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
+                        else
+                            htmlcode += "<img src=\""+tab['olds'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
+                        htmlcode += "<span class=\"title\">"+escapeHTML(tab['olds'][i]['login'])+"</span>";
+                        notif.innerHTML = htmlcode;
+                        notif.id_notif = tab['olds'][i]['id_notif'];
+                        document.getElementById("visits_block_content").getElementsByTagName("UL")[0].appendChild(notif);
+                    }
+                },
+                error: function(res, status, error){
+                    console.log(error);
+                }
+            });
+        }
+        notif_visite_visible = 1;
+    });
 });

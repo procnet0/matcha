@@ -1,4 +1,15 @@
 
+function escapeHTML(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 function setAsProfil(ev) {
 
   var active = document.getElementsByClassName('carousel-item active');
@@ -655,7 +666,6 @@ function openblockmanager(ev) {
 id_user = -1;
 
 function autonotif() {
-  console.log(id_user);
   if ($("#notif"))
   {
     $.ajax({
@@ -679,7 +689,7 @@ function autonotif() {
           {
             for(i = 0; i < data['msg'].length; i++)
             {
-              $("#messages").append("<li class=\"message left-align old\">"+data['msg'][i]['content']+"</li>");
+              $("#messages").append("<li class=\"message left-align old\">"+escapeHTML(data['msg'][i]['content'])+"</li>");
             }
           }
         }
