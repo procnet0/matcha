@@ -1441,7 +1441,6 @@ function RedeemNotifContent($pdo, $nb, $type, $isold) {
 }
 
 // Change le statuts non lu --> lu
-
 function UpdateNotifStatus($id_notif , $pdo) {
   $ret = [];
   $ret['status'] = 'OK';
@@ -1465,7 +1464,7 @@ function RNewNotif($id, $pdo) {
   try {
     if ($id != "-1")
     {
-      $sql = $pdo->prepare("SELECT notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
+      $sql = $pdo->prepare("SELECT notification.new, notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
       WHERE 
         messages.id_msg = notification.id_item
         AND notification.type = 3

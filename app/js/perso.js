@@ -999,11 +999,12 @@ function autonotif() {
         id: id_user
       },
       success: function(data){
+        console.log(data);
         if ($("#notif"))
         {
           if (data['nb_msg'] != 0 && msg_notif != data['nb_msg'])
           {
-            if ($("#messages") == null)
+            if (document.getElementById("#messages") == "undefined")
             {
               if ((data['nb_msg'] - msg_notif) == 1)
                 Materialize.toast('Nouveau message !', 4000);
@@ -1017,9 +1018,10 @@ function autonotif() {
             $('#notif').css('visibility', 'visible');
           }
         }
-        if (data['msg']) {
+        if (data['msg'] && data['msg'].length != 0) {
+          //$(".unread").removeClass("unread").addClass("read");
           for(i = 0; i < data['msg'].length; i++){
-            $("#messages").append("<li class=\"message left-align old\">"+escapeHTML(data['msg'][i]['content'])+"</li>");
+            $("#messages").append("<li class=\"message left-msg read\">"+escapeHTML(data['msg'][i]['content'])+"</li>");
           }
         }
       }

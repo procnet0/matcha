@@ -42,13 +42,21 @@ $(document).ready(function()
                                 var rl = "";
                                 var isnew = "";
                                 if (tab['msg'][i]['fromyou'] == "1")
-                                    rl = "right-align";
+                                {
+                                    if (tab['msg'][i]['new'] == "1")
+                                        isnew = "unread";
+                                    else
+                                        isnew = "read";
+                                    rl = "right-msg";
+                                }
                                 else
-                                    rl = "left-align";
-                                if (tab['msg'][i]['new'] == "1")
-                                    isnew = "newmsg"
-                                else
-                                    isnew = "oldmsg";
+                                {
+                                    if (tab['msg'][i]['new'] == "1")
+                                        isnew = "newmsg";
+                                    else
+                                        isnew = "oldmsg";
+                                    rl = "left-msg";
+                                }
                                 $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
                             }
                         }
@@ -82,13 +90,21 @@ $(document).ready(function()
                                             var isnew = "";
                                             
                                             if (tab['msg'][i]['fromyou'] == "1")
-                                                rl = "right-align";
+                                            {
+                                                if (tab['msg'][i]['new'] == "1")
+                                                    isnew = "unread";
+                                                else
+                                                    isnew = "read";
+                                                rl = "right-msg";
+                                            }
                                             else
-                                                rl = "left-align";
-                                            if (tab['msg'][i]['new'] == "1")
-                                                isnew = "newmsg"
-                                            else
-                                                isnew = "oldmsg";
+                                            {
+                                                if (tab['msg'][i]['new'] == "1")
+                                                    isnew = "newmsg";
+                                                else
+                                                    isnew = "oldmsg";
+                                                rl = "left-msg";
+                                            }
                                             $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
                                         }
                                     }
@@ -136,11 +152,11 @@ $(document).ready(function()
                 success: function(tab, status){
                     if (tab['content'] == "Error")
                     {
-                        $("#messages").append("<li class=\"message right-align new\">Erreur lors de l'envoi du messages, veuillez actualiser la page</li>");
+                        $("#messages").append("<li class=\"message right-msg unread\">Erreur lors de l'envoi du messages, veuillez actualiser la page</li>");
                     }
                     else
                     {
-                        $("#messages").append("<li class=\"message right-align new\">"+escapeHTML(tab['content'])+"</li>");
+                        $("#messages").append("<li class=\"message right-msg unread\">"+escapeHTML(tab['content'])+"</li>");
                     }
                 }
             });
@@ -235,7 +251,7 @@ $(document).ready(function()
                         notif.innerHTML = htmlcode;
                         notif.addEventListener("mouseover", set_old);
                         notif.id_notif = tab['news'][i]['id_notif'];
-                        document.getElementById("visits_block_content").getElementsByTagName("UL")[0].appendChild(notif);
+                        document.getElementById("visits_block_content").getElementsByTagName("UL")[0].appendChild(notif);   
                     }
                 },
                 error: function(res, status, error){
@@ -249,7 +265,6 @@ $(document).ready(function()
 
     function set_old(evt)
     {
-        //console.log(evt.currentTarget);
         var real = evt.currentTarget;
         $.post(
             'set_new_to_old',
@@ -257,7 +272,6 @@ $(document).ready(function()
             function (text){
                 if (text == "ok")
                 {
-                    console.log(real);
                     real.className = "collection-item avatar old_notif";
                     real.removeEventListener("mouseover", set_old);
                 }

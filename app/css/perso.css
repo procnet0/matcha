@@ -653,3 +653,32 @@ span.badge.new{position:relative; bottom:80px;}
 {
   box-shadow: inset 0px 0px 10px 2px #eac72b;
 }
+
+.message{
+  word-wrap: break-word;
+}
+
+.newmsg{
+  background-color:rgba(0, 128, 0, 0.329);
+}
+
+.read{
+  background-color:transparent;
+}
+
+.unread{
+  background-color:rgba(128, 128, 128, 0.363);
+}
+
+.oldmsg{
+  background-color:transparent;
+}
+
+.left-msg{
+  text-align:left;
+}
+
+.right-msg{
+  text-align:right;
+
+}
