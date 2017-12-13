@@ -444,7 +444,7 @@ function locationOf(element, array, comparer, start, end) {
 
     start = start || 0;
     end = end || array.length;
-    var pivot = (start + end) >> 1;  // should be faster than dividing by 2
+    var pivot = (start + end) >> 1;
 
     var c = comparer(element, array[pivot]);
     if (end - start <= 1) return c == -1 ? pivot - 1 : pivot;
@@ -505,8 +505,22 @@ function insertSorted(DomElem) {
   }
 }
 
-function sortDiv(container, divlist , callback) {
-  $.each(divlist, callback);
+function SortOrderTab()
+{
+  switch (triator['order']) {
+   case 'age':
+    ordertab.sort(ageCompare);
+   break;
+   case 'distance':
+     ordertab.sort(distCompare);
+   break;
+   case 'score':
+     ordertab.sort(scoreCompare);
+   break;
+   case 'tags':
+     ordertab.sort(tagsCompare);
+   break;
+   }
 }
 
 function sortresult(action,ev) {
@@ -515,16 +529,23 @@ function sortresult(action,ev) {
   {
     triator['order'] = action;
     var targ = ev.target;
-    if(targ.nodeName == 'I') {
-      var inner = ev.target.innerText;
-      if(inner.search('down') != -1) {
-        ev.target.innerText = inner.replace('down' , 'up');
-        triator['by'] = '+';
-       }
-      else {
-        ev.target.innerText = inner.replace('up' , 'down');
-        triator['by'] = '-';
-      }
+    var inner = ev.target.innerText;
+    if(inner.search('down') != -1) {
+      ev.target.innerText = inner.replace('down' , 'up');
+      triator['by'] = '+';
+    }
+    else {
+      ev.target.innerText = inner.replace('up' , 'down');
+      triator['by'] = '-';
+    }
+    SortOrderTab();
+    var resultzone = document.getElementById('search_content_area');
+    $(ordertab).remove();
+    if(triator['by'] === '+') {
+    $(ordertab).each(function(key,elem) {$(resultzone).append(elem);});
+    }
+    else {
+      $(ordertab).each(function(key,elem) {$(resultzone).prepend(elem);});
     }
   }
 }
@@ -535,7 +556,6 @@ function filterDiv(divlist,callback) {
 
 var requestor = undefined;
 var filtrator = {'0':undefined,'1':undefined,'2':undefined,'3':undefined};
-
 
 function tagIsInArray(filtre, tags) {
   var count = 0;
@@ -752,8 +772,14 @@ function infiniteScroll() {
              });
              if(triator['order'] !== undefined && triator['by'] !== undefined)
              {
+               console.log(ordertab);
                $(ordertab).remove();
-               $(resultzone).append($(ordertab));
+               if(triator['by'] === '+') {
+               $(ordertab).each(function(key,elem) {$(resultzone).append(elem);});
+               }
+               else {
+                 $(ordertab).each(function(key,elem) {$(resultzone).prepend(elem);});
+               }
              }
              requestor = data['paramenter'];
              if(data['extracted'] == 5){
@@ -771,8 +797,6 @@ function infiniteScroll() {
      return;
   } , 1000);
 }
-
-
 
 function likeuser(login, ev) {
  var target = ev.target;
