@@ -1,4 +1,15 @@
 
+function escapeHTML(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 function setAsProfil(ev) {
 
   var active = document.getElementsByClassName('carousel-item active');
@@ -977,17 +988,38 @@ function openblockmanager(ev) {
   xhr.send("subject=blklst");
 }
 
+id_user = -1;
+var msg_notif = 0;
 function autonotif() {
-  if($('#notif')) { $.post('/matcha/notif', function(data) {
-    if(data != 0 ) {
-      $('#notif').html(data);
-      $('#notif').css('visibility', 'visible');}
-    else
-    {
-      $('#notif').html(data);
-      $('#notif').css('visibility', 'collapse');}
+  $.ajax({
+      url: '/matcha/notif',
+      type: 'POST',
+      dataType: 'json',
+      data:{
+        id: id_user
+      },
+      success: function(data){
+        if ($("#notif"))
+        {
+          if (data['nb_msg'] != 0 && msg_notif != data['nb_msg'])
+          {
+            if ((data['nb_msg'] - msg_notif) == 1)
+              Materialize.toast('Nouveau message !', 4000);
+            else
+              Materialize.toast((data['nb_msg'] - msg_notif)+' nouveaux messages !', 4000);
+            msg_notif = data['nb_msg'];
+          }
+          if(data['nb_other'] != 0 ) {
+            $('#notif').html(data['nb_other']);
+            $('#notif').css('visibility', 'visible');
+          }
+        }
+        if (data['msg']) {
+          for(i = 0; i < data['msg'].length; i++){
+            $("#messages").append("<li class=\"message left-align old\">"+escapeHTML(data['msg'][i]['content'])+"</li>");
+          }
+        }
+      }
     });
-      setTimeout(autonotif , 3000);
-  }
-
+  setTimeout(autonotif , 3000);
 }
