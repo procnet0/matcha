@@ -4,14 +4,17 @@ namespace App\Controllers;
 use \Psr\Http\Message\RequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-class PagesController extends Controller{
-
+  class PagesController extends Controller{
   public function home(Request $request, Response $response) {
     if(empty($_SESSION['loggued_as'])) {
     $this->render($response, 'pages/home.twig');
     }
     else {
-      $this->render($response, 'pages/preview.twig');
+      $data = array('age' => '18,100' , 'range' => '25' , 'pop' => '0,100' , 'tags' => '', 'area' =>'', 'extracted' => '0');
+      include_once ('Functions.php');
+      $res = Researcher($data, $this->pdo);
+      var_dump(array('profils'=>$res['result']));
+      $this->render($response, 'pages/preview.twig', array('profils'=>$res['result']));
     }
   }
 
@@ -23,6 +26,7 @@ class PagesController extends Controller{
       include_once ('Functions.php');
       $info = [];
       $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+      $_SESSION['id'] = $info['profil']['id_user'];
       $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
       $this->render($response, 'pages/account.twig', $info);
     }
@@ -76,26 +80,22 @@ class PagesController extends Controller{
       {
         $_SESSION['loggued_as'] = $param['name'];
         $_SESSION['Alert'] = "Connexion Succeeded";
-        $info = [];
-        $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
-        $_SESSION['id'] = $info['profil']['id_user'];
-        $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
         updateLocation($param,$pdo);
-        $this->render($response, 'pages/account.twig', $info);
-      }
-      else if($result['name'] == True && $result['password'] == False)
-      {
-        $_SESSION['loggued_as'] = "";
-        $_SESSION['id'] = "";
-        $_SESSION['Alert'] = "Wrong password";
-        $this->render($response, 'pages/home.twig');
+          return $this->redirect($response ,'profil');
       }
       else if($result['name'] != True)
       {
         $_SESSION['loggued_as'] = "";
         $_SESSION['id'] = "";
-        $info = "Login not Found, Please Sign up";
-        $this->render($response, 'pages/signUp.twig', array('login' => filter_var($param['name'], FILTER_SANITIZE_STRING, FILTER_FLAG_NO_ENCODE_QUOTES)));
+        $_SESSION['flash'] = array('login' => "Login not Found, Please Sign up");
+        return $this->redirect($response ,'home');
+      }
+      else if($result['name'] == True && $result['password'] == False)
+      {
+        $_SESSION['loggued_as'] = "";
+        $_SESSION['id'] = "";
+        $_SESSION['flash'] = array('pass'=> "Wrong password");
+        return $this->redirect($response ,'home');
       }
     }
     else {
@@ -226,35 +226,18 @@ class PagesController extends Controller{
   public function updateTagInfo(Request $request, Response $response) {
     $subject = $request->getParam('subject');
     $active = json_decode($request->getParam('activeTag'), true);
-    $inactive = json_decode($request->getParam('inactiveTag'), true);
     $error = [];
     $x = 0;
     foreach($active as $key => $value)
     {
       $active[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
-      if($active[$key]['id_tag'] < 1 || $active[$key]['id_tag'] > 5)
-      {
-        $error[$x] = 'id error -> '.$active[$key]['id_tag'].'//  tag name was ->'.$active[$key]['name'];
-      }
-    }
-    foreach($inactive as $key => $value)
-    {
-      $inactive[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
-      if($inactive[$key]['id_tag'] < 1 || $inactive[$key]['id_tag'] > 5)
-      {
-        $error[$x] = 'id error -> '.$inactive[$key]['id_tag'].'// tag name was ->'.$inactive[$key]['name'];
-      }
     }
     if(isset($subject) && $subject = 'tagupdt' && empty($error))
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
-      $ret = updateTags($active, $inactive, $pdo);
+      $ret = updateTags($active, $pdo);
       print($ret);
-    }
-    else {
-      $ret = json_encode($error);
-      print $ret;
     }
 
   }
@@ -384,6 +367,182 @@ class PagesController extends Controller{
       $res['STATUS'] = 'error';
     }
     print (json_encode($res));
+  }
+
+  public function getmessenger(Request $request, Response $response) {
+
+    if(!empty($_SESSION['loggued_as']) && !empty($_SESSION['id'])) {
+      $pdo = $this->pdo;
+      include_once ('Functions.php');
+      $res = GetMsgInterface($pdo);
+      if($res) {
+        $this->render($response, 'pages/chat.twig', $res);
+      }
+      else {
+      return $this->redirect($response, 'home');
+      }
+    }
+    else
+      $this->render($response, 'pages/home.twig');
+  }
+
+  public function postmessenger(Request $request, Response $response) {
+    header('Content-type: application/json');
+    $info = $request->getParams();
+    if(!empty($_SESSION['loggued_as']) && !empty($info['id']) && isset($info['content']))
+    {
+      $ret = [];
+      if(empty($info['content'])) {
+        $ret['status'] = 'Message is empty';
+      }
+      else {
+      $pdo = $this->pdo;
+      $ret['status'] = 'OK';
+        include_once ('Functions.php');
+        $ret['content'] = PostNewMsg($info['id'],$info['content'],$pdo);
+      }
+      print json_encode($ret);
+    }
+  }
+
+  public function getMsgList(Request $request, Response $response) {
+    header("Content-type: application/json");
+    $data = $request->getParams();
+    $ret = [];
+    if (!empty($_SESSION['loggued_as']) && isset($data['nb']) && !empty($data['id']))
+    {
+      include_once('Functions.php');
+      $ret = RedeemMsg($data['id'], $data['nb'], $this->pdo);
+      return json_encode($ret);
+    }
+  }
+
+  public function updateNotif(Request $request, Response $response) {
+    $data = $request->getParams();
+    if(!empty($_SESSION['loggued_as']) && !empty($_SESSION['id']))
+    {
+      $ret = [];
+      if(!empty($data['id_notif'])) {
+          include_once ('Functions.php');
+        $ret['status'] = UpdateNotifStatus($data['id_notif'], $this->pdo);
+      }
+      else {
+        $ret['status'] = 'ERROR';
+      }
+      print json_encode($ret);
+    }
+  }
+
+  public function getNotifList(Request $request, Response $response) {
+    header('Content-type: application/json');
+    $data = $request->getParams();
+    if ($data['action'] == 'notif' && !empty($data['type']))
+    {
+      if (!empty($_SESSION['loggued_as']))
+      {
+        include_once('Functions.php');
+        if (isset($data['nb']))
+          $tab = RedeemNotifContent($this->pdo, $data['nb'], $data['type'], 1);
+        else {
+          $tab = RedeemNotifContent($this->pdo, NULL, $data['type'], 0);
+        }
+        return json_encode($tab);
+      }
+    }
+  }
+
+  public function Auto_notif(Request $request, Response $response) {
+    header("Content-type: application/json");
+    $data = $request->getParams();
+    if(!empty($_SESSION['loggued_as'])) {
+      include_once('Functions.php');
+      $ret = RNewNotif($data['id'], $this->pdo);
+      print json_encode($ret);
+    }
+    else {
+      print "Error";
+    }
+  }
+
+  public function getRecover(Request $request, Response $response) {
+    $this->render($response, 'pages/recover.twig');
+  }
+
+  public function postRecover(Request $request, Response $response) {
+    $data = $request->getParams();
+    if(!empty($data['login'] && !empty($data['secret']))) {
+      include_once ('Functions.php');
+      $ret =  recoverPassword($data['login'], $data['secret'], $this->pdo);
+      if(!empty($ret['status']) && $ret['status'] == 'OK') {
+        $prekey = microtime() . 'recover';
+        $key = hash('whirlpool', $prekey);
+        $url = $_SERVER['HTTP_HOST'].str_replace('index.php','Reset',$_SERVER['PHP_SELF']).'/'.$key;
+        $_SESSION['key'] = $key;
+        $_SESSION['recover'] = $data['login'];
+        $message = \Swift_Message::newInstance('Reinitialiser Password')
+          ->setFrom(['password_recover@matcha.fr' => 'A-bra-ca-da-matcha'])
+          ->setTo([$ret['data']['email'] => $data['login']])
+          ->setBody("Hello {$data['login']} click sur ce lien => http://{$url} <= pour changer ton mot de pass.");
+        $result = $this->mailer->send($message);
+        $_SESSION['flash'] = array('status' => 'Message envoyer');
+        return $this->redirect($response, 'home');
+      }
+    }
+  }
+
+  public function getReset(Request $request, Response $response, $key) {
+    var_dump($key);
+    if(!empty($_SESSION['key']) && $key['key'] == $_SESSION['key'])
+    {
+      $key = hash('whirlpool', $key['key'].time());
+      $_SESSION['key'] = $key;
+      $this->render($response, 'pages/Reset.twig', array('key' => $key));
+    }
+    else {
+      $_SESSION['flash'] = array('error' => 'Clé invalid try again');
+      $_SESSION['key'] = '';
+      $_SESSION['recover'] = '';
+      return $this->redirect($response, 'Recover');
+    }
+  }
+
+  public function postReset(Request $request, Response $response) {
+    $data = $request->getParams();
+    if( !empty($data['key']) && $data['key'] == $_SESSION['key'] && !empty($_SESSION['recover'])) {
+      $_SESSION['key'] = '';
+      include_once ('Functions.php');
+      $ret = resetPassword($_SESSION['recover'], $data['password'], $this->pdo);
+      $_SESSION['recover'] = '';
+      if($ret) {
+          $_SESSION['flash'] = array('status' => 'Password Reset Success');
+        }
+      else {
+          $_SESSION['flash'] = array('status' => 'Password Reset FAIL contact the webmaster');
+        }
+      return $this->redirect($response, 'home');
+    }
+    else {
+        $_SESSION['key'] = '';
+        $_SESSION['recover'] = '';
+        return $this->redirect($response, 'Recover');
+    }
+
+  }
+
+  public function setNewToOld(Request $request, Response $response) {
+    $data = $request->getParams();
+    if ($data['action'] != 'newold' && !isset($data['notif']))
+    {
+      echo "error";
+    } else {
+      include_once('Functions.php');
+      $ret = UpdateNotifStatus($data['notif'], $this->pdo);
+      if ($ret['status'] != "OK")
+        echo $ret['status'];
+      else {
+        echo "ok";
+      }
+    }
   }
 }
 ?>

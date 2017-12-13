@@ -19,14 +19,16 @@
   <div class="col s12 m12 l12 internal-border ">
     <a href="{{ path_for('home') }}"><h1 class="center-align center-block scrib title text-gold-shadow" > Abracadamatcha</h1></a>
   </div>
-  <div class="container section sec-part-header" style="text-align: center;">
-    <div class="row">
+  <div class="container section sec-part-header">
+    <div class="row center">
       <div class="col s2 m2 l2">
         <a href="{{ path_for('recherche') }}">
           <div class="cristalballz circle centeritem glow">
             <p class="recherche pulse center-align">Recherche</p>
           </div>
-          <img src="/matcha/app/css/image/boule-de-cristal.png" class="ball" />
+          <div style="position:absolute;">
+            <img src="/matcha/app/css/image/boule-de-cristal.png" class="ball" />
+          </div>
         </a>
       </div>
       <div class="col s2 m2 l2">
@@ -38,13 +40,17 @@
           <div id="map"></div>
         </div>
       </div>
-      <div class="col s4 m4 l4">  
+      {% if Connector == 1 %}
+      <div class="col s4 m4 l4">
         <div class="notif_block">
-          <a href="#">
-            <img src="/matcha/app/css/image/enveloppe.png" class="img_enveloppe" alt=""><span class="new badge orange darken-4">4</span></img>
+          <a href="{{ path_for('messenger') }}">
+            <img src="/matcha/app/css/image/enveloppe.png" class="img_enveloppe" alt="">
+            <span id="notif" class="new badge orange darken-4">0</span>
+          </img>
           </a>
         </div>
       </div>
+      {% endif %}
       <div class="col s2 m2 l2">
           <a href="{{ path_for('logout')}}"><img src="/matcha/app/css/image/potion-oubli.png" class="logout" alt="potion d'oubli"></a>
      </div>
@@ -93,6 +99,10 @@ $(document).ready(function() {
     closeOnSelect: false,
     max: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
   });
+
+
+  autonotif();
+
 });
  </script>
  <script>

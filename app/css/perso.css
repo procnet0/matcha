@@ -1,8 +1,10 @@
+
 .parchemin
 {
   margin: 0 auto;
   width: 90%;
   min-height: 33%;
+  max-width:1300px;
 background-image: url("image/parch.jpg");
 background-size: 100% 100%;
 background-repeat: no-repeat;
@@ -25,6 +27,23 @@ box-shadow: 10px 10px 5px black;
 font-family: "Angels";
 src: local(Angel),url("../fonts/Calling Angels Personal Use.woff") format("woff");
 font-weight: normal;
+}
+
+@font-face{
+  font-family:"Carmenci";
+  src: url("../fonts/carmenci.ttf");
+}
+
+@font-face
+{
+  font-family: "Northwood";
+  src: url("../fonts/Northwood_High.ttf");
+}
+
+@font-face
+{
+  font-family: "SketchGoth";
+  src: url("../fonts/Sketch Gothic School.ttf");
 }
 
 .scrib {
@@ -105,10 +124,6 @@ fieldset.profil {
   border-image-source: url('image/runesProfil Benediction.png');
 }
 
-.picture-field {
-
-}
-
 button.pict_selector {
 height: 75px;
 width: 75px;
@@ -149,7 +164,7 @@ position: absolute;
 
 #maincontainer {
   -webkit-animation-name: FadeIn;
-  -webkit-animation-duration: 4s;
+  -webkit-animation-duration: 2s;
   -webkit-animation-iteration-count: 1;
 }
 
@@ -165,7 +180,7 @@ div.menucontext {
 
 div.tag-box {
   min-height: 250px !important;
-  height: 90%;
+  height: 100%;
 }
 
 #active-tag {
@@ -229,7 +244,7 @@ cursor: pointer;
 #range-origin {
   background-color: rgba(255, 255, 255,0.2);
   margin: 0;
-  height: 1vh;
+  height: 1.5vh;
 }
 
 #range-origin::-webkit-input-placeholder {
@@ -328,10 +343,6 @@ div.miniProfilPict {
   position: absolute;
 }
 
-.text-field {
-
-}
-
 .centeritem{
   display: flex;
   justify-content: center;
@@ -419,6 +430,7 @@ div.miniProfilPict {
   width: 100px;
   position:absolute;
   height: 100px;
+  z-index: 1;
 }
 
 @-webkit-keyframes TextGlow{
@@ -431,7 +443,7 @@ div.miniProfilPict {
 {
   display:none;
   align-self: center;
-  font-family: fantasy;
+  font-family: Northwood;
   align-self: center;
   color: black;
   font-size: 28px;
@@ -452,4 +464,173 @@ div.miniProfilPict {
 span.badge.new{position:relative; bottom:80px;}
 #listcontainer {
   height: 95%;
+}
+
+#notif {
+  z-index: 1;
+  visibility: collapse;
+}
+
+.notif_block:hover #notif {
+  visibility: visible;
+}
+
+.profiles_list_container
+{
+  border:2px solid black;
+  max-height:600px;
+  overflow-y: auto;
+}
+
+.messages_container
+{
+  overflow-y:auto;
+}
+
+.imgcontainer_square
+{
+  padding-bottom: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.imgcontainer_square .img
+{
+  position: absolute;
+  max-width: 90%;
+  max-height: 90%;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.profil_list_user
+{
+  box-shadow: inset 0 0 11px 2px black;
+}
+
+.profil_list_user:hover
+{
+  box-shadow: none;
+  cursor:pointer;
+}
+
+.default_message
+{
+  font-family: "Northwood";
+  font-size:2em;
+  opacity:0.8;
+  margin-bottom:0;
+}
+
+.real_btn, .real_btn:focus
+{
+  background-color: #3e0550;
+  width: fit-content;
+  padding: 0px 2px 0px 2px;
+  opacity:0.8;
+}
+
+.real_btn:hover
+{
+  background-color:#690009;
+  opacity:1;
+}
+.verticalparcho .dropdown-content {
+  background-image: url('image/Vertical-parch.png');
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+.tagselector {
+  position: absolute;
+  bottom: 25%;
+  background-color: rgba(255, 0, 0, 0.1);
+}
+
+.tagselector ul {
+  position: absolute !important;
+  background-color: rgba(255, 0, 0, 0.5);
+    z-index: 2;
+}
+
+.waves-effect.waves-light .waves-ripple {
+  /* The alpha value allows the text and background color
+  of the button to still show through. */
+   background-color: rgba(255, 238, 5, 0.65);
+ }
+
+ .hidden
+ {
+   display:none;
+ }
+
+ #current_profil_info{
+  width:100%;
+  display:flex;
+  justify-content: center;
+ }
+
+ #profil_image
+ {
+  width:33%;
+  text-align: center;
+ }
+
+ #profil_name
+{
+  width:33%;
+}
+
+#profil_link{
+  width: 33%;
+}
+
+.collection .collection-item.avatar{
+  border:1px solid black;
+  min-height:65px;
+}
+
+.collection .collection-item.new_notif{
+  background-color:rgb(141, 129, 0);
+}
+
+.nextbtn{
+  width:100%;
+  height:40px;
+  color:white;
+  background-color:rgba(0, 0, 0, 0.411);
+  text-align:center;
+  vertical-align:middle;
+  border-bottom:2px solid white;
+  cursor:pointer;
+}
+
+.noselect{
+  -webkit-user-select: none;
+  -moz-user-select:none;
+  -khtml-user-select:none;
+  -ms-user-select:none;
+}
+
+.collapsible-body
+{
+  padding:0;
+}
+
+.next_notif
+{
+  width:100%;
+  min-height:25px;
+  margin:0;
+  background-color:rgb(201, 139, 5);
+  padding:0;
+  cursor:pointer;
+  border-radius: 2px;
+  text-align:center;
+}
+
+.next_notif:hover
+{
+  box-shadow: inset 0px 0px 10px 2px #eac72b;
 }

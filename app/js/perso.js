@@ -1,4 +1,15 @@
 
+function escapeHTML(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+}
+
 function setAsProfil(ev) {
 
   var active = document.getElementsByClassName('carousel-item active');
@@ -119,11 +130,8 @@ function OpenTagMenu() {
   var row2 = row.cloneNode(false);
     row.setAttribute('style', 'height: 80%; min-height: 250px;')
   var activetag =  document.createElement('DIV');
-    activetag.setAttribute('class', 'col s6 tag-box');
+    activetag.setAttribute('class', 'col s12 tag-box');
     activetag.setAttribute('id', 'active-tag');
-  var inactivetag =  document.createElement('DIV');
-    inactivetag.setAttribute('class', 'col s6 tag-box');
-    inactivetag.setAttribute('id', 'inactive-tag');
 
   var tagunit = document.createElement('DIV');
   var menuclose = document.createElement('button');
@@ -134,7 +142,7 @@ function OpenTagMenu() {
 
     var target = document.getElementById('menucontext');
     target.parentNode.removeChild(target);
-  })
+  });
   var divcont = document.createElement('DIV');
     divcont.setAttribute('class', 'bot-divcont col s6');
   var validator = document.createElement('button');
@@ -144,33 +152,49 @@ function OpenTagMenu() {
     validator.addEventListener('click', function()
     {
       var acnl = document.getElementById('active-tag').childNodes;
-      var innl = document.getElementById('inactive-tag').childNodes;
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
       if (xhr2.readyState == 4 && (xhr2.status == 200 || xhr2.status == 0)) {
-        //console.log(JSON.parse(xhr2.responseText));
+        console.log(JSON.parse(xhr2.responseText));
       }};
 
       var actives = [];
       for(var i = 0, len = acnl.length; i < len; i++) {
+
+        if( acnl[i].className.indexOf("tagitem") === -1 ) {
+          continue;
+        }
         actives.push({id_tag:acnl[i].id, name: acnl[i].innerText});
-      }
-      var inactives = [];
-      for(var i = 0, len = innl.length; i < len; i++) {
-          inactives.push({id_tag:innl[i].id, name: innl[i].innerText});
       }
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr2.send("subject=tagupdt&activeTag=" + JSON.stringify(actives) + "&inactiveTag=" + JSON.stringify(inactives));
+      xhr2.send("subject=tagupdt&activeTag=" + encodeURIComponent(JSON.stringify(actives)));
     });
   var border = document.createElement('DIV');
     border.setAttribute('class', 'border col s3');
   var border2 = border.cloneNode();
+  var autosearch = document.createElement('DIV');
+    autosearch.setAttribute('class', 'input-field tagselector col s6 offset-s3');
+    autosearch.setAttribute('id', 'auto-tag');
+    autosearch.innerHTML = '<i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label>'
+  var sender = document.createElement('BUTTON');
+    sender.setAttribute('class','tag_select_button');
+    sender.setAttribute('type', 'button');
+    sender.innerHTML = 'send';
+    sender.addEventListener("click", function() {
+      var val = document.getElementById('autocomplete-input').value;
+      var newtag = document.createElement('DIV');
+      newtag.className = 'tagitem chip';
+      newtag.id = 'tagitem';
+      newtag.innerHTML = val+"<i class='material-icons'></i>";
+      document.getElementById('active-tag').append(newtag);
+    });
+  divcont.append(sender);
 
   row.append(activetag);
-  row.append(inactivetag);
   row2.append(border);
   row2.append(divcont);
+  activetag.append(autosearch);
   divcont.append(validator);
   divcont.append(menuclose);
   row2.append(border2);
@@ -182,28 +206,34 @@ function OpenTagMenu() {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
   if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-    var data = JSON.parse(xhr.responseText);
-    if(data['active']) {
-      data['active'].forEach(function (item, index) {
+    var dat = JSON.parse(xhr.responseText);
+    if(dat['active']) {
+      dat['active'].forEach(function (item, index) {
         activetag.innerHTML = activetag.innerHTML + "<div class='tagitem chip' id='tagitem"+item['id_tag']+"'>"+item['name_tag']+"<i class='material-icons'></i></div>"
       });}
-    if(data['inactive']) {
-      data['inactive'].forEach(function (item, index) {
-        inactivetag.innerHTML = inactivetag.innerHTML + "<div class='tagitem chip' id='tagitem"+item['id_tag']+"'>"+item['name_tag']+"<i class='material-icons'></i></div>"
-      });}
+      console.log(dat['taglist']);
+      str = '{';
+      dat['taglist'].forEach(function (item, index) {
+        str += '"' + item['name_tag'] + '" : null ,';
+      });
+      str = str.substring(0,str.length -1);
+      str += '}';
+        $('#autocomplete-input').autocomplete({
+          data: JSON.parse(str),
+          limit: 20,
+          onAutocomplete: function(val) {
+
+          },
+          minLength: 1,
+        });
     addEventListenerByClass('tagitem', 'click', function (event) {
-      parent = event.target.parentNode;
-      if(parent.id == "inactive-tag") {
-        document.getElementById('active-tag').append(event.target);
-      }
-      if(parent.id == "active-tag") {
-        document.getElementById('inactive-tag').append(event.target);
-      }
+      event.target.parentElement.removeChild(event.target);
     });
   }};
   xhr.open("POST", "getTagInfo", true);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send("subject=tagmbt");
+
 }
 
 function ShowMap() {
@@ -232,7 +262,11 @@ function updateMap(data) {
     center: {lat: 48.895443, lng: 2.318076},
     zoom: 15
   });
-  var marker = new google.maps.Marker({position: pos,map: map,title: 'You'});
+  var marker = new google.maps.Marker({
+    position: pos,
+    map: map,
+    title: 'You'
+  });
    map.setCenter(pos);
 }
 
@@ -314,7 +348,7 @@ function initsliders() {
   });
 
     noUiSlider.create(rangepop, {
-      start: [ 50, 100 ],
+      start: [ 0, 100 ],
       behaviour: 'snap',
       connect: true,
       tooltips: [wNumb({ decimals: 0 ,step: 1}),wNumb({ decimals: 0 ,step: 1})],
@@ -456,6 +490,7 @@ function likeuser(login, ev) {
  xhr.onreadystatechange = function() {
     if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
       var data = JSON.parse(xhr.responseText);
+      console.log(data);
       var loveshower = document.getElementById('love');
       if(data['likes']){
         if(data['likes']['toyou'] && data['likes']['fromyou']){
@@ -626,4 +661,43 @@ function openblockmanager(ev) {
   xhr.open("POST", "get_block_list", true);
   xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   xhr.send("subject=blklst");
+}
+
+id_user = -1;
+var msg_notif = 0;
+function autonotif() {
+  $.ajax({
+      url: '/matcha/notif',
+      type: 'POST',
+      dataType: 'json',
+      data:{
+        id: id_user
+      },
+      success: function(data){
+        if ($("#notif"))
+        {
+          if (data['nb_msg'] != 0 && msg_notif != data['nb_msg'])
+          {
+            if ($("#messages") == null)
+            {
+              if ((data['nb_msg'] - msg_notif) == 1)
+                Materialize.toast('Nouveau message !', 4000);
+              else
+                Materialize.toast((data['nb_msg'] - msg_notif)+' nouveaux messages !', 4000);
+            }
+            msg_notif = data['nb_msg'];
+          }
+          if(data['nb_other'] != 0 ) {
+            $('#notif').html(data['nb_other']);
+            $('#notif').css('visibility', 'visible');
+          }
+        }
+        if (data['msg']) {
+          for(i = 0; i < data['msg'].length; i++){
+            $("#messages").append("<li class=\"message left-align old\">"+escapeHTML(data['msg'][i]['content'])+"</li>");
+          }
+        }
+      }
+    });
+  setTimeout(autonotif , 3000);
 }

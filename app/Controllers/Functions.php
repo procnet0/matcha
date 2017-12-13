@@ -183,6 +183,7 @@ function updateAccountInfo($login, $post,$pdo) {
   return;
 }
 
+// modifie la photo de profil
 function updatePict($data, $pdo) {
 
   $data['profil_pict'] = str_replace('http://'.$_SERVER['HTTP_HOST'].'/matcha/','',$data['profil_pict']);
@@ -221,6 +222,7 @@ function updatePict($data, $pdo) {
   return true;
 }
 
+// ajoute (<5) ou modifie (5) la photo active du carrousel
 function AddOrChangePicturePhp($data, $pdo) {
 
   try {
@@ -301,6 +303,7 @@ function AddOrChangePicturePhp($data, $pdo) {
   return json_encode($ret);
 }
 
+// compare 2 tableau en profondeur 1 (utile pour comparer les object javascript)
 function DiffArrayDepth1($array1 , $array2) {
   $arrayret = [];
   $x = 0;
@@ -325,6 +328,7 @@ function DiffArrayDepth1($array1 , $array2) {
 
 }
 
+// recupere les tags d un utilisateur
 function getTags($log,$pdo) {
 
   try {
@@ -343,124 +347,180 @@ function getTags($log,$pdo) {
     print "Error!: DATABASE TAGINFO-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
     die();
   }
-  $inactivlist = [];
-  $inactivlist = DiffArrayDepth1($taglist, $activelist);
   $ret = [];
   $ret['active'] =  $activelist;
-  $ret['inactive'] = $inactivlist;
+  $ret['taglist'] = $taglist;
   return json_encode($ret);
 }
 
+// verifie que le tableau de tag est valid / present dans la db / ne contien pas de doublon
 function checkTag($array, $tags) {
   $result = [];
-  $result['conform'] = true;
+  $result['absent'] = [];
   $result['doble'] = false;
-  $result['result'] = false;
+  $result['result'] = true;
   $result['new'] = $array;
   foreach ($array as $key =>$sub)
   {
     $result[$key]['count'] = 0;
-    foreach ($tags as $keys => $subs) {
-      if($sub['id_tag'] == $subs['id_tag'] && $sub['name'] == $subs['name_tag'])
-      { $result[$key]['count'] += 1; }
+    $result[$key]['doblecount'] = 0;
+
+    foreach ($array as $keys => $items)
+    {
+        if($items['name'] == $sub['name'])
+        {
+          $result[$key]['doblecount'] += 1;
+        }
     }
-    if( $result[$key]['count'] > 1) {
+    if($result[$key]['doblecount'] > 1)
+    {
       $result['doble'] = true;
     }
-    else if ($result[$key]['count'] == 0) {
-      $result['conform'] = false;
+
+    foreach ($tags as $keys => $subs)
+    {
+      if($sub['name'] == $subs['name_tag'])
+      {
+         $result[$key]['count'] += 1;
+
+      }
+    }
+    if ($result[$key]['count'] == 0)
+    {
+      $result['absent'][] = $sub ;
     }
   }
-
-  if( $result['conform'] == true && $result['doble'] == false) {
-    $result['result'] = true;
+  if(!empty($result['absent'])) {
+    $result['new'] = DiffArrayDepth1($result['new'], $result['absent']);
   }
-
-
+  if($result['doble'] != false) {
+    $result['result'] = false;
+  }
   return $result;
 }
 
-function updateTags($active,$inactive,$pdo) {
+// Ajout nouveaux tags + manage l
+function updateTags($active,$pdo) {
   try {
+    $debug = '';
     $pdo->beginTransaction();
     $sql = $pdo->prepare("SELECT id_tag, name_tag FROM tags");
     $sql->execute();
     $taglist = $sql->fetchAll(PDO::FETCH_ASSOC);
-    $sql2 = $pdo->prepare("SELECT tags.id_tag,name_tag FROM tags INNER JOIN tags_members ON tags_members.id_tag = tags.id_tag INNER JOIN members ON members.id_user = tags_members.id_members  WHERE members.login = ?");
-    $sql2->bindParam(1, $_SESSION['loggued_as'],PDO::PARAM_STR);
+    $iduser = $_SESSION['id'];
+    $sql2 = $pdo->prepare("SELECT tags.id_tag,name_tag FROM tags INNER JOIN tags_members ON tags_members.id_tag = tags.id_tag  WHERE tags_members.id_members = ?");
+    $sql2->bindParam(1, $_SESSION['id'],PDO::PARAM_STR);
     $sql2->execute();
     $activelist= $sql2->fetchAll(PDO::FETCH_ASSOC);
-    $sql3 = $pdo->prepare("SELECT id_user FROM members WHERE login = ?");
-    $sql3->bindParam(1, $_SESSION['loggued_as'], PDO::PARAM_STR);
-    $sql3->execute();
-    $iduser = $sql3->fetch(PDO::FETCH_ASSOC);
+
     $pdo->commit();
   } catch (PDOException $e) {
     $pdo->rollBack();
     print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() . " FAILED TO GET TAG<br/>";
     die();
   }
-  $check = checkTag(array_merge($active,$inactive),$taglist);
+  foreach($active as $key => $sub) {
+    $active[$key]['name'] = ucfirst(strtolower($sub['name']));
+  }
+  $check = checkTag($active,$taglist);
+  $debug = $check;
+
   if($check['result'] == true){
+
      $error = 'none';
      $removed = DiffArrayDepth1($activelist, $active);
      $added = DiffArrayDepth1($active, $activelist);
+     $added = DiffArrayDepth1($added, $check['absent']);
+
      if($added) {
+       try {
+         $pdo->beginTransaction();
+         $query = "INSERT INTO tags_members (id_tag, id_members) VALUES ";
+         $qpart = array_fill(0, count($added), "((SELECT tags.id_tag FROM tags WHERE name_tag = ? LIMIT 1),?)");
+         $query .= implode(",", $qpart);
+         $sql = $pdo->prepare($query);
+         $i = 1;
+         foreach($added as $item) {
+           $sql->bindValue($i++, $item['name'], PDO::PARAM_STR);
+           $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
+         }
+         $sql->execute();
+         $pdo->commit();
+       } catch (PDOException $e) {
+         $pdo->rollBack();
+         $error = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
+       }
+   }
+     if($removed) {
+         try {
+           $pdo->beginTransaction();
+           $query = "DELETE FROM tags_members WHERE id_members = ? AND id_tag IN (";
+           $qpart2 = array_fill(0, count($removed), "?");
+           $query .= implode(",", $qpart2).")";
+           $sql = $pdo->prepare($query);
+           $i = 1;
+           $binded = 0;
+           $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
+         foreach($removed as $item) {
+           $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
+           $binded += 1;
+         }
+         $ret['rquery']= $query;
+         $sql->execute();
+         $pdo->commit();
+       } catch (PDOException $e) {
+         $pdo->rollBack();
+         $error  = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
+
+       }
+   }
+   if(!empty($check['absent'])) {
      try {
        $pdo->beginTransaction();
+
+      $query = "INSERT INTO tags (name_tag) VALUES ";
+      $qpart = array_fill(0, count($check['absent']), "(?)");
+      $query .= implode(",", $qpart);
+      $sql = $pdo->prepare($query);
+      $i = 1;
+      foreach($check['absent'] as $item) {
+        $sql->bindValue($i++, $item['name'], PDO::PARAM_STR);
+      }
+      $sql->execute();
+
        $query = "INSERT INTO tags_members (id_tag, id_members) VALUES ";
-       $qpart = array_fill(0, count($added), "(?,?)");
+       $qpart = array_fill(0, count($check['absent']), "((SELECT tags.id_tag FROM tags WHERE name_tag = ?),?)");
        $query .= implode(",", $qpart);
        $sql = $pdo->prepare($query);
        $i = 1;
-       foreach($added as $item) {
-         $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
-         $sql->bindValue($i++, $iduser['id_user'], PDO::PARAM_STR);
+       foreach($check['absent'] as $item) {
+         $sql->bindValue($i++, $item['name'], PDO::PARAM_STR);
+         $sql->bindValue($i++, $iduser, PDO::PARAM_STR);
        }
        $sql->execute();
        $pdo->commit();
      } catch (PDOException $e) {
        $pdo->rollBack();
-       print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD<br/>";
-       die();
+       $error  = "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() .'/'. $query.'/'." FAILED TO ADD TO DB<br/>";
      }
    }
-   if($removed) {
-     try {
-       $pdo->beginTransaction();
-       $query = "DELETE FROM tags_members WHERE id_members = ? AND id_tag IN (";
-       $qpart2 = array_fill(0, count($removed), "?");
-       $query .= implode(",", $qpart2).")";
-       $sql = $pdo->prepare($query);
-       $i = 1;
-       $binded = 0;
-       $sql->bindValue($i++, $iduser['id_user'], PDO::PARAM_STR);
-     foreach($removed as $item) {
-       $sql->bindValue($i++, $item['id_tag'], PDO::PARAM_STR);
-       $binded += 1;
-     }
-     $ret['rquery']= $query;
-     $sql->execute();
-     $pdo->commit();
-   } catch (PDOException $e) {
-     $pdo->rollBack();
-     print "Error!: DATABASE TAGUPDATE-> " . $e->getMessage() ." FAILED TO DELET<br/>";
-     die();
-   }
-  }
+
   }
   else {
+    $debug = $check;
     $error = 'Wrong data sended no modification made';
     $removed = [];
     $added = [];
   }
   $ret = [];
-  $ret['added'] =$added;
+  $ret['debug'] = $debug;
+  $ret['added'] = $added;
   $ret['removed'] = $removed;
   $ret['error'] = $error;
   return json_encode($ret);
 }
 
+//recupere l addresse avec lat et lng
 function getAddrWithCoord($lat , $lng) {
   $url ="https://maps.googleapis.com/maps/api/geocode/json?latlng=".$lat.','.$lng."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
 
@@ -475,7 +535,9 @@ function getAddrWithCoord($lat , $lng) {
  return $ret;
 }
 
+//change la location de l utilisateur courant
 function updateLocation($data, $pdo) {
+  //user input location
   if(!empty($data['input'])) {
     $url="https://maps.googleapis.com/maps/api/geocode/json?address=".urlencode($data['input'])."&key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo";
     $ret = [];
@@ -499,8 +561,10 @@ function updateLocation($data, $pdo) {
         return $informations['results']['0']['formatted_address'];
       }
   }
+  // auto locate
   else if (!empty($data['latitude']) && !empty($data['longitude'])) {
       $info = getAddrWithCoord($data['latitude'], $data['longitude']);
+
      if(!empty($info))
      {
        try {
@@ -519,10 +583,11 @@ function updateLocation($data, $pdo) {
     }
   }
   else {
-  return 'error';
+    return 'error';
   }
 }
 
+//distance entre 2 coordoneer
 function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_long, $decimals = 2) {
 
   $degrees = rad2deg(acos((sin(deg2rad($point1_lat))*sin(deg2rad($point2_lat))) + (cos(deg2rad($point1_lat))*cos(deg2rad($point2_lat))*cos(deg2rad($point1_long-$point2_long)))));
@@ -531,6 +596,7 @@ function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_lon
   return round($distance, $decimals);
 }
 
+// recupere la liste des utilisateur correspondant au parametre
 function Researcher($datas, $pdo) {
 
   $age = explode(',',$datas['age']);
@@ -591,6 +657,45 @@ function Researcher($datas, $pdo) {
         SET tot = cross1 + cross2;
         RETURN  tot;
     END');
+
+    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `IsValid`");
+    $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION `IsValid`(`sexcase` INT, `idtarget` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER
+    BEGIN
+    DECLARE orient INT;
+    DECLARE sexc INT;
+	  DECLARE valid INT;
+    DECLARE summ INT ;
+    SET orient = (SELECT CASE oriented
+    						WHEN 'bi' THEN 10
+    						WHEN 'homo' THEN 20
+    						WHEN 'hetero' THEN 30
+    						ELSE 0
+      				  	END as orientcase
+                        FROM members WHERE id_user = idtarget);
+    SET sexc = (SELECT CASE sexe
+    						WHEN 'male' THEN 100
+    						WHEN 'female' THEN 200
+    						WHEN 'other' THEN 300
+    						ELSE 0
+      				  	END as sexc
+                        FROM members WHERE id_user = idtarget);
+
+    SET summ = sexcase + sexc + orient;
+    SET valid =  CASE
+    			WHEN summ IN(112,114,115,117) THEN 1
+    			WHEN summ IN(127,124) THEN 1
+                WHEN summ IN(132,135) THEN 1
+                WHEN summ IN(211,214,215,218) THEN 1
+                WHEN summ IN(225,228) THEN 1
+                WHEN summ IN(231,234) THEN 1
+                WHEN summ IN(313,316,319,323,326,329,333,336,339) THEN 1
+                ELSE 0
+    		END;
+
+    RETURN valid;
+    END");
+
+
   } catch (PDOException $e) {
     print 'error =>'. $e;
     die();
@@ -676,23 +781,31 @@ function Researcher($datas, $pdo) {
     $or = "members.sexe IN (";
     switch($sexnor)  {
       case array('male','hetero'):
-      $or .= "'female'"; break;
+      $or .= "'female'";$SexCase = '1'; break;
+
       case array('female','hetero'):
-      $or .= "'male'"; break;
+      $or .= "'male'";$SexCase = '2'; break;
+
       case array('other','hetero'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '3'; break;
+
       case array('male','bi'):
-      $or .= "'female','male','other'"; break;
-      case array('female','bi'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '4'; break;
+
+      case array('female','bi');
+      $or .= "'female','male','other'";$SexCase = '5'; break;
+
       case array('other','bi'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '6'; break;
+
       case array('male','homo'):
-      $or .= "'male'"; break;
+      $or .= "'male'";$SexCase = '7'; break;
+
       case array('female','homo'):
-      $or .= "'female'"; break;
+      $or .= "'female'";$SexCase = '8'; break;
+
       case array('other','homo'):
-      $or .= "'female','male','other'"; break;
+      $or .= "'female','male','other'";$SexCase = '9'; break;
     }
     $or .= ")";
 
@@ -704,6 +817,7 @@ function Researcher($datas, $pdo) {
     GetScore(members.id_user) as score,
     TIMESTAMPDIFF(YEAR, members.birthday, NOW()) AS age,
     members.sexe,
+    IsValid(". $SexCase .", members.id_user) as Valid,
     members.oriented,
     members.profil_pict,
     GROUP_CONCAT(tags_members.id_tag) AS tags,
@@ -718,7 +832,7 @@ function Researcher($datas, $pdo) {
     $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
     $reqsql .= ' GROUP BY id_user
      HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
-     AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
+     AND Valid = 1 AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
 
     if(isset($tlist)) {
       foreach ($tlist as $elem) {
@@ -752,6 +866,7 @@ function Researcher($datas, $pdo) {
   return($res);
 }
 
+//recupere la list des membre connecté
 function getOnlineMembers($array_id_user, $pdo) {
   $res = [];
   if($array_id_user) {
@@ -778,6 +893,7 @@ function getOnlineMembers($array_id_user, $pdo) {
   return $res;
 }
 
+//recuper les info du target
 function lookathim($login, $pdo) {
 
   $result = [];
@@ -848,7 +964,6 @@ function lookathim($login, $pdo) {
       $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
       $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
       }
-
     }
   } catch (PDOException $e) {
     print "error = ".$e." in lookathim stage=".$st;
@@ -856,18 +971,29 @@ function lookathim($login, $pdo) {
   }
   if($result) {
     try {
+      $pdo->beginTransaction();
       $sql = $pdo->prepare("INSERT INTO visite (id_from, id_to, timeof) VALUES (? ,? , UNIX_TIMESTAMP() )");
       $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
       $sql->bindParam(2, $id, PDO::PARAM_INT);
       $sql->execute();
+      $last = $pdo->lastInsertId();
+
+      $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,?,?,'2',UNIX_TIMESTAMP())");
+      $sql->bindParam(1,$id, PDO::PARAM_INT);
+      $sql->bindParam(2,$last, PDO::PARAM_INT);
+      $sql->bindParam(3,$_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $pdo->commit();
     } catch (PDOException $e) {
       print "error = ".$e." in lookathim stage= add visite";
+      $pdo->rollBack();
       die();
     }
   }
   return $result;
 }
 
+// Add un report dans la db
 function reportevent($from, $param, $pdo) {
   $to = $param['to'];
   $type = $param['type'];
@@ -918,6 +1044,7 @@ function reportevent($from, $param, $pdo) {
   return $result;
 }
 
+// gere les like unlike
 function likevent($from, $to, $pdo) {
   $time = time();
   $tot = [];
@@ -932,6 +1059,7 @@ function likevent($from, $to, $pdo) {
   if($toinfo) {
     $to = $toinfo['id_user'];
     try {
+      $pdo->beginTransaction();
       $sql = $pdo->prepare("SELECT id_like FROM likes WHERE id_from = ? AND id_to = ?");
       $sql->bindParam(1, $from, PDO::PARAM_INT);
       $sql->bindParam(2, $to, PDO::PARAM_INT);
@@ -939,35 +1067,56 @@ function likevent($from, $to, $pdo) {
       $result = $sql->fetch();
 
       if(empty($result) || $result == false) {
+
         $sql = $pdo->prepare("INSERT INTO likes (id_from, id_to, timeof) VALUES (?,?,UNIX_TIMESTAMP())");
         $sql->bindParam(1, $from, PDO::PARAM_INT);
         $sql->bindParam(2, $to, PDO::PARAM_INT);
         $res['status'] = $sql->execute();
         $res['id'] = $pdo->lastInsertId();
         $res['action'] ='insert';
+        $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,?,?,'1',UNIX_TIMESTAMP())");
+        $sql->bindParam(1,$to, PDO::PARAM_INT);
+        $sql->bindParam(2,$res['id'], PDO::PARAM_INT);
+        $sql->bindParam(3,$from, PDO::PARAM_INT);
+        $sql->execute();
       }
       else if(!empty($result)) {
         $sql = $pdo->prepare("DELETE FROM likes WHERE id_like = ?");
         $sql->bindParam(1, $result['id_like'],PDO::PARAM_INT);
         $res['status'] = $sql->execute();
         $res['action'] = 'delete';
+        $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,'0',?,'5',UNIX_TIMESTAMP())");
+        $sql->bindParam(1,$to, PDO::PARAM_INT);
+        $sql->bindParam(2,$from, PDO::PARAM_INT);
+        $sql->execute();
       }
 
       $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_like FROM `likes` WHERE id_to = ? AND id_from = ? LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS fromyou FROM likes");
       $sql->bindParam(2, $to, PDO::PARAM_INT);
       $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
       $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
-        $sql->bindParam(4, $to, PDO::PARAM_INT);
+      $sql->bindParam(4, $to, PDO::PARAM_INT);
       $sql->execute();
       $tmp = $sql->fetch(PDO::FETCH_ASSOC);
       $tot['likes'] = [];
       $tot['likes']['toyou'] = $tmp['toyou'];
       $tot['likes']['fromyou'] = $tmp['fromyou'];
 
+      if( !empty($tot['likes']['toyou']) && !empty($tot['likes']['fromyou'])) {
+        $sql = $pdo->prepare("INSERT INTO notification (id_user,id_item,id_from,type,timeof) VALUES (?,?,?,'4',UNIX_TIMESTAMP())");
+        $sql->bindParam(1,$to, PDO::PARAM_INT);
+        $sql->bindParam(2,$res['id'], PDO::PARAM_INT);
+        $sql->bindParam(3,$_SESSION['id'], PDO::PARAM_INT);
+        $sql->execute();
+      }
+
+      $tot['match'] = gestionmatch($from,$to,$pdo,$tot['likes']);
       $tot['already']= $result;
       $tot['new'] = $res;
       $tot['status'] = "OK";
+      $pdo->commit();
     } catch (PDOException $e) {
+      $pdo->rollBack();
       print "error ". $e ." on likevent";
       $tot['status'] = "fail";
       die();
@@ -976,6 +1125,53 @@ function likevent($from, $to, $pdo) {
   return($tot);
 }
 
+// Gere les match
+function gestionmatch($from, $to, $pdo, $tab) {
+  if(!empty($from) && !empty($to) && !empty($tab)){
+    try {
+      $sql = $pdo->prepare("SELECT matchs.* FROM matchs WHERE( id_1 = ? AND id_2 = ?) OR ( id_1 = ? AND id_2 = ?)");
+      $sql->bindParam(1, $from,PDO::PARAM_INT);
+      $sql->bindParam(2, $to,PDO::PARAM_INT);
+      $sql->bindParam(3, $to,PDO::PARAM_INT);
+      $sql->bindParam(4, $from,PDO::PARAM_INT);
+      $sql->execute();
+      $match = $sql->fetch(PDO::FETCH_ASSOC);
+      $statut = 'match -';
+      if(!empty($match)) {
+         if(!empty($tab['toyou']) && !empty($tab['fromyou']))
+         {
+           $sql = $pdo->prepare("UPDATE matchs SET active = 1 , timeof = UNIX_TIMESTAMP() WHERE id_match = ? ");
+           $sql->bindParam(1, $match['id_match'], PDO::PARAM_INT);
+           $sql->execute();
+           $statut = 'match +';
+         }
+         else
+         {
+           $sql = $pdo->prepare("UPDATE matchs SET active = 0 , timeof = UNIX_TIMESTAMP() WHERE id_match = ? ");
+           $sql->bindParam(1, $match['id_match'], PDO::PARAM_INT);
+           $sql->execute();
+           $statut = 'match -';
+         }
+      }
+      else if ((!empty($tab['toyou']) && !empty($tab['fromyou']))) {
+          $sql = $pdo->prepare("INSERT INTO matchs (id_1, id_2 , timeof, active) VALUES
+          (?,?,UNIX_TIMESTAMP(),1)");
+          $sql->bindParam(1, $from, PDO::PARAM_INT);
+          $sql->bindParam(2, $to, PDO::PARAM_INT);
+          $sql->execute();
+          $statut = 'match +';
+        }
+      return $statut;
+      } catch (PDOException $e) {
+         return $e;
+      }
+  }
+  else {
+    return 'error';
+  }
+}
+
+// Creer un block entre from et to
 function blockevent($from, $to, $pdo) {
   $ret = [];
   if(!empty($from) && !empty($to)) {
@@ -1007,6 +1203,7 @@ function blockevent($from, $to, $pdo) {
   }
 }
 
+//recupere la list des blocks
 function getblocklist($pdo) {
   $res = [];
   try {
@@ -1021,6 +1218,7 @@ function getblocklist($pdo) {
   return $res;
 }
 
+//unblock le target
 function removeblocks($target, $pdo) {
     $res = [];
     try {
@@ -1037,6 +1235,7 @@ function removeblocks($target, $pdo) {
     return $res;
   }
 
+// Recupe le score du target
 function getscore($target, $pdo) {
   $ret = [];
   if($target) {
@@ -1088,4 +1287,262 @@ function getscore($target, $pdo) {
   }
   return $ret;
 }
+
+//msg et notif interface
+function GetMsgInterface($pdo) {
+  $ret = [];
+  $ret['notif'] = [];
+  $ret['UserActiv'] = [];
+  $ret['msg'] = [];
+  try {
+
+    $sql = $pdo->prepare("SELECT id_match , members.profil_pict, members.login, timeof, active, IF(id_1=? , id_2 , id_1) AS id FROM matchs LEFT JOIN members ON members.id_user = IF(id_1=?, id_2, id_1) WHERE (id_1 = ? OR id_2 = ?)");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(4, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1 OR type = 4 OR type = 5,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count FROM notification WHERE notification.id_user = ? AND new = 1");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);
+
+    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num, notification.timeof, id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_notif");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+
+    if(!empty($ret['notif']['new']['msg'])) {
+    $FirstUserMsg = $ret['notif']['new']['msg']['0']['id_from'];
+    $ret['msg']['id'] = $FirstUserMsg;
+    }
+
+  } catch (PDOException $e) {
+    $ret['msg']['Error'] = $e . ' in GetMsgInterface';
+  }
+  return $ret;
+}
+
+//contenu des MSG
+function RedeemMsg($id_user, $offset, $pdo) {
+  $ret = [];
+  $ret['status'] = 'OK';
+  $ret['msg'] = [];
+  try {
+    $sql = $pdo->prepare("SELECT notification.id_notif, notification.new, messages.timeof, content, IF(messages.id_from = ?, '1', '0') as fromyou 
+      FROM messages INNER JOIN notification 
+      WHERE 
+        notification.id_item = messages.id_msg 
+        AND ((messages.id_from = ? AND id_to = ?) 
+        OR (messages.id_from = ? AND id_to = ?)) 
+        AND notification.type = 3 
+        ORDER BY timeof DESC LIMIT ?, 10");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(3, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(4, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(5, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindValue(6, intval($offset), PDO::PARAM_INT);
+    $sql->execute();
+    $ret['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    $sql->closeCursor();
+    $arr = [];
+    if (count($ret['msg']) > 0)
+    {
+      foreach($ret['msg'] as $elem)
+      {
+        $arr[] = $elem['id_notif'];
+      }
+      $str = implode(",", $arr);
+      $pdo->query("UPDATE notification SET new = 0 WHERE id_notif IN (".implode(",", $arr).") AND id_from != ".$_SESSION['id']);
+    }
+    $sql = $pdo->prepare("SELECT COUNT(*) as `counter` FROM messages INNER JOIN notification WHERE notification.id_item = messages.id_msg AND ((messages.id_from = ? AND id_to = ?) OR (messages.id_from = ? AND id_to = ?)) AND notification.type = 3");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(2, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(3, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(4, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret += $sql->fetch(PDO::FETCH_ASSOC);
+
+  } catch (PDOException $e) {
+    $ret['status'] = $e;
+  }
+  return($ret);
+}
+
+// Insert new MSG in db
+function PostNewMsg($id_user, $content, $pdo) {
+  $ret = 'Error';
+  try {
+    $pdo->beginTransaction();
+
+    $sql= $pdo->prepare("SELECT checkblock(?, ?) AS blocki, active as matchi FROM matchs WHERE IF(id_1 = ?,id_2, id_1)=? AND IF(id_2=?, id_1, id_2)=?");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(2, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(4, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(5, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(6, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $block = $sql->fetch(PDO::FETCH_ASSOC);
+    if($block['blocki'] == 0 && $block['matchi'] == 1) {
+      $sql = $pdo->prepare("INSERT INTO messages (id_from, id_to, timeof, content) VALUES (?,?,UNIX_TIMESTAMP(),?)");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->bindParam(2, $id_user, PDO::PARAM_INT);
+      $sql->bindParam(3, $content, PDO::PARAM_STR);
+      $sql->execute();
+      $last_id = $pdo->lastInsertId();
+      $sql->closeCursor();
+      $sql = $pdo->prepare("INSERT INTO notification VALUES (null, ?, $last_id, ?, 3, UNIX_TIMESTAMP(), 1)");
+      $sql->bindParam(1, $id_user, PDO::PARAM_INT);
+      $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $ret = $content;
+    }
+    $pdo->commit();
+    } catch (PDOException $e) {
+      $pdo->rollBack();
+      $ret = $e;
+  }
+  return $ret;
+}
+
+// Recup Notif  ancien / news     avec les types / logins
+function RedeemNotifContent($pdo, $nb, $type, $isold) {
+  $ret = [];
+  $ret['status'] = 'OK';
+  $_SESSION['id_msg'] = "";
+  try {
+    if ($type == 1)
+      $actual = 'IN (1,4,5)';
+    else {
+      $actual = '= 2';
+    }
+    if ($isold != 1)
+    {
+      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type $actual HAVING blocki = 0 ORDER BY timeof");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $ret['news'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
+    else
+    {
+      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 0 AND type $actual HAVING blocki = 0 ORDER BY timeof LIMIT $nb,10");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $ret['olds'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
+  } catch (PDOException $e) {
+    $ret['status'] = $e;
+  }
+  return($ret);
+}
+
+// Change le statuts non lu --> lu
+
+function UpdateNotifStatus($id_notif , $pdo) {
+  $ret = [];
+  $ret['status'] = 'OK';
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare("UPDATE notification SET new = 0 WHERE id_notif = ?");
+    $sql->bindParam(1, $id_notif, PDO::PARAM_INT);
+    $sql->execute();
+    $pdo->commit();
+  } catch (PDOException $e) {
+    $pdo->rollback();
+    $ret['status'] = $e;
+  }
+  return($ret);
+}
+
+// Recupere le nombre de nouvel notif et messages chat( total msg et autre )
+function RNewNotif($id, $pdo) {
+  $ret = [];
+  $ret['status'] = 'OK';
+  try {
+    if ($id != "-1")
+    {
+      $sql = $pdo->prepare("SELECT notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
+      WHERE 
+        messages.id_msg = notification.id_item
+        AND notification.type = 3
+        AND (messages.id_from = ? AND messages.id_to = ?)
+        AND new = 1
+        ");
+        $sql->bindParam(1, $id, PDO::PARAM_INT);
+        $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+        $sql->execute();
+        $ret['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+        if (count($ret['msg']) > 0)
+        {
+          $arr = [];
+          foreach($ret['msg'] as $elem)
+          {
+            $arr[] = $elem['id_notif'];
+          }
+          $str = implode(",", $arr);
+          $pdo->query("UPDATE notification SET new = 0 WHERE id_notif IN (".implode(",", $arr).")");
+        }
+    }
+    $sql = $pdo->prepare("SELECT
+      COUNT(IF(type = 3, 1, NULL)) as nb_msg,
+      COUNT(IF(type != 3, 1, NULL)) as nb_other
+      FROM notification 
+      WHERE 
+        id_user = ? 
+        AND new = 1");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret += $sql->fetch(PDO::FETCH_ASSOC);
+  } catch (PDOException $e) {
+    $ret['status'] = $e;
+  }
+  return ($ret);
+}
+
+function recoverPassword($log,$answer,$pdo) {
+  $ret = [];
+  try {
+    $sql = $pdo->prepare("SELECT count(id_user) as result, email FROM members WHERE login = ? AND secret_answer = ? GROUP BY id_user");
+    $sql->bindParam(1, $log, PDO::PARAM_STR);
+    $sql->bindParam(2, $answer, PDO::PARAM_STR);
+    $sql->execute();
+    $res = $sql->fetch(PDO::FETCH_ASSOC);
+    $ret['data'] = $res;
+    if($res['result'] == 1)
+    {
+      $ret['status'] = 'OK';
+    }
+    else
+    {
+      $ret['status'] = 'Mauvaise informations';
+    }
+  } catch (PDOException $e) {
+    $ret['status'] = 'Error';
+    $ret['error'] = $e;
+  }
+  return $ret;
+}
+
+function resetPassword($log, $pass, $pdo) {
+  $pass =  hash('whirlpool', $pass);
+  try {
+    $pdo->beginTransaction();
+    $sql = $pdo->prepare('UPDATE members SET password = ? WHERE login = ?');
+    $sql->bindParam(1, $pass, PDO::PARAM_STR);
+    $sql->bindParam(2, $log, PDO::PARAM_STR);
+    $sql->execute();
+    $status = 1;
+    $pdo->commit();
+  } catch (PDOException $e) {
+    $pdo->rollback();
+    print 'error'. $e;
+    $status = 0;
+  }
+  return $status;
+}
+
 ?>

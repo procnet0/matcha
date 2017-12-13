@@ -3,7 +3,25 @@
 {% block content %}
  <div class="container section">
   <div class = "row">
-     des profil au pif
+     {% if profils %}
+      {% for user in profils %}
+      <div class="col s4">
+      <div class="card">
+        <div class="card-image">
+          <img src="{{ user.profil_pict }}">
+        </div>
+        <div class="card-content">
+          <span class="card-title">{{ user.login }}</span>
+          <span class="badge"> {{ user.score }} / 100</span>
+          <p>{{ user.dist }} km from you</p>
+        </div>
+        <div class="card-action">
+          <a href="/matcha/lookat/{{ user.login }}">profil</a>
+        </div>
+      </div>
+    </div>
+      {% endfor %}
+     {% endif %}
   </div>
  </div>
 {% endblock %}
