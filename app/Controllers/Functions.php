@@ -1487,7 +1487,13 @@ function RNewNotif($id, $pdo) {
           $pdo->query("UPDATE notification SET new = 0 WHERE id_notif IN (".implode(",", $arr).")");
         }
     }
-    $sql = $pdo->prepare("SELECT COUNT(*) as nb FROM notification WHERE id_user = ? and new = 1");
+    $sql = $pdo->prepare("SELECT
+      COUNT(IF(type = 3, 1, NULL)) as nb_msg,
+      COUNT(IF(type != 3, 1, NULL)) as nb_other
+      FROM notification 
+      WHERE 
+        id_user = ? 
+        AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret += $sql->fetch(PDO::FETCH_ASSOC);
