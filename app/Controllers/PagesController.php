@@ -5,7 +5,6 @@ use \Psr\Http\Message\RequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
 class PagesController extends Controller{
-
   public function home(Request $request, Response $response) {
     if(empty($_SESSION['loggued_as'])) {
     $this->render($response, 'pages/home.twig');
@@ -184,7 +183,7 @@ class PagesController extends Controller{
     if (empty($errors)) {
       $message = \Swift_Message::newInstance('Message de contact')
         ->setFrom([$request->getParam('email') => $request->getParam('pseudo')])
-        ->setTo('vincent.balart@hotmail.fr')
+        ->setTo('vincent_balart@hotmail.fr')
         ->setBody("Ceci est une copie du message que vous avez envoyé : {$request->getParam('email')} have send {$request->getParam('content')}");
       $this->mailer->send($message);
       $this->flash('Votre message a bien été envoyé');
@@ -383,6 +382,8 @@ class PagesController extends Controller{
       return $this->redirect($response, 'home');
       }
     }
+    else
+      $this->render($response, 'pages/home.twig');
   }
 
   public function postmessenger(Request $request, Response $response) {
@@ -419,10 +420,23 @@ class PagesController extends Controller{
     }
   }
 
+  public function getNotifList(Request $request, Response $response) {
+    header('Content-type: application/json');
+    $data = $request->getParams();
+    if ($data['action'] == 'notif')
+    {
+      if (!empty($_SESSION['loggued_as']))
+      {
+        include_once ('Functions.php');
+        $tab = RedeemNotifContent($this->pdo);
+        return json_encode($tab);
+      }
+    }
+  }
+
   public function Auto_notif(Request $request, Response $response) {
     if(!empty($_SESSION['loggued_as'])) {
-
-        include_once ('Functions.php');
+        include_once('Functions.php');
         $data = RNewNotif($this->pdo);
         print "{$data['nb']}";
       }
@@ -454,6 +468,10 @@ class PagesController extends Controller{
         $_SESSION['flash'] = array('status' => 'Message envoyer');
         return $this->redirect($response, 'home');
       }
+    }
+    else {
+      $_SESSION['flash'] = array('status' => 'Secret erroner');
+      return $this->redirect($response, 'Recover');
     }
   }
 

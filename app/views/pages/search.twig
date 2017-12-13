@@ -24,40 +24,18 @@
     <div class="col s4 m4 l4">
       <div class="tag-picker">
 
-        <a id="tag-container-manager" class="waves-effect waves-light btn btn-floating" onclick="Tagchooserdisplay('tag-container')">
+        <a id="tag-container-manager" class="waves-effect waves-light btn btn-floating" onclick="Tagchooserdisplay(event)">
           <i class="material-icons">settings</i>
         </a>
+        <div class="input-field" id="autotag">
+          <i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label>  </div>
+      </div>
             <div id="tag-container">
               <ul>
-                <li>
-                    <div class="tagitem" onclick="manageactivity('1', event)">
-                      geek
-                  </div>
-                </li>
-                <li>
-                    <div class="tagitem" onclick="manageactivity('2', event)">
-                      food
-                  </div>
-                </li>
-                <li>
-                    <div class="tagitem" onclick="manageactivity('3', event)">
-                      sport
-                  </div>
-                </li>
-                <li>
-                  <div class="tagitem" onclick="manageactivity('4', event)">
-                    sleep
-                  </div>
-                </li>
-                <li>
-                  <div class="tagitem" onclick="manageactivity('5', event)">
-                  drink
-                  </div>
-                </li>
               </ul>
             </div>
       </div>
-    </div>
+
     <div class="col s4 m4 l4">
       <button type="button" name="setFilterAge" class="round" onclick="activefilter('Age')">Filter Age</button>
       <button type="button" name="setFilterArea" class="round" onclick="activefilter('Area')">Filter Area</button>
