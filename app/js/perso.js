@@ -362,32 +362,289 @@ function initsliders() {
     });
 }
 
-function Tagchooserdisplay(targetname) {
-  var contain = document.getElementById(targetname);
+idarray = {};
+
+function Tagchooserdisplay(e) {
+  var contain = document.getElementById('tag-container');
+  var chooser = document.getElementById('autotag');
   if(contain.style.visibility != 'visible') {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+    if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+      var dat = JSON.parse(xhr.responseText);
+    idarray = {};
+    dat['taglist'].forEach(function (item,index) {
+      idarray[item['name_tag']] = item['id_tag'];
+    });
+        str = '{';
+        dat['taglist'].forEach(function (item, index) {
+          str += '"' + item['name_tag'] + '" : null ,';
+        });
+        str = str.substring(0,str.length -1);
+        str += '}';
+          $('#autocomplete-input').autocomplete({
+            data: JSON.parse(str),
+            limit: 20,
+            onAutocomplete: function(val) {
+              var container = document.getElementById('tag-container').getElementsByTagName('ul');
+              var newitem = document.createElement('li');
+              var innerdiv = document.createElement('DIV');
+              var suppresor = document.createElement('I');
+              suppresor.className = 'material-icons over';
+              suppresor.innerHTML = 'close';
+
+              innerdiv.className = 'tagitem';
+              innerdiv.innerHTML = val;
+              newitem.addEventListener('click', function(ev) { manageactivity(val,ev);});
+              suppresor.addEventListener('click', function(ev) {ev.stopPropagation();supprelem(newitem,val,ev);});
+              innerdiv.appendChild(suppresor);
+              newitem.appendChild(innerdiv);
+              container[0].appendChild(newitem);
+            },
+            minLength: 1,
+          });
+    }};
+    xhr.open("POST", "getTagInfo", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.send("subject=tagmbt");
   contain.style.visibility = 'visible';
+  chooser.style.visibility = 'visible';
   }
   else {
     contain.style.visibility = 'collapse';
+    chooser.style.visibility = 'collapse';
   }
 }
 
-function manageactivity(name_tag, ev) {
+var tagarray = [];
 
+function supprelem(item,val,ev) {
+  item.parentElement.removeChild(item);
+  var index = tagarray.indexOf(val);
+  if( index !== -1) {
+    tagarray.splice(index, 1);
+  }
+  console.log('value = '+val+ ' index ='+ index);
+}
+
+function manageactivity(name_tag, ev) {
  var clas = ev.target.className;
-  if(clas.search('activated') == -1) {
+  if(clas.search('activated') === -1) {
   ev.target.setAttribute('class', ev.target.className + ' activated');
   ev.target.style.background = 'radial-gradient(circle at center, transparent ,  rgba(0,255,0, 0.8) 76%, transparent)';
+  if(tagarray.indexOf(name_tag) === -1){
+    tagarray.push(name_tag);
+    }
   }
   else {
     ev.target.className = clas.replace(' activated', '');
     ev.target.style.background = 'radial-gradient(circle at center, transparent ,  rgba(255,255,255, 0.8) 76%, transparent)';
+    var index = tagarray.indexOf(name_tag);
+    if( index !== -1) {
+      tagarray.splice(index, 1);
+    }
+  }
+}
+
+var triator = {'order': undefined, 'by': undefined};
+var ordertab = [];
+
+function locationOf(element, array, comparer, start, end) {
+    if (array.length === 0)
+        return -1;
+
+    start = start || 0;
+    end = end || array.length;
+    var pivot = (start + end) >> 1;
+
+    var c = comparer(element, array[pivot]);
+    if (end - start <= 1) return c == -1 ? pivot - 1 : pivot;
+
+    switch (c) {
+        case -1: return locationOf(element, array, comparer, start, pivot);
+        case 0: return pivot;
+        case 1: return locationOf(element, array, comparer, pivot, end);
+    };
+};
+
+var ageCompare = function (a, b) {
+  var aval = $(a).find('.col-age').html();
+  var bval = $(b).find('.col-age').html();
+  if (aval < bval) return -1;
+  if (aval > bval) return 1;
+  return 0;
+};
+
+var distCompare = function (a, b) {
+  var aval = $(a).find('.col-km').html();
+  var bval = $(b).find('.col-km').html();
+  if (aval < bval) return -1;
+  if (aval > bval) return 1;
+  return 0;
+};
+
+var scoreCompare = function (a, b) {
+  var aval = $(a).find('.col-score').html();
+  var bval = $(b).find('.col-score').html();
+  if (aval < bval) return -1;
+  if (aval > bval) return 1;
+  return 0;
+};
+
+var tagsCompare = function (a, b) {
+  var aval = $(a).find('.col-tags').html();
+  var bval = $(b).find('.col-tags').html();
+  if (aval < bval) return -1;
+  if (aval > bval) return 1;
+  return 0;
+};
+
+function insertSorted(DomElem) {
+ switch (triator['order']) {
+  case 'age':
+   ordertab.splice(locationOf(DomElem,ordertab,ageCompare) + 1, 0 , DomElem);
+  break;
+  case 'distance':
+    ordertab.splice(locationOf(DomElem,ordertab,distCompare) + 1, 0 , DomElem);
+  break;
+  case 'score':
+    ordertab.splice(locationOf(DomElem,ordertab,scoreCompare) + 1, 0 , DomElem);
+  break;
+  case 'tags':
+    ordertab.splice(locationOf(DomElem,ordertab,tagsCompare) + 1, 0 , DomElem);
+  break;
+  }
+}
+
+function SortOrderTab()
+{
+  switch (triator['order']) {
+   case 'age':
+    ordertab.sort(ageCompare);
+   break;
+   case 'distance':
+     ordertab.sort(distCompare);
+   break;
+   case 'score':
+     ordertab.sort(scoreCompare);
+   break;
+   case 'tags':
+     ordertab.sort(tagsCompare);
+   break;
+   }
+}
+
+function sortresult(action,ev) {
+  var valid = ['age','score','tags','distance'].indexOf(action);
+  if(valid >= 0 && valid <= 3)
+  {
+    triator['order'] = action;
+    var targ = ev.target;
+    var inner = ev.target.innerText;
+    if(inner.search('down') != -1) {
+      ev.target.innerText = inner.replace('down' , 'up');
+      triator['by'] = '+';
+    }
+    else {
+      ev.target.innerText = inner.replace('up' , 'down');
+      triator['by'] = '-';
+    }
+    SortOrderTab();
+    var resultzone = document.getElementById('search_content_area');
+    $(ordertab).remove();
+    if(triator['by'] === '+') {
+    $(ordertab).each(function(key,elem) {$(resultzone).append(elem);});
+    }
+    else {
+      $(ordertab).each(function(key,elem) {$(resultzone).prepend(elem);});
+    }
+  }
+}
+
+function filterDiv(divlist,callback) {
+  $.each(divlist, callback);
+}
+
+var requestor = undefined;
+var filtrator = {'0':undefined,'1':undefined,'2':undefined,'3':undefined};
+
+function tagIsInArray(filtre, tags) {
+  var count = 0;
+  $.each(filtre, function(key, elem){
+
+    if(idarray[elem] !== undefined)
+    {
+      if(tags.indexOf(idarray[elem]) >= 0)
+      {
+        count += 1;
+      }
+    }
+  });
+  if(count == filtre.length)
+  {
+    return true;
+  }
+  else {
+    return false;
   }
 }
 
 function activefilter(filter_name) {
-  console.log(filter_name);
+  var valid = ['Age','Pop','Tags','Area'].indexOf(filter_name);
+  if(valid != -1 && valid < 4) {
+    var container = document.getElementById("search_content_area");
+    var divlist = $("div[id^='user']");
+    if(container !== 'undefined' && divlist !== 'undefined') {
+      switch(valid) {
+        case 0:
+        var range = document.getElementById('age-picker').noUiSlider.get();
+        filtrator['0'] = range;
+        break;
+        case 1:
+        var range = document.getElementById('range-popularity').noUiSlider.get();
+        filtrator['1'] = range;
+        break;
+        case 2:
+        filtrator['2'] = tagarray;
+        break;
+        case 3:
+        var range = document.getElementById('range-picker').noUiSlider.get();
+        filtrator['3'] = range;
+        break;
+      }
+      filterDiv(divlist,checkFilter);
+    }
+  }
+}
 
+function checkFilter(key, DomElem) {
+  var tohide = 0;
+  var age = $(DomElem).find('.col-age').html();
+    if(filtrator['0'] !== undefined && (age < filtrator['0']['0']  && age > filtrator['0']['1']))
+    {
+      tohide += 1;
+    }
+  var score = $(DomElem).find('.col-score').html();
+    if(filtrator['1'] !== undefined && (score < filtrator['1']['0']  && score > filtrator['1']['1']))
+    {
+      tohide +=1;
+    }
+  var tags = $(DomElem).find('.col-tags').attr('data');
+    if(filtrator['2'] !== undefined && tagIsInArray(tagarray,tags) == false)
+    {
+      tohide +=1;
+    }
+  var dist = $(DomElem).find('.col-km').html();
+    if(filtrator['3'] !== undefined  && (dist > filtrator['3']['0']))
+    {
+      tohide +=1;
+    }
+  if(tohide >= 1) {
+    $(DomElem).hide();
+  }
+  else {
+    $(DomElem).show();
+  }
 }
 
 var extracted = 0;
@@ -397,18 +654,21 @@ function startsearch(status) {
     extracted = 0;
     document.getElementById('search_content_area').innerHTML = '';
   }
+  requestor = undefined;
+  filtrator = {'0':undefined,'1':undefined,'2':undefined,'3':undefined};
+  triator = {'order': undefined, 'by': undefined};
+  ordertab = [];
   var age = document.getElementById('age-picker');
   var range = document.getElementById('range-picker');
   var rangeorigin = document.getElementById('range-origin');
   var pop = document.getElementById('range-popularity');
-  var tags = document.getElementsByClassName('tagitem activated');
+  var tags = tagarray;
 
   var actives = [];
   if(tags) {
     for (var tag in tags) {
       if (tags.hasOwnProperty(tag)) {
-      actives.push(tags[tag].innerHTML.replace(/ |\n|\r/g, ""));
-      console.log(actives);
+      actives.push(tags[tag]);
       }
     }
   }
@@ -442,6 +702,7 @@ function startsearch(status) {
         data['result'].forEach(function (element) {
           var newelem = document.createElement('DIV');
           num += 1;
+          newelem.setAttribute('id', 'user'+num);
           var tag = data['result'][numtmp]['tags'];
           if(tag !== null){
             nbtag = tag.split(",").length;
@@ -456,12 +717,14 @@ function startsearch(status) {
           else {
             connect = "<i class='material-icons red-text'>lens</i>";
           }
-          newelem.innerHTML = "<div class='row' id='num"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2'>"+data['result'][numtmp]['age']+" </div><div class='col s2'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2">'+ data['result'][numtmp]['score']+'</div><div class="col s1"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
+          newelem.innerHTML = "<div class='row' id='row"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"  data="'+ tag +'"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
 
           numtmp += 1;
           resultzone.appendChild(newelem);
+          ordertab.push(newelem);
         });
-        console.log(data);
+        requestor = data['paramenter'];
+        infiniteScroll();
       }
     }
     xhr.open("POST", "recherche", true);
@@ -471,17 +734,79 @@ function startsearch(status) {
   }
 }
 
-function sortresult(action,ev) {
-  var targ = ev.target;
-  if(targ.nodeName == 'I') {
-    var inner = ev.target.innerText;
-    if(inner.search('down') != -1) {
-      ev.target.innerText = inner.replace('down' , 'up'); }
-    else {
-    ev.target.innerText = inner.replace('up' , 'down');
-    }
-  }
+function infiniteScroll() {
 
+  var interval = setTimeout(function() {
+
+    var e =  document.getElementById('search_content_area');
+     if(e.scrollTop + e.clientHeight >= e.scrollHeight)
+     {
+       if(requestor !== undefined && requestor !== '')
+       {
+         var xhr = new XMLHttpRequest();
+         xhr.onreadystatechange = function() {
+           if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+             var data = JSON.parse(xhr.responseText);
+             var num = extracted;
+             var numtmp = 0;
+             var connect = '';
+             extracted += data['extracted'];
+             var resultzone = document.getElementById('search_content_area');
+             data['result'].forEach(function (element) {
+               var newelem = document.createElement('DIV');
+               num += 1;
+               newelem.setAttribute('id', 'user'+num);
+               var tag = data['result'][numtmp]['tags'];
+               if(tag !== null){
+                 nbtag = tag.split(",").length;
+               }
+               else {
+                 nbtag = 0;
+               }
+
+               if(data['online'][data['result'][numtmp]['id_user']] == 'yes') {
+                 connect = "<i class='material-icons green-text'>lens</i>";
+               }
+               else {
+                 connect = "<i class='material-icons red-text'>lens</i>";
+               }
+               newelem.innerHTML = "<div class='row' id='row"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags" data="' + tag + '"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
+
+               resultzone.appendChild(newelem);
+               if(triator['order'] === undefined && triator['by'] === undefined)
+               {ordertab.push(newelem);}
+               else
+               {insertSorted(newelem);}
+               checkFilter(0, $(newelem));
+               numtmp += 1;
+
+             });
+             if(triator['order'] !== undefined && triator['by'] !== undefined)
+             {
+               console.log(ordertab);
+               $(ordertab).remove();
+               if(triator['by'] === '+') {
+               $(ordertab).each(function(key,elem) {$(resultzone).append(elem);});
+               }
+               else {
+                 $(ordertab).each(function(key,elem) {$(resultzone).prepend(elem);});
+               }
+             }
+             requestor = data['paramenter'];
+             if(data['extracted'] == 5){
+             setTimeout(infiniteScroll(),1000);
+              }
+           }
+         }
+         xhr.open("POST", "recherche", true);
+         xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+         xhr.send("age="+ encodeURIComponent(requestor['age']) +"&range="+ encodeURIComponent(requestor['range'])+ "&pop="+encodeURIComponent(requestor['pop'])+"&area="+encodeURIComponent(requestor['area'])+"&tags="+encodeURIComponent(requestor['actives'])+"&extracted="+encodeURIComponent(extracted));
+       }
+       return;
+     }
+     infiniteScroll();
+     return;
+  } , 1000);
 }
 
 function likeuser(login, ev) {
