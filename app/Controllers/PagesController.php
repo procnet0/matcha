@@ -46,11 +46,11 @@ class PagesController extends Controller{
       $errors = [];
       $Validator = new Validator();
       if($Validator->validate('email',$request->getParam('email')) != true) {
-      $errors['email'] = 'Your email is not valid.';}
+      $errors['email'] = $Validator->returner('error');}
       if($Validator->validate('content',$request->getParam('nom')) != true) {
-      $errors['nom'] = 'Your lastname is empty.';}
+      $errors['nom'] = $Validator->returner('error');}
       if($Validator->validate('content',$request->getParam('prenom')) != true) {
-      $errors['prenom'] = 'Your firstname is empty.';}
+      $errors['prenom'] = $Validator->returner('error');}
       $value = $request->getParsedBody();
 
       if(empty($errors) && !empty($value)) {
@@ -121,19 +121,19 @@ class PagesController extends Controller{
 
     $Validator = new Validator();
     if($Validator->validate('email',$request->getParam('email')) != true) {
-    $errors['email'] = 'Your email is not valid.';}
+    $errors['email'] = $Validator->returner('error');}
     if($Validator->validate('pseudo',$request->getParam('pseudo','new')) != true) {
-    $errors['pseudo'] = 'Pseudo not valid or already used.';}
+    $errors['pseudo'] = $Validator->returner('error');}
     if($Validator->validate('content',$request->getParam('nom')) != true) {
-    $errors['nom'] = 'Your lastname is empty.';}
+    $errors['nom'] = $Validator->returner('error');}
     if($Validator->validate('content',$request->getParam('prenom')) != true) {
-    $errors['prenom'] = 'Your firstname is empty.';}
+    $errors['prenom'] = $Validator->returner('error');}
     if($Validator->validate('password',$request->getParam('password')) != true) {
-    $errors['password'] = 'Your password is to short';}
+    $errors['password'] = $Validator->returner('error');}
     if($Validator->validate('content',$request->getParam('answer')) != true) {
-    $errors['answer'] = 'Your secret answer is empty.';}
+    $errors['answer'] = $Validator->returner('error');}
     if($Validator->validate('birthday',$request->getParam('birthday')) != true) {
-    $errors['birthday'] = 'Your birthday is not known by abracadamatcha what kind of creature are you?';}
+    $errors['birthday'] = $Validator->returner('error');}
 
     if(empty($errors))
     {
@@ -152,7 +152,7 @@ class PagesController extends Controller{
     }
     else {
       $this->flash($errors, 'error');
-      $this->render($response, 'pages/signUp.twig');
+      return $this->redirect($response, 'signUp');
     }
   }
 
@@ -173,11 +173,11 @@ class PagesController extends Controller{
 
     $Validator = new Validator();
     if($Validator->validate('email',$request->getParam('email')) != true) {
-    $errors['email'] = 'Your email is not valid.';}
+    $errors['email'] = $Validator->returner('error');}
     if($Validator->validate('pseudo',$request->getParam('pseudo')) != true) {
-    $errors['pseudo'] = 'Login not found please create an account before contacting.';}
+    $errors['pseudo'] = $Validator->returner('error');}
     if($Validator->validate('content',$request->getParam('content')) != true) {
-    $errors['content'] = 'Something is wrong with your message.';}
+    $errors['content'] = $Validator->returner('error');}
 
 
     if (empty($errors)) {

@@ -8,7 +8,8 @@ use PDO;
 
 class Validator {
 
-  public $pdo;
+  protected $pdo;
+  protected $return;
 
   public function __construct()
   {
@@ -18,6 +19,15 @@ class Validator {
 
   public function isempty($content) {
       return empty($content);
+  }
+
+  public function returner($type = null){
+    if($type) {
+    return $this->return['error'];
+    }
+    else {
+      return $this->return;
+    }
   }
 
   public function isemail($content) {
@@ -66,27 +76,97 @@ class Validator {
     }
   }
 
-  public function validate($name, $value , $revert = 'no') {
-    if($name == 'email' && !$this->isempty($value) && $this->isemail($value)) {
+  public function isalphanum($content) {
+    if(preg_match('/[^a-z_\-0-9]/i', $content))
+    {
+      return false;
+    }
+    else {
       return true;
     }
-    if($name == 'pseudo' && !$this->isempty($value) && ( ($revert === 'new' )? $this->ispseudo($value) : !$this->ispseudo($value))) {
-      return true;
-    }
-    if($name == 'content' && !$this->isempty($value)){
-      return true;
-    }
-    if($name == 'gender' && !$this->isempty($value) && $this->isgender($value)) {
-      return true;
-    }
-    if($name == 'password' && !$this->isempty($value) && $this->password($value)){
-      return true;
-    }
-    if($name == 'birthday' && !$this->isempty($value) && $this->isbirthday($value)) {
-      return true;
-    }
+  }
 
-    return false;
+  public function issecured($content) {
+    if(preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$%^&]).*$/', $content)) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  public function validate($name, $value , $revert = 'no') {
+    $this->return = ['status' => false , 'error'=> 'none'];
+
+
+    if(!$this->isempty($value))
+    {
+      if($name == 'email') {
+        if($this->isemail($value)) {
+          $this->return['status'] = true;
+        }
+        else {
+          $this->return['error'] = 'Email is not valid.';
+            $this->return['status'] = false;
+        }
+      }
+      if($name == 'pseudo' ) {
+        if(($revert === 'new') ? $this->ispseudo($value) : !$this->ispseudo($value)) {
+          if($this->isalphanum($value) == true) {
+              $this->return['status'] = true;
+          }
+          else {
+              $this->return['status'] = false;
+              $this->return['error'] = 'Invalid Character, use only letters, number or - and _ .';
+          }
+        }
+        else {
+          $this->return['status'] = false;
+          $this->return['error'] = 'Pseudo already used';
+        }
+      }
+      if($name == 'content') {
+          $this->return['status'] = true;
+      }
+      if($name == 'gender') {
+        if($this->isgender($value)) {
+          $this->return['status'] = true;
+        }
+        else {
+          $this->return['status'] = false;
+          $this->return['error'] = 'Gender unknown.';
+        }
+      }
+      if($name == 'password') {
+        if($this->password($value)) {
+          $this->return['status'] = true;
+          if($this->issecured($value)) {
+            $this->return['status'] = true;
+          }
+          else {
+            $this->return['status'] = false;
+            $this->return['error'] = 'Use at least one uppercase+Lowercase letters, one number and one special character.';
+          }
+        }
+        else {
+          $this->return['status'] = false;
+          $this->return['error'] = 'Min length is '. PASSWORD_LENGHT.'.';
+        }
+      }
+      if($name == 'birthday') {
+        if($this->isbirthday($value)) {
+          $return['status'] = true;
+        }
+        else {
+          $return['status'] = false;
+          $return['error'] = 'Wrong Format for your birthday';
+        }
+      }
+    }
+    else {
+      $this->return['error'] = 'empty value';
+    }
+    return $this->return['status'];
   }
 }
 ?>

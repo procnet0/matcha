@@ -1,11 +1,11 @@
 $(document).ready(function()
 {
-    
+
     var loaded = 0;
     var data = JSON.parse(useractiv);
     function select_user(id)
     {
-        
+
         for(var i = 0; i < data.length; i++)
         {
             if (data[i]['id'] == id)
@@ -73,14 +73,14 @@ $(document).ready(function()
                             success: function (tab, status){
                                 if (tab['status'] == "OK")
                                 {
-                                    $count = tab['counter']                
+                                    $count = tab['counter']
                                     if (loaded != tab['counter'])
                                     {
                                         for (var i = 0; i < tab['msg'].length; i++)
                                         {
                                             var rl = "";
                                             var isnew = "";
-                                            
+
                                             if (tab['msg'][i]['fromyou'] == "1")
                                                 rl = "right-align";
                                             else
@@ -108,7 +108,7 @@ $(document).ready(function()
         }
     }
 
-    
+
 
     $(".profil_list_user").each(function(){
         $(this).click(function(){
@@ -249,7 +249,7 @@ $(document).ready(function()
 
     function set_old(evt)
     {
-        //console.log(evt.currentTarget);
+        console.log('kekette');
         var real = evt.currentTarget;
         $.post(
             'set_new_to_old',
@@ -264,7 +264,7 @@ $(document).ready(function()
                 else
                     console.log(text);
             },
-            'text' 
+            'text'
         );
     }
 

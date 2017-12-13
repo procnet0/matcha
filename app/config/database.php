@@ -10,5 +10,5 @@ define ('DBNM', $db_name);
 define ('DBHOST', $db_host);
 define ('DBUSR', $DB_USER);
 define ('DBPWD', $DB_PASSWORD);
-define ('PASSWORD_LENGHT', 1);
+define ('PASSWORD_LENGHT', 6);
  ?>
