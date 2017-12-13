@@ -1304,12 +1304,12 @@ function GetMsgInterface($pdo) {
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count, COUNT(IF(type = 4,1,NULL)) as likeback_count, COUNT(IF(type = 5,1,NULL)) as unlike_count FROM notification WHERE notification.id_user = ? AND new = 1");
+    $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1 OR type = 4 OR type = 5,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count FROM notification WHERE notification.id_user = ? AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);
 
-    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num, timeof, id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_from ");
+    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num, notification.timeof, id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_notif");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
@@ -1326,20 +1326,46 @@ function GetMsgInterface($pdo) {
 }
 
 //contenu des MSG
-function RedeemMsg($id_user, $offset ,$pdo) {
+function RedeemMsg($id_user, $offset, $pdo) {
   $ret = [];
   $ret['status'] = 'OK';
   $ret['msg'] = [];
   try {
-    $sql = $pdo->prepare("SELECT timeof, content , IF(id_from = ?, '1', '0') as fromyou FROM messages WHERE (id_from = ? AND id_to = ?) OR (id_from = ? AND id_to = ?) ORDER BY timeof DESC LIMIT ?, 10");
+    $sql = $pdo->prepare("SELECT notification.id_notif, notification.new, messages.timeof, content, IF(messages.id_from = ?, '1', '0') as fromyou 
+      FROM messages INNER JOIN notification 
+      WHERE 
+        notification.id_item = messages.id_msg 
+        AND ((messages.id_from = ? AND id_to = ?) 
+        OR (messages.id_from = ? AND id_to = ?)) 
+        AND notification.type = 3 
+        ORDER BY timeof DESC LIMIT ?, 10");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(3, $id_user, PDO::PARAM_INT);
     $sql->bindParam(4, $id_user, PDO::PARAM_INT);
     $sql->bindParam(5, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->bindParam(6, $offset, PDO::PARAM_INT);
+    $sql->bindValue(6, intval($offset), PDO::PARAM_INT);
     $sql->execute();
     $ret['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    $sql->closeCursor();
+    $arr = [];
+    if (count($ret['msg']) > 0)
+    {
+      foreach($ret['msg'] as $elem)
+      {
+        $arr[] = $elem['id_notif'];
+      }
+      $str = implode(",", $arr);
+      $pdo->query("UPDATE notification SET new = 0 WHERE id_notif IN (".implode(",", $arr).") AND id_from != ".$_SESSION['id']);
+    }
+    $sql = $pdo->prepare("SELECT COUNT(*) as `counter` FROM messages INNER JOIN notification WHERE notification.id_item = messages.id_msg AND ((messages.id_from = ? AND id_to = ?) OR (messages.id_from = ? AND id_to = ?)) AND notification.type = 3");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(2, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(3, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(4, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret += $sql->fetch(PDO::FETCH_ASSOC);
+
   } catch (PDOException $e) {
     $ret['status'] = $e;
   }
@@ -1348,44 +1374,66 @@ function RedeemMsg($id_user, $offset ,$pdo) {
 
 // Insert new MSG in db
 function PostNewMsg($id_user, $content, $pdo) {
-  $ret = 'OK';
+  $ret = 'Error';
   try {
     $pdo->beginTransaction();
 
-    $sql= $pdo->prepare("SELECT checkblock(?, ?) AS blocki");
+    $sql= $pdo->prepare("SELECT checkblock(?, ?) AS blocki, active as matchi FROM matchs WHERE IF(id_1 = ?,id_2, id_1)=? AND IF(id_2=?, id_1, id_2)=?");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(4, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(5, $id_user, PDO::PARAM_INT);
+    $sql->bindParam(6, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $block = $sql->fetch(PDO::FETCH_ASSOC);
-    if($block['blocki'] == 0) {
-      $sql=  $pdo->prepare("INSERT INTO messages (id_from, id_to, timeof, content) VALUES (?,?,UNIX_TIMESTAMP(),?)");
+    if($block['blocki'] == 0 && $block['matchi'] == 1) {
+      $sql = $pdo->prepare("INSERT INTO messages (id_from, id_to, timeof, content) VALUES (?,?,UNIX_TIMESTAMP(),?)");
       $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
       $sql->bindParam(2, $id_user, PDO::PARAM_INT);
       $sql->bindParam(3, $content, PDO::PARAM_STR);
       $sql->execute();
+      $last_id = $pdo->lastInsertId();
+      $sql->closeCursor();
+      $sql = $pdo->prepare("INSERT INTO notification VALUES (null, ?, $last_id, ?, 3, UNIX_TIMESTAMP(), 1)");
+      $sql->bindParam(1, $id_user, PDO::PARAM_INT);
+      $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $ret = $content;
     }
     $pdo->commit();
     } catch (PDOException $e) {
       $pdo->rollBack();
-      $ret  = $e;
+      $ret = $e;
   }
   return $ret;
 }
 
 // Recup Notif  ancien / news     avec les types / logins
-function RedeemNotifContent($pdo) {
+function RedeemNotifContent($pdo, $nb, $type, $isold) {
   $ret = [];
   $ret['status'] = 'OK';
+  $_SESSION['id_msg'] = "";
   try {
-    $sql = $pdo->prepare("SELECT notification.*, members.login, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type != 3 HAVING blocki = 0 ORDER BY timeof");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['news'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT notification.*, members.login, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 0 AND type != 3 HAVING blocki = 0 ORDER BY timeof");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['olds'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    if ($type == 1)
+      $actual = 'IN (1,4,5)';
+    else {
+      $actual = '= 2';
+    }
+    if ($isold != 1)
+    {
+      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type $actual HAVING blocki = 0 ORDER BY timeof");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $ret['news'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
+    else
+    {
+      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 0 AND type $actual HAVING blocki = 0 ORDER BY timeof LIMIT $nb,10");
+      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+      $sql->execute();
+      $ret['olds'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    }
   } catch (PDOException $e) {
     $ret['status'] = $e;
   }
@@ -1410,17 +1458,45 @@ function UpdateNotifStatus($id_notif , $pdo) {
   return($ret);
 }
 
-// Recupere le nombre de nouvel notif ( total msg et autre )
-function RNewNotif($pdo) {
+// Recupere le nombre de nouvel notif et messages chat( total msg et autre )
+function RNewNotif($id, $pdo) {
   $ret = [];
   $ret['status'] = 'OK';
   try {
-
-    $sql = $pdo->prepare("SELECT COUNT(*) as nb FROM notification WHERE id_user = ? and new = 1");
+    if ($id != "-1")
+    {
+      $sql = $pdo->prepare("SELECT notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
+      WHERE 
+        messages.id_msg = notification.id_item
+        AND notification.type = 3
+        AND (messages.id_from = ? AND messages.id_to = ?)
+        AND new = 1
+        ");
+        $sql->bindParam(1, $id, PDO::PARAM_INT);
+        $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+        $sql->execute();
+        $ret['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+        if (count($ret['msg']) > 0)
+        {
+          $arr = [];
+          foreach($ret['msg'] as $elem)
+          {
+            $arr[] = $elem['id_notif'];
+          }
+          $str = implode(",", $arr);
+          $pdo->query("UPDATE notification SET new = 0 WHERE id_notif IN (".implode(",", $arr).")");
+        }
+    }
+    $sql = $pdo->prepare("SELECT
+      COUNT(IF(type = 3, 1, NULL)) as nb_msg,
+      COUNT(IF(type != 3, 1, NULL)) as nb_other
+      FROM notification 
+      WHERE 
+        id_user = ? 
+        AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret += $sql->fetch(PDO::FETCH_ASSOC);
-
   } catch (PDOException $e) {
     $ret['status'] = $e;
   }

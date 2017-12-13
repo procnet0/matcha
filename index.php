@@ -60,5 +60,7 @@ $app->get("/messenger", \App\Controllers\PagesController::class . ':getmessenger
 $app->post("/messenger", \App\Controllers\PagesController::class . ':postmessenger');
 $app->post("/notif", \App\Controllers\PagesController::class . ':Auto_notif');
 $app->post("/notif_list", \App\Controllers\PagesController::class . ':getNotifList');
+$app->post("/set_new_to_old", \App\Controllers\PagesController::class . ':setNewToOld');
+$app->post("/msglist", \App\Controllers\PagesController::class . ':getMsgList');
 $app->run();
 ?>

@@ -124,10 +124,6 @@ fieldset.profil {
   border-image-source: url('image/runesProfil Benediction.png');
 }
 
-.picture-field {
-
-}
-
 button.pict_selector {
 height: 75px;
 width: 75px;
@@ -345,10 +341,6 @@ div.miniProfilPict {
 
 .absolute {
   position: absolute;
-}
-
-.text-field {
-
 }
 
 .centeritem{
@@ -594,11 +586,15 @@ span.badge.new{position:relative; bottom:80px;}
   width: 33%;
 }
 
-span.like{color:red;}
+.collection .collection-item.avatar{
+  border:1px solid black;
+  min-height:65px;
+}
 
-.unlike{color:black;}
+.collection .collection-item.new_notif{
+  background-color:rgb(141, 129, 0);
+}
 
-.likeback{color:pink;}
 
 .tag-picker{
   display: flex;
@@ -616,4 +612,44 @@ span.like{color:red;}
 
 .over{
   z-index: 30;
+}
+
+.nextbtn{
+  width:100%;
+  height:40px;
+  color:white;
+  background-color:rgba(0, 0, 0, 0.411);
+  text-align:center;
+  vertical-align:middle;
+  border-bottom:2px solid white;
+  cursor:pointer;
+}
+
+.noselect{
+  -webkit-user-select: none;
+  -moz-user-select:none;
+  -khtml-user-select:none;
+  -ms-user-select:none;
+}
+
+.collapsible-body
+{
+  padding:0;
+}
+
+.next_notif
+{
+  width:100%;
+  min-height:25px;
+  margin:0;
+  background-color:rgb(201, 139, 5);
+  padding:0;
+  cursor:pointer;
+  border-radius: 2px;
+  text-align:center;
+}
+
+.next_notif:hover
+{
+  box-shadow: inset 0px 0px 10px 2px #eac72b;
 }

@@ -387,8 +387,9 @@ class PagesController extends Controller{
   }
 
   public function postmessenger(Request $request, Response $response) {
+    header('Content-type: application/json');
     $info = $request->getParams();
-    if(!emtpy($_SESSION['loggued_as']) && !empty($info['id']) && !isset($info['content']))
+    if(!empty($_SESSION['loggued_as']) && !empty($info['id']) && isset($info['content']))
     {
       $ret = [];
       if(empty($info['content'])) {
@@ -401,6 +402,18 @@ class PagesController extends Controller{
         $ret['content'] = PostNewMsg($info['id'],$info['content'],$pdo);
       }
       print json_encode($ret);
+    }
+  }
+
+  public function getMsgList(Request $request, Response $response) {
+    header("Content-type: application/json");
+    $data = $request->getParams();
+    $ret = [];
+    if (!empty($_SESSION['loggued_as']) && isset($data['nb']) && !empty($data['id']))
+    {
+      include_once('Functions.php');
+      $ret = RedeemMsg($data['id'], $data['nb'], $this->pdo);
+      return json_encode($ret);
     }
   }
 
@@ -423,23 +436,29 @@ class PagesController extends Controller{
   public function getNotifList(Request $request, Response $response) {
     header('Content-type: application/json');
     $data = $request->getParams();
-    if ($data['action'] == 'notif')
+    if ($data['action'] == 'notif' && !empty($data['type']))
     {
       if (!empty($_SESSION['loggued_as']))
       {
-        include_once ('Functions.php');
-        $tab = RedeemNotifContent($this->pdo);
+        include_once('Functions.php');
+        if (isset($data['nb']))
+          $tab = RedeemNotifContent($this->pdo, $data['nb'], $data['type'], 1);
+        else {
+          $tab = RedeemNotifContent($this->pdo, NULL, $data['type'], 0);
+        }
         return json_encode($tab);
       }
     }
   }
 
   public function Auto_notif(Request $request, Response $response) {
+    header("Content-type: application/json");
+    $data = $request->getParams();
     if(!empty($_SESSION['loggued_as'])) {
-        include_once('Functions.php');
-        $data = RNewNotif($this->pdo);
-        print "{$data['nb']}";
-      }
+      include_once('Functions.php');
+      $ret = RNewNotif($data['id'], $this->pdo);
+      print json_encode($ret);
+    }
     else {
       print "Error";
     }
@@ -512,6 +531,22 @@ class PagesController extends Controller{
         return $this->redirect($response, 'Recover');
     }
 
+  }
+
+  public function setNewToOld(Request $request, Response $response) {
+    $data = $request->getParams();
+    if ($data['action'] != 'newold' && !isset($data['notif']))
+    {
+      echo "error";
+    } else {
+      include_once('Functions.php');
+      $ret = UpdateNotifStatus($data['notif'], $this->pdo);
+      if ($ret['status'] != "OK")
+        echo $ret['status'];
+      else {
+        echo "ok";
+      }
+    }
   }
 }
 ?>
