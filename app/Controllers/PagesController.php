@@ -4,7 +4,7 @@ namespace App\Controllers;
 use \Psr\Http\Message\RequestInterface as Request;
 use \Psr\Http\Message\ResponseInterface as Response;
 
-  class PagesController extends Controller{
+class PagesController extends Controller{
   public function home(Request $request, Response $response) {
     if(empty($_SESSION['loggued_as'])) {
     $this->render($response, 'pages/home.twig');
@@ -183,7 +183,7 @@ use \Psr\Http\Message\ResponseInterface as Response;
     if (empty($errors)) {
       $message = \Swift_Message::newInstance('Message de contact')
         ->setFrom([$request->getParam('email') => $request->getParam('pseudo')])
-        ->setTo('vincent.balart@hotmail.fr')
+        ->setTo('vincent_balart@hotmail.fr')
         ->setBody("Ceci est une copie du message que vous avez envoyé : {$request->getParam('email')} have send {$request->getParam('content')}");
       $this->mailer->send($message);
       $this->flash('Votre message a bien été envoyé');
@@ -487,6 +487,10 @@ use \Psr\Http\Message\ResponseInterface as Response;
         $_SESSION['flash'] = array('status' => 'Message envoyer');
         return $this->redirect($response, 'home');
       }
+    }
+    else {
+      $_SESSION['flash'] = array('status' => 'Secret erroner');
+      return $this->redirect($response, 'Recover');
     }
   }
 
