@@ -1497,6 +1497,26 @@ function RNewNotif($id, $pdo) {
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret += $sql->fetch(PDO::FETCH_ASSOC);
+    $sql->closeCursor();
+    $sql = $pdo->prepare("SELECT
+      COUNT(*) as nb_notif,
+      members.login,
+      notification.type
+      FROM notification 
+      INNER JOIN members
+      WHERE 
+      	members.id_user = notification.id_from
+        AND notification.id_notif > ?
+        AND notification.id_user = ?
+        AND new = 1
+        GROUP BY members.login, notification.type");
+    $sql->bindParam(1, $_SESSION['max_id'], PDO::PARAM_INT);
+    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+    $lel = $pdo->query("SELECT MAX(id_notif) FROM `notification`");
+    $tab = $lel->fetch();
+    $_SESSION['max_id'] = $tab[0];
   } catch (PDOException $e) {
     $ret['status'] = $e;
   }

@@ -1001,20 +1001,28 @@ function autonotif() {
       success: function(data){
         if ($("#notif"))
         {
-          if (data['nb_msg'] != 0 && msg_notif != data['nb_msg'])
+          if (msg_notif != data['nb_msg'] && msg_notif != 0)
           {
-            if ($("#messages") == null)
+            if (document.getElementById("messages") == null)
             {
               if ((data['nb_msg'] - msg_notif) == 1)
                 Materialize.toast('Nouveau message !', 4000);
               else
                 Materialize.toast((data['nb_msg'] - msg_notif)+' nouveaux messages !', 4000);
             }
-            msg_notif = data['nb_msg'];
           }
+          msg_notif = data['nb_msg'];
           if(data['nb_other'] != 0 ) {
             $('#notif').html(data['nb_other']);
             $('#notif').css('visibility', 'visible');
+          }
+        }
+        if (data['notif'])
+        {
+          console.log(data['notif']);
+          for (var i = 0; i < data['notif'].length; i++)
+          {
+            var p = 0;
           }
         }
         if (data['msg']) {
@@ -1024,5 +1032,6 @@ function autonotif() {
         }
       }
     });
+
   setTimeout(autonotif , 3000);
 }
