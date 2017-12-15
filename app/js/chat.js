@@ -80,7 +80,6 @@ $(document).ready(function()
                                         {
                                             var rl = "";
                                             var isnew = "";
-                                            
                                             if (tab['msg'][i]['fromyou'] == "1")
                                                 rl = "right-align";
                                             else

@@ -1489,7 +1489,9 @@ function RNewNotif($id, $pdo) {
     }
     $sql = $pdo->prepare("SELECT
       COUNT(IF(type = 3, 1, NULL)) as nb_msg,
-      COUNT(IF(type != 3, 1, NULL)) as nb_other
+      COUNT(IF(type != 3, 1, NULL)) as nb_other,
+      COUNT(IF(type = 1 OR type = 5 OR type = 4, 1, NULL)) as nb_like,
+      COUNT(IF(type = 2, 1, NULL)) as nb_visits
       FROM notification 
       WHERE 
         id_user = ? 

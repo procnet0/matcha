@@ -989,7 +989,6 @@ function openblockmanager(ev) {
 }
 
 id_user = -1;
-var msg_notif = 0;
 function autonotif() {
   $.ajax({
       url: '/matcha/notif',
@@ -1001,28 +1000,46 @@ function autonotif() {
       success: function(data){
         if ($("#notif"))
         {
-          if (msg_notif != data['nb_msg'] && msg_notif != 0)
-          {
-            if (document.getElementById("messages") == null)
-            {
-              if ((data['nb_msg'] - msg_notif) == 1)
-                Materialize.toast('Nouveau message !', 4000);
-              else
-                Materialize.toast((data['nb_msg'] - msg_notif)+' nouveaux messages !', 4000);
-            }
-          }
-          msg_notif = data['nb_msg'];
           if(data['nb_other'] != 0 ) {
             $('#notif').html(data['nb_other']);
             $('#notif').css('visibility', 'visible');
           }
         }
-        if (data['notif'])
+        if (document.getElementById("notif_container"))
         {
-          console.log(data['notif']);
+            document.getElementById("likebadge").innerHTML = data['nb_like'];
+            document.getElementById("visitesbadge").innerHTML = data['nb_visits'];
+        }
+        if (data['notif'].length != 0)
+        {
           for (var i = 0; i < data['notif'].length; i++)
           {
-            var p = 0;
+            if(data['notif'][i]['type'] == 1)
+            {
+              Materialize.toast(data['notif'][i]['login']+" vous a like !", 3000);
+            }
+            else if(data['notif'][i]['type'] == 2)
+            {
+              if (data['notif'][i]['nb_notif'] > 1)   
+                Materialize.toast(data['notif'][i]['nb_notif']+" nouvelles visites par " + data['notif'][i]['login'], 3000);
+              else
+                Materialize.toast("Une nouvelle visite par " + data['notif'][i]['login'], 3000);
+            }
+            else if(data['notif'][i]['type'] == 3 && data['notif'][i]['id_user'] != id_user)
+            {
+              if (data['notif'][i]['nb_notif'] > 1)
+                Materialize.toast(data['notif'][i]['login']+" vous a envoyé "+data['notif'][i]['nb_notif']+" nouveaux messages", 3000);
+              else
+                Materialize.toast(data['notif'][i]['login']+" vous a envoyé un nouveau message", 3000);
+            }
+            else if(data['notif'][i]['type'] == 4)
+            {
+              Materialize.toast(data['notif'][i]['login']+" vous a match !", 3000);
+            }
+            else if(data['notif'][i]['type'] == 5)
+            {
+              Materialize.toast(data['notif'][i]['login']+" vous a unlike :(", 3000);
+            }
           }
         }
         if (data['msg']) {
