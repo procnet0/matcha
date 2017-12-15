@@ -1331,13 +1331,13 @@ function RedeemMsg($id_user, $offset, $pdo) {
   $ret['status'] = 'OK';
   $ret['msg'] = [];
   try {
-    $sql = $pdo->prepare("SELECT notification.id_notif, notification.new, messages.timeof, content, IF(messages.id_from = ?, '1', '0') as fromyou 
-      FROM messages INNER JOIN notification 
-      WHERE 
-        notification.id_item = messages.id_msg 
-        AND ((messages.id_from = ? AND id_to = ?) 
-        OR (messages.id_from = ? AND id_to = ?)) 
-        AND notification.type = 3 
+    $sql = $pdo->prepare("SELECT notification.id_notif, notification.new, messages.timeof, content, IF(messages.id_from = ?, '1', '0') as fromyou
+      FROM messages INNER JOIN notification
+      WHERE
+        notification.id_item = messages.id_msg
+        AND ((messages.id_from = ? AND id_to = ?)
+        OR (messages.id_from = ? AND id_to = ?))
+        AND notification.type = 3
         ORDER BY timeof DESC LIMIT ?, 10");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
@@ -1465,8 +1465,8 @@ function RNewNotif($id, $pdo) {
   try {
     if ($id != "-1")
     {
-      $sql = $pdo->prepare("SELECT notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
-      WHERE 
+      $sql = $pdo->prepare("SELECT notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages
+      WHERE
         messages.id_msg = notification.id_item
         AND notification.type = 3
         AND (messages.id_from = ? AND messages.id_to = ?)
@@ -1490,9 +1490,9 @@ function RNewNotif($id, $pdo) {
     $sql = $pdo->prepare("SELECT
       COUNT(IF(type = 3, 1, NULL)) as nb_msg,
       COUNT(IF(type != 3, 1, NULL)) as nb_other
-      FROM notification 
-      WHERE 
-        id_user = ? 
+      FROM notification
+      WHERE
+        id_user = ?
         AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
