@@ -78,20 +78,23 @@
             </div>
             <div class="col m8 l8">
                 <ul class="collapsible" data-collapsible="accordion">
-                    <li>
+                    <li id="li_like">
                     <div class="collapsible-header" id="like_block">Likes <span id="likebadge" class="badge">{{notif.like_count}}</span></div>
                         <div class="collapsible-body" id="like_block_content">
-                            <ul class="collection">
+                            <div id="next_likes" class="next_notif noselect">
+                                Afficher la suite
+                            </div>
+                            <ul id="collection_like" class="collection">
                             </ul>
                         </div>
                     </li>
-                    <li>
+                    <li id="li_visit">
                         <div class="collapsible-header" id="visits_block">Visites <span id="visitesbadge" class="badge">{{notif.visites_count}}</span></div>
                         <div class="collapsible-body" id="visits_block_content">
                             <div id="next_visite" class="next_notif noselect">
-                                Afficher les notifications passées
+                                Afficher la suite
                             </div>
-                            <ul class="collection">
+                            <ul id="collection_visit" class="collection">
                             </ul>
                         </div>
                     </li>

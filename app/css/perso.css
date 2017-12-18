@@ -653,3 +653,18 @@ span.badge.new{position:relative; bottom:80px;}
 {
   box-shadow: inset 0px 0px 10px 2px #eac72b;
 }
+
+.left-badge{
+  margin-left:0px !important;
+  float:left !important;
+  z-index: 1;
+  visibility: collapse;
+}
+
+.notif_block:hover .left-badge{
+  visibility:visible;
+}
+
+span.badge.msg:after{
+  content: " msg";
+}

@@ -441,13 +441,20 @@ class PagesController extends Controller{
       if (!empty($_SESSION['loggued_as']))
       {
         include_once('Functions.php');
-        if (isset($data['nb']))
-          $tab = RedeemNotifContent($this->pdo, $data['nb'], $data['type'], 1);
-        else {
-          $tab = RedeemNotifContent($this->pdo, NULL, $data['type'], 0);
-        }
+        $tab = RedeemNotifContent($this->pdo, $data['nb'], $data['type']);
         return json_encode($tab);
       }
+    }
+  }
+
+  public function getLastNotif(Request $request, Response $response){
+    header('Content-Type: application/json');
+    $data = $request->getParams();
+    if($data['action'] == "getnewnotif")
+    {
+      include_once('Functions.php');
+      $tab = newNotifAuto($this->pdo, $data['offset']);
+      return json_encode($tab);
     }
   }
 

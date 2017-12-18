@@ -1410,7 +1410,7 @@ function PostNewMsg($id_user, $content, $pdo) {
 }
 
 // Recup Notif  ancien / news     avec les types / logins
-function RedeemNotifContent($pdo, $nb, $type, $isold) {
+function RedeemNotifContent($pdo, $nb, $type) {
   $ret = [];
   $ret['status'] = 'OK';
   $_SESSION['id_msg'] = "";
@@ -1420,20 +1420,10 @@ function RedeemNotifContent($pdo, $nb, $type, $isold) {
     else {
       $actual = '= 2';
     }
-    if ($isold != 1)
-    {
-      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 1 AND type $actual HAVING blocki = 0 ORDER BY timeof");
-      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-      $sql->execute();
-      $ret['news'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-    }
-    else
-    {
-      $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND new = 0 AND type $actual HAVING blocki = 0 ORDER BY timeof LIMIT $nb,10");
-      $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-      $sql->execute();
-      $ret['olds'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-    }
+    $sql = $pdo->prepare("SELECT notification.*, members.login, members.profil_pict, checkblock(notification.id_user, members.id_user) as blocki FROM notification LEFT JOIN members ON notification.id_from = members.id_user WHERE notification.id_user = ? AND type $actual HAVING blocki = 0 ORDER BY timeof DESC LIMIT $nb,10");
+    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif'] = $sql->fetchAll(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
     $ret['status'] = $e;
   }
@@ -1518,8 +1508,37 @@ function RNewNotif($id, $pdo) {
     $ret['notif'] = $sql->fetchAll(PDO::FETCH_ASSOC);
     $lel = $pdo->query("SELECT MAX(id_notif) FROM `notification`");
     $tab = $lel->fetch();
+    $ret['previous_off'] = $_SESSION['max_id'];
     $_SESSION['max_id'] = $tab[0];
   } catch (PDOException $e) {
+    $ret['status'] = $e;
+  }
+  return ($ret);
+}
+
+function newNotifAuto($pdo, $offset){
+  $ret = [];
+  $ret['status'] = "OK";
+  try{
+    $sql = $pdo->prepare("SELECT
+    notification.*,
+    members.login,
+    members.profil_pict
+    FROM notification 
+    INNER JOIN members
+    WHERE 
+      members.id_user = notification.id_from
+      AND notification.id_notif > ?
+      AND notification.id_user = ?
+      AND new = 1
+      AND notification.type != 3
+      GROUP BY notification.id_notif");
+    $sql->bindParam(1, $offset, PDO::PARAM_INT);
+    $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->execute();
+    $ret['notif'] = $sql->fetchAll(PDO::FETCH_ASSOC);
+  } catch(PDOException $e)
+  {
     $ret['status'] = $e;
   }
   return ($ret);
