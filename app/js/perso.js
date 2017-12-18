@@ -272,6 +272,7 @@ function updateMap(data) {
 
 function initMap() {
    // Try HTML5 geolocation.
+   if(document.getElementById('map')) {
    if (navigator.geolocation) {
      navigator.geolocation.getCurrentPosition(updateMap,function (data) {
        $.getJSON("http://www.geoplugin.net/json.gp?jsoncallback=?",updateMap);
@@ -281,6 +282,7 @@ function initMap() {
    else {
      $.getJSON("http://www.geoplugin.net/json.gp?jsoncallback=?",updateMap);
    }
+  }
  }
 
 function updateLocation() {
@@ -694,11 +696,13 @@ function startsearch(status) {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
         var data = JSON.parse(xhr.responseText);
+        //console.log(data);
         var num = extracted;
         var numtmp = 0;
         var connect = '';
         extracted += data['extracted'];
         var resultzone = document.getElementById('search_content_area');
+        if(data['result'] !== undefined) {
         data['result'].forEach(function (element) {
           var newelem = document.createElement('DIV');
           num += 1;
@@ -718,11 +722,11 @@ function startsearch(status) {
             connect = "<i class='material-icons red-text'>lens</i>";
           }
           newelem.innerHTML = "<div class='row' id='row"+num+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"  data="'+ tag +'"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><i class='material-icons'>unfold_more</i></a></div></div>";
-
           numtmp += 1;
           resultzone.appendChild(newelem);
           ordertab.push(newelem);
         });
+        }
         requestor = data['paramenter'];
         infiniteScroll();
       }
@@ -752,6 +756,7 @@ function infiniteScroll() {
              var connect = '';
              extracted += data['extracted'];
              var resultzone = document.getElementById('search_content_area');
+             if(data['result'] !== undefined) {
              data['result'].forEach(function (element) {
                var newelem = document.createElement('DIV');
                num += 1;
@@ -781,6 +786,7 @@ function infiniteScroll() {
                numtmp += 1;
 
              });
+            }
              if(triator['order'] !== undefined && triator['by'] !== undefined)
              {
                console.log(ordertab);
@@ -800,7 +806,7 @@ function infiniteScroll() {
          }
          xhr.open("POST", "recherche", true);
          xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-         xhr.send("age="+ encodeURIComponent(requestor['age']) +"&range="+ encodeURIComponent(requestor['range'])+ "&pop="+encodeURIComponent(requestor['pop'])+"&area="+encodeURIComponent(requestor['area'])+"&tags="+encodeURIComponent(requestor['actives'])+"&extracted="+encodeURIComponent(extracted));
+         xhr.send("age="+ encodeURIComponent(requestor['age']) +"&range="+ encodeURIComponent(requestor['range'])+ "&pop="+encodeURIComponent(requestor['pop'])+"&area="+encodeURIComponent(requestor['area'])+"&tags="+encodeURIComponent(requestor['tags'])+"&extracted="+encodeURIComponent(extracted));
        }
        return;
      }
@@ -988,7 +994,7 @@ function openblockmanager(ev) {
   xhr.send("subject=blklst");
 }
 
-id_user = -1;
+var id_user = -1;
 var msg_notif = 0;
 function autonotif() {
   $.ajax({
@@ -1025,4 +1031,48 @@ function autonotif() {
       }
     });
   setTimeout(autonotif , 3000);
+}
+
+var SideMode = 2;
+
+function initSidNav() {
+  var Width = window.innerWidth;
+  if(Width <= 600) {
+    Sidemode = 1;
+    SetNavBar(1);
+  }
+  else {
+    SideMode = 2;
+    SetNavBar(2);
+  }
+  window.addEventListener("resize",function() {
+    var width = window.innerWidth;
+    if(width <= 600 && SideMode != 1) {
+      SideMode = 1;
+       SetNavBar(1);
+     }
+     else if(width > 600 && SideMode != 2) {
+       SideMode = 2;
+       SetNavBar(2);
+     }
+  });
+}
+
+function SetNavBar(type) {
+  var container  = document.getElementById('header-menu-container');
+  var connected = container.getAttribute('connected');
+  if(connected !== null && (connected === 1))
+  {
+    if(type == 1) {
+
+
+    }
+    else if(type == 2)
+    {
+
+
+    }
+  }
+  console.log(container);
+  console.log(connected);
 }

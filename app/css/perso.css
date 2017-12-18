@@ -108,14 +108,30 @@ font-weight: normal;
   display: inline-block;
 }
 
-body{
-  min-width: 375px;
-  margin-top: 0;
-  margin-bottom: 0;
-  background-image:
-radial-gradient(circle at 50% 50%, transparent 61%, rgba(0, 0, 0, 0.8)), url('http://lakecountrykeys.com/wp-content/uploads/2016/03/latest-vintage-wood-table-texture-home-future-table-2880x1800-2175kb.jpg');
-  background-repeat: no-repeat;
-  background-size: cover;
+@media screen and (min-width:600px) {
+  body{
+    min-width: 765px;
+    margin-top: 0;
+    margin-bottom: 0;
+    background-image:
+  radial-gradient(circle at 50% 50%, transparent 61%, rgba(0, 0, 0, 0.8)), url('http://lakecountrykeys.com/wp-content/uploads/2016/03/latest-vintage-wood-table-texture-home-future-table-2880x1800-2175kb.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+  }
+}
+
+@media screen and (max-width:600px) {
+  body{
+    min-width: 360px;
+    margin-top: 0;
+    margin-bottom: 0;
+    background-image:
+  radial-gradient(circle at 50% 50%, transparent 61%, rgba(0, 0, 0, 0.8)), url('http://lakecountrykeys.com/wp-content/uploads/2016/03/latest-vintage-wood-table-texture-home-future-table-2880x1800-2175kb.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+  }
 }
 
 fieldset.profil {
@@ -652,4 +668,8 @@ span.badge.new{position:relative; bottom:80px;}
 .next_notif:hover
 {
   box-shadow: inset 0px 0px 10px 2px #eac72b;
+}
+
+#tag-container-manager {
+  width:
 }

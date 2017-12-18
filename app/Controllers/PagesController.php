@@ -13,7 +13,6 @@ class PagesController extends Controller{
       $data = array('age' => '18,100' , 'range' => '25' , 'pop' => '0,100' , 'tags' => '', 'area' =>'', 'extracted' => '0');
       include_once ('Functions.php');
       $res = Researcher($data, $this->pdo);
-      var_dump(array('profils'=>$res['result']));
       $this->render($response, 'pages/preview.twig', array('profils'=>$res['result']));
     }
   }
