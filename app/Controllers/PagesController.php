@@ -59,6 +59,7 @@ class PagesController extends Controller{
       else {
         $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
       }
+      $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
       $this->render($response, 'pages/account.twig', $info);
     }
     else {

@@ -23,6 +23,7 @@
     <div class="row center" id="header-menu-container"  connected="{{ Connector }}">
       {% if Connector == 1 %}
       <div  class="col s2">
+        <div class="notif_block">
         <a href="{{ path_for('recherche') }}">
           <div class="cristalballz circle centeritem glow">
             <p class="recherche pulse center-align">Recherche</p>
@@ -32,18 +33,22 @@
           </div>
         </a>
       </div>
-      <div  class="col s2">
-        <a href="{{ path_for('profil') }}"><img src="/matcha/app/css/image/encrier nohover.png" class="inkwell" /></a>
       </div>
       <div  class="col s2">
+        <div class="notif_block">
+        <a href="{{ path_for('profil') }}"><img src="/matcha/app/css/image/encrier nohover.png" class="inkwell" /></a>
+      </div>
+      </div>
+      <div  class="col s2">
+        <div class="notif_block">
         <div class="minimap-contain">
           <img src="/matcha/app/css/image/treasure-map.png" class="minimap" onclick="ShowMap()" />
-          <div id="map"></div>
         </div>
+      </div>
       </div>
       <div class="col s3">
         <div class="notif_block">
-          <a href="{{ path_for('messenger') }}">
+          <a href="{{ path_for('messenger') }}" id='linkenveloppe'>
             <img src="/matcha/app/css/image/enveloppe.png" class="img_enveloppe" alt="">
             <span id="notif" class="new badge orange darken-4">0</span>
           </img>
@@ -56,6 +61,7 @@
        {% endif %}
     </div>
   </div>
+  <div id="map"></div>
 </div>
 </header>
 <main class="parchemin valign-wrapper ">

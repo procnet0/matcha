@@ -268,6 +268,7 @@ function updateMap(data) {
     title: 'You'
   });
    map.setCenter(pos);
+   document.getElementById('map').style.visibility = 'hidden';
 }
 
 function initMap() {
@@ -1038,7 +1039,7 @@ var SideMode = 2;
 function initSidNav() {
   var Width = window.innerWidth;
   if(Width <= 600) {
-    Sidemode = 1;
+    SideMode = 1;
     SetNavBar(1);
   }
   else {
@@ -1047,9 +1048,10 @@ function initSidNav() {
   }
   window.addEventListener("resize",function() {
     var width = window.innerWidth;
+
     if(width <= 600 && SideMode != 1) {
       SideMode = 1;
-       SetNavBar(1);
+      SetNavBar(1);
      }
      else if(width > 600 && SideMode != 2) {
        SideMode = 2;
@@ -1061,18 +1063,37 @@ function initSidNav() {
 function SetNavBar(type) {
   var container  = document.getElementById('header-menu-container');
   var connected = container.getAttribute('connected');
-  if(connected !== null && (connected === 1))
+  if(connected !== null && (connected == 1))
   {
     if(type == 1) {
+      var sidebar = document.createElement('div');
+      sidebar.setAttribute('data-activates', 'slide-out');
+      sidebar.setAttribute('id','sidebar');
 
+      var sidenav = document.createElement('div');
+      sidenav.setAttribute('class', 'side-nav');
+      sidenav.setAttribute('id', 'slide-out');
 
+      var divlist = container.children;
+      $(divlist).each(function(index) { $(this).addClass('side-nav-object')});
+      $(sidenav).append($(divlist));
+      container.parentElement.append(sidenav);
+      container.append(sidebar);
+      $(sidebar).sideNav();
     }
     else if(type == 2)
     {
+      var sidenav = document.getElementById('slide-out');
+      var sidebar = document.getElementById('sidebar');
+      if(sidenav && sidebar) {
+        var divlist = sidenav.children;
+        $(divlist).each(function(index) { $(this).removeClass('side-nav-object')});
+        $(container).append($(divlist));
 
-
+        sidenav.parentElement.removeChild(sidenav);
+        sidebar.parentElement.removeChild(sidebar);
+      }
     }
   }
-  console.log(container);
-  console.log(connected);
+  console.log(type);
 }

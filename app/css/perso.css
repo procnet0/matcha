@@ -673,3 +673,28 @@ span.badge.new{position:relative; bottom:80px;}
 #tag-container-manager {
   width:
 }
+
+#sidebar {
+  position: fixed;
+height: 100%;
+width: 30px;
+background-color: rgba(0,0,0,0.6);
+left: 0px;
+top: 0px;
+}
+
+.side-nav {
+  width: 150px;
+  background-image: url('image/sidenav-background.jpg');
+  background-size: contain;
+  background-repeat: repeat-y;
+
+}
+
+.side-nav-object {
+  height: 150px;
+}
+
+#linkenveloppe {
+  padding: 0px;
+}
