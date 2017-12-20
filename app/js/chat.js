@@ -3,15 +3,21 @@ $(document).ready(function()
     
     var loaded = 0;
     var data = JSON.parse(useractiv);
-    function select_user(id)
+    function select_user(id, is_small)
     {
-        
+        if(is_small == 1)
+        {
+            $("#profiles_small").hide();
+            $("#messages_small").show();
+            $("#hide_this").hide();
+        }
         for(var i = 0; i < data.length; i++)
         {
             if (data[i]['id'] == id)
             {
                 id_user = id;
                 $("#current_profil_info").find(".default_profil_info").hide();
+                document.getElementById("current_profil_info").className = "current_profil";
                 $("#profil_name, #profil_image, #profil_link, #form_block, #chat_msg").show();
                 $("#profil_name").children("p").html(data[i]['login']);
                 $("#next").html("Afficher les prochains messages");
@@ -42,15 +48,24 @@ $(document).ready(function()
                                 var rl = "";
                                 var isnew = "";
                                 if (tab['msg'][i]['fromyou'] == "1")
-                                    rl = "right-align";
+                                {
+                                    rl = "my_msg";
+                                    if (tab['msg'][i]['new'] == "1")
+                                        isnew = "notseen"
+                                    else
+                                        isnew = "seen";
+                                }
                                 else
-                                    rl = "left-align";
-                                if (tab['msg'][i]['new'] == "1")
-                                    isnew = "newmsg"
-                                else
-                                    isnew = "oldmsg";
-                                $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
+                                {
+                                    rl = "not_my_msg";
+                                    if (tab['msg'][i]['new'] == "1")
+                                        isnew = "new_msg"
+                                    else
+                                        isnew = "old_msg";
+                                }
+                                $("#messages").prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li></div>");
                             }
+                            $("#chat_msg").animate({ scrollTop: $("#messages").height() }, 1000);
                         }
                     },
                     error: function (msg){
@@ -81,14 +96,22 @@ $(document).ready(function()
                                             var rl = "";
                                             var isnew = "";
                                             if (tab['msg'][i]['fromyou'] == "1")
-                                                rl = "right-align";
+                                            {
+                                                rl = "my_msg";
+                                                if (tab['msg'][i]['new'] == "1")
+                                                    isnew = "notseen"
+                                                else
+                                                    isnew = "seen";
+                                            }
                                             else
-                                                rl = "left-align";
-                                            if (tab['msg'][i]['new'] == "1")
-                                                isnew = "newmsg"
-                                            else
-                                                isnew = "oldmsg";
-                                            $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
+                                            {
+                                                rl = "not_my_msg";
+                                                if (tab['msg'][i]['new'] == "1")
+                                                    isnew = "new_msg"
+                                                else
+                                                    isnew = "old_msg";
+                                            }
+                                            $("#messages").prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li>");
                                         }
                                     }
                                     loaded = loaded+tab['msg'].length;
@@ -107,14 +130,25 @@ $(document).ready(function()
         }
     }
 
-    
-
     $(".profil_list_user").each(function(){
         $(this).click(function(){
             var id = $(this).data('id');
-            select_user(id);
+            select_user(id, 0);
         })
     });
+
+    $(".profil_list_user_small").each(function(){
+        $(this).click(function(){
+            var id = $(this).data('id');
+            select_user(id, 1);
+        })
+    });
+
+    $("#return_to_list").click(function(){
+        $("#messages_small").hide();
+        $("#profiles_small").show();
+        $("#hide_this").show();
+    })
 
     $("#form_messages").submit(function(ev){
         var txt = $("#text_content");
@@ -133,14 +167,25 @@ $(document).ready(function()
                     content: txt.val()
                 },
                 success: function(tab, status){
-                    if (tab['content'] == "Error")
+                    $(".new_msg").removeClass("new_msg").addClass("old_msg");
+                    var msg = $(document.getElementById("messages"));
+                    if(tab['error'] == "Message is empty")
                     {
-                        $("#messages").append("<li class=\"message right-align new\">Erreur lors de l'envoi du messages, veuillez actualiser la page</li>");
+                        alert("Le message est vide");
+                    }
+                    else if (tab['status'] != "OK")
+                    {
+                        msg.append("<div class=\"message my_msg\"><li class=\"notseen\" >Erreur lors de l'envoi du messages, veuillez actualiser la page <br/ >erreur :"+tab['status']+"</li>");
+                    }
+                    else if (tab['error'] != "NO")
+                    {
+                        alert("Blocked");
                     }
                     else
                     {
-                        $("#messages").append("<li class=\"message right-align new\">"+escapeHTML(tab['content'])+"</li>");
+                        msg.append("<div class=\"message my_msg\"><li class=\"notseen\" >"+escapeHTML(tab['content'])+"</li>");
                     }
+                    $("#chat_msg").animate({ scrollTop: $("#messages").height() }, 1000);
                 }
             });
             txt.val("");

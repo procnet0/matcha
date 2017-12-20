@@ -1189,10 +1189,12 @@ function autonotif() {
               Materialize.toast(data['notif'][i]['login']+" vous a unlike :(", 3000);
           }
         }
-        if (data['msg']) {
+        if (data['msg'] && data['msg'].length != 0) {
+          $(".notseen").removeClass("notseen").addClass("seen");
           for(i = 0; i < data['msg'].length; i++){
-            $("#messages").append("<li class=\"message left-align old\">"+escapeHTML(data['msg'][i]['content'])+"</li>");
+            $("#messages").append("<div class=\"message not_my_msg\"><li class=\"new_msg\" >"+escapeHTML(data['msg'][i]['content'])+"</li>");
           }
+          $("#chat_msg").animate({ scrollTop: $("#chat_msg").height() }, 1000)
         }
       }
     });

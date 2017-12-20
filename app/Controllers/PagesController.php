@@ -393,13 +393,12 @@ class PagesController extends Controller{
     {
       $ret = [];
       if(empty($info['content'])) {
-        $ret['status'] = 'Message is empty';
+        $ret['error'] = 'Message is empty';
       }
       else {
       $pdo = $this->pdo;
-      $ret['status'] = 'OK';
         include_once ('Functions.php');
-        $ret['content'] = PostNewMsg($info['id'],$info['content'],$pdo);
+        $ret = PostNewMsg($info['id'],$info['content'],$pdo);
       }
       print json_encode($ret);
     }

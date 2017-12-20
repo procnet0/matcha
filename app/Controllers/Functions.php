@@ -1374,7 +1374,7 @@ function RedeemMsg($id_user, $offset, $pdo) {
 
 // Insert new MSG in db
 function PostNewMsg($id_user, $content, $pdo) {
-  $ret = 'Error';
+  $ret['status'] = 'OK';
   try {
     $pdo->beginTransaction();
 
@@ -1399,12 +1399,15 @@ function PostNewMsg($id_user, $content, $pdo) {
       $sql->bindParam(1, $id_user, PDO::PARAM_INT);
       $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
       $sql->execute();
-      $ret = $content;
+      $ret['error'] = "NO";
+      $ret['content'] = $content;
     }
+    else
+      $ret['error'] = "Blocked";
     $pdo->commit();
     } catch (PDOException $e) {
       $pdo->rollBack();
-      $ret = $e;
+      $ret['status'] = $e;
   }
   return $ret;
 }
