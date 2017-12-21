@@ -112,8 +112,10 @@ body{
   min-width: 375px;
   margin-top: 0;
   margin-bottom: 0;
+  background-color:rgb(117, 117, 117);
   background-image:
-radial-gradient(circle at 50% 50%, transparent 61%, rgba(0, 0, 0, 0.8)), url('http://lakecountrykeys.com/wp-content/uploads/2016/03/latest-vintage-wood-table-texture-home-future-table-2880x1800-2175kb.jpg');
+  radial-gradient(circle at 50% 50%, transparent 61%, rgba(0, 0, 0, 0.8)), url('image/latest-vintage-wood-table-texture-home-future-table-2880x1800-2175kb.jpg');
+  
   background-repeat: no-repeat;
   background-size: cover;
 }
@@ -461,7 +463,12 @@ div.miniProfilPict {
 
 .notif_block{margin:0 auto;}
 
-span.badge.new{position:relative; bottom:80px;}
+span.badge.new{
+  margin-left:0px;
+  position:relative;
+  bottom:80px;
+}
+
 #listcontainer {
   height: 95%;
 }
@@ -475,11 +482,11 @@ span.badge.new{position:relative; bottom:80px;}
   visibility: visible;
 }
 
-.profiles_list_container
+.profiles_list_container, .profiles_list_container_small
 {
   border:2px solid black;
   max-height:600px;
-  overflow-y: auto;
+  overflow-y: hidden;
 }
 
 .messages_container
@@ -504,12 +511,12 @@ span.badge.new{position:relative; bottom:80px;}
   transform: translateX(-50%) translateY(-50%);
 }
 
-.profil_list_user
+.profil_list_user, .profil_list_user_small
 {
   box-shadow: inset 0 0 11px 2px black;
 }
 
-.profil_list_user:hover
+.profil_list_user:hover, .profil_list_user_small:hover
 {
   box-shadow: none;
   cursor:pointer;
@@ -573,8 +580,13 @@ span.badge.new{position:relative; bottom:80px;}
 
  #profil_image
  {
-  width:33%;
+  width: 33%;
+  border-width: 0px 2px 0px 2px;
+  border-color: black;
   text-align: center;
+  border-style: solid;
+  margin-top: 3px; 
+  margin-bottom: 3px; 
  }
 
  #profil_name
@@ -584,6 +596,7 @@ span.badge.new{position:relative; bottom:80px;}
 
 #profil_link{
   width: 33%;
+  padding:13px;
 }
 
 .collection .collection-item.avatar{
@@ -654,31 +667,115 @@ span.badge.new{position:relative; bottom:80px;}
   box-shadow: inset 0px 0px 10px 2px #eac72b;
 }
 
-.message{
-  word-wrap: break-word;
+.left-badge{
+  margin-left:0px !important;
+  float:left !important;
+  z-index: 1;
+  visibility: collapse;
 }
 
-.newmsg{
-  background-color:rgba(0, 128, 0, 0.329);
+.notif_block:hover .left-badge{
+  visibility:visible;
 }
 
-.read{
-  background-color:transparent;
+span.badge.msg:after{
+  content: " msg";
 }
 
-.unread{
-  background-color:rgba(128, 128, 128, 0.363);
+.current_profil {
+  border: 2px solid black;
+  border-radius: 5px 5px 0px 0px;
+  box-shadow: inset 0px -1px 12px 0px white;
 }
 
-.oldmsg{
-  background-color:transparent;
+.chat-container{
+  max-height:500px;
+  overflow: auto;
+  background-color: rgba(255, 255, 255, 0.37);
 }
 
-.left-msg{
+#messages {
+  padding: 5px;
+}
+
+.message {
+  width: 100%;
+  text-align: right;
+  margin-top:5px;
+  word-break: break-all;
+}
+
+.my_msg {
+  text-align:right;
+}
+
+.not_my_msg {
   text-align:left;
 }
 
-.right-msg{
-  text-align:right;
+.message li{
+  width: fit-content;
+  display: inline-block;
+}
 
+.notseen, .seen {
+  border:2px solid black;
+  border-radius: 15px 15px 0px 15px;
+  padding: 5px 10px 5px 12px;
+}
+
+.notseen {
+  background-color: rgba(247, 170, 31, 0.55);
+  border: 3px solid rgb(255, 255, 255);
+}
+
+.seen {
+  background-color: rgba(100, 76, 138, 0.47);
+}
+
+.new_msg, .old_msg {
+  border: 2px solid rgb(136, 138, 24);
+  border-radius: 15px 15px 15px 0px;
+  padding: 5px 12px 5px 10px;
+}
+
+.new_msg {
+  background-color: rgba(81, 224, 247, 0.54);
+  border: 3px solid rgb(255, 255, 255);
+}
+
+.old_msg {
+  border: 2px solid rgb(136, 138, 24);
+  background-color: rgba(179, 253, 0, 0.19);
+}
+
+.input_txt {
+  resize:none;
+  border:2px solid black;
+  width:95%;
+  margin-bottom:10px;
+  background-color:rgba(250, 234, 93, 0.397);
+  min-height:50px;
+}
+
+.return_list, .return_list:focus
+{
+  margin-bottom: 15px;
+  border-radius: 3px;
+  background-color: #220594b8;
+  box-shadow: inset 0 0px 20px 0px #38b8e86b;
+}
+
+.return_list:hover
+{
+  background-color: #3f9c9c;
+}
+
+.profiles_list_container_small{
+  width:64%;
+  margin: 0 auto;
+}
+
+.profil_list_user_small{
+  width:100%;
 }

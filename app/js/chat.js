@@ -3,15 +3,21 @@ $(document).ready(function()
     
     var loaded = 0;
     var data = JSON.parse(useractiv);
-    function select_user(id)
+    function select_user(id, is_small)
     {
-        
+        if(is_small == 1)
+        {
+            $("#profiles_small").hide();
+            $("#messages_small").show();
+            $("#hide_this").hide();
+        }
         for(var i = 0; i < data.length; i++)
         {
             if (data[i]['id'] == id)
             {
                 id_user = id;
                 $("#current_profil_info").find(".default_profil_info").hide();
+                document.getElementById("current_profil_info").className = "current_profil";
                 $("#profil_name, #profil_image, #profil_link, #form_block, #chat_msg").show();
                 $("#profil_name").children("p").html(data[i]['login']);
                 $("#next").html("Afficher les prochains messages");
@@ -43,22 +49,23 @@ $(document).ready(function()
                                 var isnew = "";
                                 if (tab['msg'][i]['fromyou'] == "1")
                                 {
+                                    rl = "my_msg";
                                     if (tab['msg'][i]['new'] == "1")
-                                        isnew = "unread";
+                                        isnew = "notseen"
                                     else
-                                        isnew = "read";
-                                    rl = "right-msg";
+                                        isnew = "seen";
                                 }
                                 else
                                 {
+                                    rl = "not_my_msg";
                                     if (tab['msg'][i]['new'] == "1")
-                                        isnew = "newmsg";
+                                        isnew = "new_msg"
                                     else
-                                        isnew = "oldmsg";
-                                    rl = "left-msg";
+                                        isnew = "old_msg";
                                 }
-                                $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
+                                $("#messages").prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li></div>");
                             }
+                            $("#chat_msg").animate({ scrollTop: $("#messages").height() }, 1000);
                         }
                     },
                     error: function (msg){
@@ -88,24 +95,23 @@ $(document).ready(function()
                                         {
                                             var rl = "";
                                             var isnew = "";
-                                            
                                             if (tab['msg'][i]['fromyou'] == "1")
                                             {
+                                                rl = "my_msg";
                                                 if (tab['msg'][i]['new'] == "1")
-                                                    isnew = "unread";
+                                                    isnew = "notseen"
                                                 else
-                                                    isnew = "read";
-                                                rl = "right-msg";
+                                                    isnew = "seen";
                                             }
                                             else
                                             {
+                                                rl = "not_my_msg";
                                                 if (tab['msg'][i]['new'] == "1")
-                                                    isnew = "newmsg";
+                                                    isnew = "new_msg"
                                                 else
-                                                    isnew = "oldmsg";
-                                                rl = "left-msg";
+                                                    isnew = "old_msg";
                                             }
-                                            $("#messages").prepend("<li class=\"message "+rl+" "+isnew+"\">"+escapeHTML(tab['msg'][i]['content'])+"</li>");
+                                            $("#messages").prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li>");
                                         }
                                     }
                                     loaded = loaded+tab['msg'].length;
@@ -124,14 +130,25 @@ $(document).ready(function()
         }
     }
 
-    
-
     $(".profil_list_user").each(function(){
         $(this).click(function(){
             var id = $(this).data('id');
-            select_user(id);
+            select_user(id, 0);
         })
     });
+
+    $(".profil_list_user_small").each(function(){
+        $(this).click(function(){
+            var id = $(this).data('id');
+            select_user(id, 1);
+        })
+    });
+
+    $("#return_to_list").click(function(){
+        $("#messages_small").hide();
+        $("#profiles_small").show();
+        $("#hide_this").show();
+    })
 
     $("#form_messages").submit(function(ev){
         var txt = $("#text_content");
@@ -150,14 +167,25 @@ $(document).ready(function()
                     content: txt.val()
                 },
                 success: function(tab, status){
-                    if (tab['content'] == "Error")
+                    $(".new_msg").removeClass("new_msg").addClass("old_msg");
+                    var msg = $(document.getElementById("messages"));
+                    if(tab['error'] == "Message is empty")
                     {
-                        $("#messages").append("<li class=\"message right-msg unread\">Erreur lors de l'envoi du messages, veuillez actualiser la page</li>");
+                        alert("Le message est vide");
+                    }
+                    else if (tab['status'] != "OK")
+                    {
+                        msg.append("<div class=\"message my_msg\"><li class=\"notseen\" >Erreur lors de l'envoi du messages, veuillez actualiser la page <br/ >erreur :"+tab['status']+"</li>");
+                    }
+                    else if (tab['error'] != "NO")
+                    {
+                        alert("Blocked");
                     }
                     else
                     {
-                        $("#messages").append("<li class=\"message right-msg unread\">"+escapeHTML(tab['content'])+"</li>");
+                        msg.append("<div class=\"message my_msg\"><li class=\"notseen\" >"+escapeHTML(tab['content'])+"</li>");
                     }
+                    $("#chat_msg").animate({ scrollTop: $("#messages").height() }, 1000);
                 }
             });
             txt.val("");
@@ -182,40 +210,14 @@ $(document).ready(function()
             $.ajax({
                 url: 'notif_list',
                 type: 'POST',
-                data: 'action=notif&type=1',
+                data: 'action=notif&type=1&nb=0',
                 dataType: 'json',
                 success: function(tab, status){
                     var like_block = document.getElementById("like_block_content");
-                    if (tab['news'].length > 0)
+                    if (tab['notif'].length > 0)
                     {
-                        for (var i = 0; i < tab['news'].length; i++)
-                        {
-                            var htmlcode = "";
-                            var notif = document.createElement("a");
-                            notif.setAttribute("href", escapeHTML("/matcha/lookat/"+tab['news'][i]['login']));
-                            notif.className = "collection-item avatar new_notif";
-                            if(tab['news'][i]['profil_pict'] == "#")
-                                htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
-                            else
-                                htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
-                            htmlcode += "<span class=\"title\">"+escapeHTML(tab['news'][i]['login'])+"</span>";
-                            if (tab['news'][i]['type'] == 1)
-                                htmlcode += "<p>Like</p>";
-                            else if (tab['news'][i]['type'] == 4)
-                                htmlcode += "<p>Match</p>";
-                            else
-                                htmlcode += "<p>Unlike</p>";
-                            notif.innerHTML = htmlcode;
-                            notif.addEventListener("mouseover", set_old, false);
-                            notif.id_notif = tab['news'][i]['id_notif'];
-                            like_block.getElementsByTagName("UL")[0].appendChild(notif);
-                        }
-                    }
-                    else
-                    {
-                        var msg = document.createElement("p");
-                        msg.innerHTML = "Aucune nouvelle notification";
-                        like_block.appendChild(msg);
+                        var likz = document.getElementById("collection_like");
+                        create_notif(tab, likz);
                     }
                 },
                 error: function(res, status, error){
@@ -233,25 +235,13 @@ $(document).ready(function()
             $.ajax({
                 url: 'notif_list',
                 type: 'POST',
-                data: 'action=notif&type=2',
+                data: 'action=notif&type=2&nb=0',
                 dataType: 'json',
                 success: function(tab, status){
-                    console.log(tab);
-                    for (var i = 0; i < tab['news'].length; i++)
+                    if (tab['notif'].length > 0)
                     {
-                        var htmlcode = "";
-                        var notif = document.createElement("a");
-                        notif.setAttribute("href", escapeHTML("/matcha/lookat/"+tab['news'][i]['login']));
-                        notif.className = "collection-item avatar new_notif";
-                        if(tab['news'][i]['profil_pict'] == "#")
-                            htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
-                        else
-                            htmlcode += "<img src=\""+tab['news'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
-                        htmlcode += "<span class=\"title\">"+escapeHTML(tab['news'][i]['login'])+"</span>";
-                        notif.innerHTML = htmlcode;
-                        notif.addEventListener("mouseover", set_old);
-                        notif.id_notif = tab['news'][i]['id_notif'];
-                        document.getElementById("visits_block_content").getElementsByTagName("UL")[0].appendChild(notif);   
+                        var visitz = document.getElementById("collection_visit");
+                        create_notif(tab, visitz);
                     }
                 },
                 error: function(res, status, error){
@@ -262,29 +252,10 @@ $(document).ready(function()
         visit_visible = 1;
     });
 
-
-    function set_old(evt)
-    {
-        var real = evt.currentTarget;
-        $.post(
-            'set_new_to_old',
-            'action=newold&notif=' + real.id_notif,
-            function (text){
-                if (text == "ok")
-                {
-                    real.className = "collection-item avatar old_notif";
-                    real.removeEventListener("mouseover", set_old);
-                }
-                else
-                    console.log(text);
-            },
-            'text' 
-        );
-    }
-
-    var notif_visite_visible = 0
+    var count_visit = 10;
+    var visite_done = 0;
     $(document.getElementById("next_visite")).click(function(){
-        if (notif_visite_visible != 1)
+        if (visite_done == 0)
         {
             $.ajax({
                 url: 'notif_list',
@@ -292,33 +263,54 @@ $(document).ready(function()
                 data: {
                     action:'notif',
                     type: 2,
-                    nb:0,
-                    isold: 1
+                    nb:count_visit,
                 },
                 dataType: 'json',
                 success: function(tab, status){
-                    console.log(tab);
-                    for (var i = 0; i < tab['olds'].length; i++)
+                    if (tab['notif'].length > 0)
                     {
-                        var htmlcode = "";
-                        var notif = document.createElement("a");
-                        notif.setAttribute("href", escapeHTML("/matcha/lookat/"+tab['olds'][i]['login']));
-                        notif.className = "collection-item avatar old_notif";
-                        if(tab['olds'][i]['profil_pict'] == "#")
-                            htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
-                        else
-                            htmlcode += "<img src=\""+tab['olds'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
-                        htmlcode += "<span class=\"title\">"+escapeHTML(tab['olds'][i]['login'])+"</span>";
-                        notif.innerHTML = htmlcode;
-                        notif.id_notif = tab['olds'][i]['id_notif'];
-                        document.getElementById("visits_block_content").getElementsByTagName("UL")[0].appendChild(notif);
+                        var visitz = document.getElementById("collection_visit");
+                        create_notif(tab, visitz);
                     }
+                    if (tab['notif'].length == 0)
+                        visite_done = 1;
                 },
                 error: function(res, status, error){
                     console.log(error);
                 }
             });
+            count_visit += 10;
         }
-        notif_visite_visible = 1;
+    });
+
+    var count_like = 10;
+    var like_done = 0;
+    $(document.getElementById("next_likes")).click(function(){
+        if (like_done == 0)
+        {
+            $.ajax({
+                url: 'notif_list',
+                type: 'POST',
+                data: {
+                    action:'notif',
+                    type: 1,
+                    nb:count_like,
+                },
+                dataType: 'json',
+                success: function(tab, status){
+                    if (tab['notif'].length > 0)
+                    {
+                        var likz = document.getElementById("collection_like");
+                        create_notif(tab, likz);
+                    }
+                    if (tab['notif'].length == 0)
+                        like_done = 1;
+                },
+                error: function(res, status, error){
+                    console.log(error);
+                }
+            });
+            count_like += 10;
+        }
     });
 });

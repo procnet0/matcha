@@ -23,4 +23,4 @@ class FlashMiddleware {
     return $next($request, $response);
   }
 }
- ?>
+?>

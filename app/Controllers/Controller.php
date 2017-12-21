@@ -12,6 +12,13 @@ class Controller {
       if(!empty($_SESSION['id'])) {
       $pdo = $this->pdo;
       $pdo->exec("UPDATE ping SET timeof =".time()." WHERE id_user =".$_SESSION['id']);
+
+      if (!empty($_SESSION['loggued_as']) && (empty($_SERVER['REDIRECT_URL']) || $_SERVER['REDIRECT_URL'] != "/matcha/notif"))
+      {
+        $ret = $pdo->query("SELECT MAX(id_notif) FROM `notification`");
+        $tab = $ret->fetch();
+        $_SESSION['max_id'] = $tab[0];
+      }
     }
   }
 

@@ -393,13 +393,12 @@ class PagesController extends Controller{
     {
       $ret = [];
       if(empty($info['content'])) {
-        $ret['status'] = 'Message is empty';
+        $ret['error'] = 'Message is empty';
       }
       else {
       $pdo = $this->pdo;
-      $ret['status'] = 'OK';
         include_once ('Functions.php');
-        $ret['content'] = PostNewMsg($info['id'],$info['content'],$pdo);
+        $ret = PostNewMsg($info['id'],$info['content'],$pdo);
       }
       print json_encode($ret);
     }
@@ -441,13 +440,20 @@ class PagesController extends Controller{
       if (!empty($_SESSION['loggued_as']))
       {
         include_once('Functions.php');
-        if (isset($data['nb']))
-          $tab = RedeemNotifContent($this->pdo, $data['nb'], $data['type'], 1);
-        else {
-          $tab = RedeemNotifContent($this->pdo, NULL, $data['type'], 0);
-        }
+        $tab = RedeemNotifContent($this->pdo, $data['nb'], $data['type']);
         return json_encode($tab);
       }
+    }
+  }
+
+  public function getLastNotif(Request $request, Response $response){
+    header('Content-Type: application/json');
+    $data = $request->getParams();
+    if($data['action'] == "getnewnotif")
+    {
+      include_once('Functions.php');
+      $tab = newNotifAuto($this->pdo, $data['offset']);
+      return json_encode($tab);
     }
   }
 
