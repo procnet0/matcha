@@ -598,11 +598,11 @@ function distanceCalculation($point1_lat, $point1_long, $point2_lat, $point2_lon
 
 // recupere la liste des utilisateur correspondant au parametre
 function Researcher($datas, $pdo) {
-
+  $res = [];
   $age = explode(',',$datas['age']);
   $range = explode(',', $datas['range']);
   $area = $datas['area'];
-  $extracted = $datas['extracted'];
+  $extracted = intval($datas['extracted']);
   if($area){
     $area = json_decode($area);
   }
@@ -700,7 +700,6 @@ function Researcher($datas, $pdo) {
     print 'error =>'. $e;
     die();
   }
-
   try {
     $sql = $pdo->exec("DROP FUNCTION IF EXISTS `get_distance_km`");
     $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION get_distance_km (lat1 DOUBLE, lng1 DOUBLE, lat2 DOUBLE, lng2 DOUBLE) RETURNS DOUBLE
@@ -778,36 +777,34 @@ function Researcher($datas, $pdo) {
       }
     $sexnor = array($user['0']['sexe'], $user['0']['oriented']);
 
-    $or = "members.sexe IN (";
     switch($sexnor)  {
       case array('male','hetero'):
-      $or .= "'female'";$SexCase = '1'; break;
+      $or = "'female'";$SexCase = '1'; break;
 
       case array('female','hetero'):
-      $or .= "'male'";$SexCase = '2'; break;
+      $or = "'male'";$SexCase = '2'; break;
 
       case array('other','hetero'):
-      $or .= "'female','male','other'";$SexCase = '3'; break;
+      $or = "'female','male','other'";$SexCase = '3'; break;
 
       case array('male','bi'):
-      $or .= "'female','male','other'";$SexCase = '4'; break;
+      $or = "'female','male','other'";$SexCase = '4'; break;
 
       case array('female','bi');
-      $or .= "'female','male','other'";$SexCase = '5'; break;
+      $or = "'female','male','other'";$SexCase = '5'; break;
 
       case array('other','bi'):
-      $or .= "'female','male','other'";$SexCase = '6'; break;
+      $or = "'female','male','other'";$SexCase = '6'; break;
 
       case array('male','homo'):
-      $or .= "'male'";$SexCase = '7'; break;
+      $or = "'male'";$SexCase = '7'; break;
 
       case array('female','homo'):
-      $or .= "'female'";$SexCase = '8'; break;
+      $or = "'female'";$SexCase = '8'; break;
 
       case array('other','homo'):
-      $or .= "'female','male','other'";$SexCase = '9'; break;
+      $or = "'female','male','other'";$SexCase = '9'; break;
     }
-    $or .= ")";
 
     $reqsql = "SELECT
     members.login,
@@ -817,52 +814,76 @@ function Researcher($datas, $pdo) {
     GetScore(members.id_user) as score,
     TIMESTAMPDIFF(YEAR, members.birthday, NOW()) AS age,
     members.sexe,
-    IsValid(". $SexCase .", members.id_user) as Valid,
+    IsValid( ? , members.id_user) as Valid,
     members.oriented,
     members.profil_pict,
     GROUP_CONCAT(tags_members.id_tag) AS tags,
-    checkblock(". $user['0']['id_user'].", members.id_user) AS blocki,
+    checkblock(?, members.id_user) AS blocki,
     get_distance_km(".$pos.",(SELECT latitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1),
-    (SELECT longitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1)) AS dist, (SELECT COUNT(tags_members.id_tag) FROM tags_members WHERE tags_members.id_members = members.id_user AND tags_members.id_tag IN ('". str_replace(',',"','",$user['0']['nb'])."')) AS nb
+    (SELECT longitude FROM geoloc WHERE geoloc.id_user = members.id_user ORDER BY timeof DESC LIMIT 1)) AS dist, (SELECT COUNT(tags_members.id_tag) FROM tags_members WHERE tags_members.id_members = members.id_user AND tags_members.id_tag IN ('".str_replace(',',"','",$user['0']['nb'])."')) AS nb
   FROM
     members, geoloc
     LEFT JOIN tags_members ON (id_user=tags_members.id_members)
   WHERE ";
-    $reqsql .= $or;
-    $reqsql .= ' AND members.id_user != '.$user['0']['id_user'].' AND geoloc.id_user = members.id_user ';
+    $reqsql .= "members.sexe IN (".$or.")";
+    $reqsql .= ' AND members.id_user != ? AND geoloc.id_user = members.id_user ';
     $reqsql .= ' GROUP BY id_user
-     HAVING age BETWEEN '.$age['0'].' AND '.$age['1'].'
-     AND Valid = 1 AND dist BETWEEN 0 AND '.$range['0'].' AND blocki = 0 AND score BETWEEN '.$pop[0].' AND '.$pop[1];
+     HAVING age BETWEEN ? AND ?
+     AND Valid = 1 AND dist BETWEEN 0 AND ? AND blocki = 0 AND score BETWEEN ? AND ?';
 
     if(isset($tlist)) {
       foreach ($tlist as $elem) {
-        $reqsql .= " AND tags LIKE '%" . $elem ."%'";
+        $reqsql .= " AND tags LIKE ?";
       }
     }
-    $reqsql .= ' LIMIT '.$extracted.', 5';
-    $sql = $pdo->query($reqsql);
+    $reqsql .= ' LIMIT ?, 5';
+    $sql = $pdo->prepare($reqsql);
+    $sql->bindParam(1,$SexCase, PDO::PARAM_INT);
+    $sql->bindParam(2, $user['0']['id_user'], PDO::PARAM_INT);
+    $sql->bindParam(3, $user['0']['id_user'], PDO::PARAM_INT);
+    $sql->bindParam(4, $age['0'], PDO::PARAM_INT);
+    $sql->bindParam(5, $age['1'], PDO::PARAM_INT);
+    $sql->bindParam(6, $range['0'], PDO::PARAM_INT);
+    $sql->bindParam(7, $pop['0'], PDO::PARAM_INT);
+    $sql->bindParam(8, $pop['1'], PDO::PARAM_INT);
+    $binded = 9;
+    if(isset($tlist)) {
+      $res['tlist'] = $tlist;
+      foreach ($tlist as $elem) {
+        $tmp = "%".$elem ."%";
+        $sql->bindParam($binded, $tmp , PDO::PARAM_STR);
+        $binded += 1;
+      }
+    }
+    $sql->bindParam($binded, $extracted, PDO::PARAM_INT);
+    $sql->execute();
+    $res['binded'] = $binded;
     $resultaa = $sql->fetchall(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
-    print "Error!: DATABASE searching-> " . $e->getMessage() . " FAILED TO search<br/>";
-    die();
+    $res['binded'] = $binded;
+    $res['error'] =  "Error!: DATABASE searching-> " . $e->getMessage() . " FAILED TO search<br/>";
   }
-  if($resultaa){
+  if(isset($resultaa)){
     foreach($resultaa as $key =>$array) {
       if ($array['profil_pict'] == "#" || !file_exists($array['profil_pict'])) {
         $resultaa[$key]['profil_pict'] = 'app/css/image/Photo-non-disponible.png';
       }
     }
+    $idlist = [];
+    foreach ($resultaa as $key=>$elem) {
+      $idlist[$key] = $elem['id_user'];
+    }
+    $res['online'] = getOnlineMembers($idlist, $pdo);
+    $res['taglist']= isset($tlist) ? $tlist : '';
+    $res['result']= $resultaa;
+    $res['extracted']= count($resultaa);
   }
-  $idlist = [];
-  foreach ($resultaa as $key=>$elem) {
-    $idlist[$key] = $elem['id_user'];
+  /*
+  if(isset($reqsql))
+  {
+    $res['req']= $reqsql;
   }
-  $res = [];
-  $res['online'] = getOnlineMembers($idlist, $pdo);
-  $res['taglist']= isset($tlist) ? $tlist : '';
-  $res['req']= $reqsql;
-  $res['result']= $resultaa;
-  $res['extracted']= count($resultaa);
+  */
   return($res);
 }
 
@@ -1331,13 +1352,13 @@ function RedeemMsg($id_user, $offset, $pdo) {
   $ret['status'] = 'OK';
   $ret['msg'] = [];
   try {
-    $sql = $pdo->prepare("SELECT notification.id_notif, notification.new, messages.timeof, content, IF(messages.id_from = ?, '1', '0') as fromyou 
-      FROM messages INNER JOIN notification 
-      WHERE 
-        notification.id_item = messages.id_msg 
-        AND ((messages.id_from = ? AND id_to = ?) 
-        OR (messages.id_from = ? AND id_to = ?)) 
-        AND notification.type = 3 
+    $sql = $pdo->prepare("SELECT notification.id_notif, notification.new, messages.timeof, content, IF(messages.id_from = ?, '1', '0') as fromyou
+      FROM messages INNER JOIN notification
+      WHERE
+        notification.id_item = messages.id_msg
+        AND ((messages.id_from = ? AND id_to = ?)
+        OR (messages.id_from = ? AND id_to = ?))
+        AND notification.type = 3
         ORDER BY timeof DESC LIMIT ?, 10");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
@@ -1434,7 +1455,6 @@ function RedeemNotifContent($pdo, $nb, $type) {
 }
 
 // Change le statuts non lu --> lu
-
 function UpdateNotifStatus($id_notif , $pdo) {
   $ret = [];
   $ret['status'] = 'OK';
@@ -1458,7 +1478,7 @@ function RNewNotif($id, $pdo) {
   try {
     if ($id != "-1")
     {
-      $sql = $pdo->prepare("SELECT notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
+      $sql = $pdo->prepare("SELECT notification.new, notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
       WHERE 
         messages.id_msg = notification.id_item
         AND notification.type = 3

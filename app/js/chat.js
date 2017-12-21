@@ -1,6 +1,6 @@
 $(document).ready(function()
 {
-    
+
     var loaded = 0;
     var data = JSON.parse(useractiv);
     function select_user(id, is_small)
@@ -88,7 +88,7 @@ $(document).ready(function()
                             success: function (tab, status){
                                 if (tab['status'] == "OK")
                                 {
-                                    $count = tab['counter']                
+                                    $count = tab['counter']
                                     if (loaded != tab['counter'])
                                     {
                                         for (var i = 0; i < tab['msg'].length; i++)

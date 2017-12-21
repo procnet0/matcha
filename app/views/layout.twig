@@ -20,9 +20,11 @@
   <div class="col s12 m12 l12 internal-border ">
     <a href="{{ path_for('home') }}"><h1 class="center-align center-block scrib title text-gold-shadow" > Abracadamatcha</h1></a>
   </div>
-  <div class="container section sec-part-header">
-    <div class="row center">
-      <div class="col s2 m2 l2">
+  <div class="container section sec-part-header" id="head-part-two">
+    <div class="row center" id="header-menu-container"  connected="{{ Connector }}">
+      {% if Connector == 1 %}
+      <div  class="col s2">
+        <div class="notif_block">
         <a href="{{ path_for('recherche') }}">
           <div class="cristalballz circle centeritem glow">
             <p class="recherche pulse center-align">Recherche</p>
@@ -32,19 +34,22 @@
           </div>
         </a>
       </div>
-      <div class="col s2 m2 l2">
+      </div>
+      <div  class="col s2">
+        <div class="notif_block">
         <a href="{{ path_for('profil') }}"><img src="/matcha/app/css/image/encrier nohover.png" class="inkwell" /></a>
       </div>
-      <div class="col s2 m2 l2">
+      </div>
+      <div  class="col s2">
+        <div class="notif_block">
         <div class="minimap-contain">
           <img src="/matcha/app/css/image/treasure-map.png" class="minimap" onclick="ShowMap()" />
-          <div id="map"></div>
         </div>
       </div>
-      {% if Connector == 1 %}
-      <div class="col s4 m4 l4">
+      </div>
+      <div class="col s3">
         <div class="notif_block">
-          <a href="{{ path_for('messenger') }}">
+          <a href="{{ path_for('messenger') }}" id='linkenveloppe'>
             <img src="/matcha/app/css/image/enveloppe.png" class="img_enveloppe" alt="">
             <span id="notif" class="new badge orange darken-4">0</span>
             <span id="msg_nbr" class="new msg badge deep-purple darken-2 left-badge">0</span>
@@ -52,16 +57,17 @@
           </a>
         </div>
       </div>
-      {% endif %}
-      <div class="col s2 m2 l2">
+      <div class="col s3">
           <a href="{{ path_for('logout')}}"><img src="/matcha/app/css/image/potion-oubli.png" class="logout" alt="potion d'oubli"></a>
      </div>
+       {% endif %}
     </div>
   </div>
+  <div id="map"></div>
 </div>
 </header>
-<main class="parchemin ">
-<div class="container section" id="maincontainer">
+<main class="parchemin valign-wrapper ">
+<div class="container section " id="maincontainer">
 
 {% block content %} {% endblock %}
 </div>
@@ -102,11 +108,9 @@ $(document).ready(function() {
     max: new Date(new Date().setFullYear(new Date().getFullYear() - 18))
   });
   autonotif();
-
+  initSidNav();
+    initMap();
 });
- </script>
- <script>
-  initMap
  </script>
  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAEwSUfxPzIphYziId_jFOIdx54clUnsdo&callback=initMap"
  type="text/javascript"></script>
