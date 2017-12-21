@@ -586,13 +586,13 @@ span.badge.new{
    display:none;
  }
 
- #current_profil_info{
+ #current_profil_info, #current_profil_info_small{
   width:100%;
   display:flex;
   justify-content: center;
  }
 
- #profil_image
+ #profil_image, #profil_image_small
  {
   width: 33%;
   border-width: 0px 2px 0px 2px;
@@ -603,12 +603,12 @@ span.badge.new{
   margin-bottom: 3px; 
  }
 
- #profil_name
+ #profil_name, #profil_name_small
 {
   width:33%;
 }
 
-#profil_link{
+#profil_link, #profil_link_small{
   width: 33%;
   padding:13px;
 }
@@ -681,10 +681,6 @@ span.badge.new{
   box-shadow: inset 0px 0px 10px 2px #eac72b;
 }
 
-#tag-container-manager {
-  width:
-}
-
 #sidebar {
   position: fixed;
 height: 100%;
@@ -738,8 +734,9 @@ span.badge.msg:after{
   background-color: rgba(255, 255, 255, 0.37);
 }
 
-#messages {
+#messages, #messages_small {
   padding: 5px;
+  min-height:420px;
 }
 
 .message {
