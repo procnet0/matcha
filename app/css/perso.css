@@ -179,6 +179,10 @@ position: absolute;
 }
 
 #maincontainer {
+  max-height: 700px;
+  padding-left: 25px;
+  padding-right: 25px;
+  overflow: auto;
   -webkit-animation-name: FadeIn;
   -webkit-animation-duration: 2s;
   -webkit-animation-iteration-count: 1;
@@ -317,7 +321,7 @@ p {
 
 #search_content_area {
   margin-top: 45px;
-  max-height: 450px;
+  max-height: 350px;
   overflow-y: overlay;
 }
 
@@ -599,8 +603,8 @@ span.badge.new{
   border-color: black;
   text-align: center;
   border-style: solid;
-  margin-top: 3px; 
-  margin-bottom: 3px; 
+  margin-top: 3px;
+  margin-bottom: 3px;
  }
 
  #profil_name
@@ -679,10 +683,6 @@ span.badge.new{
 .next_notif:hover
 {
   box-shadow: inset 0px 0px 10px 2px #eac72b;
-}
-
-#tag-container-manager {
-  width:
 }
 
 #sidebar {
@@ -822,4 +822,13 @@ span.badge.msg:after{
 
 .profil_list_user_small{
   width:100%;
+}
+
+
+.UserVignet {
+  border-width: medium;
+  border-style: dotted;
+  border-radius: 25px 110px 110px 25px;
+-moz-border-radius: 25px 110px 110px 25px;
+-webkit-border-radius: 25px 110px 110px 25px;
 }

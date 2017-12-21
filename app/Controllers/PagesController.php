@@ -81,7 +81,7 @@ class PagesController extends Controller{
         $_SESSION['loggued_as'] = $param['name'];
         $_SESSION['Alert'] = "Connexion Succeeded";
         updateLocation($param,$pdo);
-          return $this->redirect($response ,'profil');
+          return $this->redirect($response ,'home');
       }
       else if($result['name'] != True)
       {
