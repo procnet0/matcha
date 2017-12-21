@@ -10,6 +10,50 @@ function escapeHTML(text) {
   return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
+function addZero(i) {
+  if (i < 10) {
+      i = "0" + i;
+  }
+  return i;
+}
+
+function set_date(time, item)
+{
+  var date = new Date();
+  date.setTime(time * 1000);
+  var reald = new Date();
+  var diff = (reald.getTime() / 1000 | 0) - time;
+  var ret;
+  var min = diff / 60 | 0;
+  var hour = diff / 3600 | 0;
+
+  if (diff <= 20)
+    ret = "Il y a quelques secondes";
+  else if (diff < 60)
+    ret = "Il y a moins d'une minute";
+  else if (diff >= 60 && min < 60)
+  {
+    if (min == 1)
+      ret = "Il y a une minute";
+    else
+      ret = "Il y a "+min+" minutes";
+  }
+  else if (diff >= 3600 && hour < 24)
+  {
+    if (hour == 1)
+      ret = "Il y a une heure";
+    else
+      ret = "Il y a "+hour+" heures";
+  }
+  else
+  {
+    var months = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Aout", "Septembre", "Octobre", "Novembre", "Décembre"];
+    ret = "Le "+date.getDate()+" "+months[date.getMonth()]+" "+date.getFullYear()+" à "+addZero(date.getHours())+"H"+addZero(date.getMinutes());
+  }
+  item.innerHTML = ret;
+  setTimeout(function(){set_date(time, item)}, 4000);
+}
+
 function setAsProfil(ev) {
 
   var active = document.getElementsByClassName('carousel-item active');
@@ -995,8 +1039,89 @@ function openblockmanager(ev) {
   xhr.send("subject=blklst");
 }
 
-var id_user = -1;
-var msg_notif = 0;
+
+function set_old(evt)
+{
+    //console.log(evt.currentTarget);
+    var real = evt.currentTarget;
+    $.post(
+        'set_new_to_old',
+        'action=newold&notif=' + real.id_notif,
+        function (text){
+            if (text == "ok")
+            {
+                console.log(real);
+                real.className = "collection-item avatar old_notif";
+                
+            }
+            else
+                console.log(text);
+        },
+        'text' 
+    );
+    real.removeEventListener("mouseover", set_old);
+}
+
+function create_notif(tab, item, type)
+{
+  var date = new Date();
+  for (var i = 0; i < tab['notif'].length; i++)
+  {
+    if (type == null || type == tab['notif'][i]['type'] || tab['notif'][i]['type'] == 4 || tab['notif'][i]['type'] == 5)
+    {
+      var htmlcode = "";
+      var notif = document.createElement("a");
+      notif.setAttribute("href", escapeHTML("/matcha/lookat/"+tab['notif'][i]['login']));
+      if (tab['notif'][i]['new'] == "1")
+      {
+          notif.className = "collection-item avatar new_notif";
+          notif.addEventListener("mouseover", set_old);
+          notif.id_notif = tab['notif'][i]['id_notif'];
+      }
+      else
+          notif.className = "collection-item avatar old_notif";
+      if(tab['notif'][i]['profil_pict'] == "#")
+          htmlcode += "<img src=\"/matcha/app/css/image/Photo-non-disponible.png\" alt=\"\" class=\"circle\">";
+      else
+          htmlcode += "<img src=\""+tab['notif'][i]['profil_pict']+"\" alt=\"\" class=\"circle\">";
+      htmlcode += "<span class=\"title\">"+escapeHTML(tab['notif'][i]['login'])+"</span>";
+      if (tab['notif'][i]['type'] == 1)
+          htmlcode += "<p>Like</p>";
+      else if (tab['notif'][i]['type'] == 4)
+          htmlcode += "<p>Match</p>";
+      else if (tab['notif'][i]['type'] == 5)
+          htmlcode += "<p>Unlike</p>";
+      var test = document.createElement("p");
+      set_date(tab['notif'][i]['timeof'], test);
+      notif.innerHTML = htmlcode;
+      notif.appendChild(test);
+
+      if (!type)
+        item.appendChild(notif);
+      else
+        item.prepend(notif);
+    }
+  }
+}
+
+id_user = -1;
+
+function add_new_notif(item, off, type){
+  $.ajax({
+    url: '/matcha/last_notif',
+    type:'POST',
+    dataType:'json',
+    data: {
+      action:"getnewnotif",
+      offset:off
+    },
+    success: function(tab){
+      create_notif(tab, item, type);
+    }
+  })
+
+}
+
 function autonotif() {
   $.ajax({
       url: '/matcha/notif',
@@ -1006,28 +1131,77 @@ function autonotif() {
         id: id_user
       },
       success: function(data){
-        if ($("#notif"))
+        var notif_other_nb = $(document.getElementById("notif"));
+        if (notif_other_nb)
         {
-          if (data['nb_msg'] != 0 && msg_notif != data['nb_msg'])
-          {
-            if ($("#messages") == null)
-            {
-              if ((data['nb_msg'] - msg_notif) == 1)
-                Materialize.toast('Nouveau message !', 4000);
-              else
-                Materialize.toast((data['nb_msg'] - msg_notif)+' nouveaux messages !', 4000);
-            }
-            msg_notif = data['nb_msg'];
-          }
           if(data['nb_other'] != 0 ) {
-            $('#notif').html(data['nb_other']);
-            $('#notif').css('visibility', 'visible');
+            notif_other_nb.html(data['nb_other']);
+            notif_other_nb.css('visibility', 'visible');
+          }
+          else
+            notif_other_nb.html("0");
+        }
+        var msg_nb_notif = $(document.getElementById("msg_nbr"));
+        if (msg_nb_notif)
+        {
+          if(data['nb_msg'] != 0 ) {
+            msg_nb_notif.html(data['nb_msg']);
+            msg_nb_notif.css('visibility', 'visible');
+          }
+          else
+          {
+            msg_nb_notif.html("0");
           }
         }
-        if (data['msg']) {
-          for(i = 0; i < data['msg'].length; i++){
-            $("#messages").append("<li class=\"message left-align old\">"+escapeHTML(data['msg'][i]['content'])+"</li>");
+        if (document.getElementById("notif_container"))
+        {
+            document.getElementById("likebadge").innerHTML = data['nb_like'];
+            document.getElementById("visitesbadge").innerHTML = data['nb_visits'];
+        }
+        if (data['notif'].length != 0)
+        {
+          var li_like = document.getElementById("li_like");
+          if (li_like && li_like.className == "active")
+          {
+            var likz = document.getElementById("collection_like");
+            add_new_notif(likz, data['previous_off'], 1);
           }
+          var li_visit = document.getElementById("li_visit");
+          if (li_visit && li_visit.className == "active")
+          {
+            var visitz = document.getElementById("collection_visit");
+            add_new_notif(visitz, data['previous_off'], 2);
+          }
+          for (var i = 0; i < data['notif'].length; i++)
+          {
+            if(data['notif'][i]['type'] == 1)
+              Materialize.toast(data['notif'][i]['login']+" vous a like !", 3000);
+            else if(data['notif'][i]['type'] == 2)
+            {
+              if (data['notif'][i]['nb_notif'] > 1)   
+                Materialize.toast(data['notif'][i]['nb_notif']+" nouvelles visites par " + data['notif'][i]['login'], 3000);
+              else
+                Materialize.toast("Une nouvelle visite par " + data['notif'][i]['login'], 3000);
+            }
+            else if(data['notif'][i]['type'] == 3 && data['notif'][i]['id_user'] != id_user)
+            {
+              if (data['notif'][i]['nb_notif'] > 1)
+                Materialize.toast(data['notif'][i]['login']+" vous a envoyé "+data['notif'][i]['nb_notif']+" nouveaux messages", 3000);
+              else
+                Materialize.toast(data['notif'][i]['login']+" vous a envoyé un nouveau message", 3000);
+            }
+            else if(data['notif'][i]['type'] == 4)
+              Materialize.toast(data['notif'][i]['login']+" vous a match !", 3000);
+            else if(data['notif'][i]['type'] == 5)
+              Materialize.toast(data['notif'][i]['login']+" vous a unlike :(", 3000);
+          }
+        }
+        if (data['msg'] && data['msg'].length != 0) {
+          $(".notseen").removeClass("notseen").addClass("seen");
+          for(i = 0; i < data['msg'].length; i++){
+            $("#messages").append("<div class=\"message not_my_msg\"><li class=\"new_msg\" >"+escapeHTML(data['msg'][i]['content'])+"</li>");
+          }
+          $("#chat_msg").animate({ scrollTop: $("#chat_msg").height() }, 1000)
         }
       }
     });
