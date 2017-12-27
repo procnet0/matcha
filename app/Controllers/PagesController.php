@@ -25,7 +25,6 @@ class PagesController extends Controller{
       include_once ('Functions.php');
       $info = [];
       $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
-      $_SESSION['id'] = $info['profil']['id_user'];
       $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
       $this->render($response, 'pages/account.twig', $info);
     }
@@ -79,9 +78,10 @@ class PagesController extends Controller{
       if($result['name'] == True && $result['password'] == True )
       {
         $_SESSION['loggued_as'] = $param['name'];
+        $_SESSION['id'] = $result['id'];
         $_SESSION['Alert'] = "Connexion Succeeded";
         updateLocation($param,$pdo);
-          return $this->redirect($response ,'profil');
+          return $this->redirect($response ,'home');
       }
       else if($result['name'] != True)
       {

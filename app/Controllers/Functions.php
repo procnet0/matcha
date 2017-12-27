@@ -6,7 +6,7 @@ function checkForAccount($name, $password, $pdo) {
 
   try {
     $pdo->beginTransaction();
-    $sql = $pdo->prepare("SELECT login,password FROM members WHERE login = ?");
+    $sql = $pdo->prepare("SELECT id_user,login,password FROM members WHERE login = ?");
     $sql->bindParam(1, $name , PDO::PARAM_STR);
     $sql->execute();
     $result = $sql->fetch(PDO::FETCH_ASSOC);
@@ -22,7 +22,7 @@ function checkForAccount($name, $password, $pdo) {
 
   if(!empty($result['login']) && !empty($result['password']) && $rpwd == $result['password'])
   {
-    return ($result = array('name' => true, 'password' => true ));
+    return ($result = array('name' => true, 'password' => true , 'id' => $result['id_user']));
   }
   else if(!empty($result['login']) && !empty($result['password']) && $rpwd != $result['password'])
   {
@@ -949,6 +949,7 @@ function lookathim($login, $pdo) {
           $result['pictures'][$key] = 'app/css/image/Photo-non-disponible.png';
         }
       }
+
       $st = '2';
       $sql = $pdo->prepare("SELECT tags_members.id_tag, name_tag FROM tags_members LEFT JOIN tags ON tags.id_tag= tags_members.id_tag WHERE id_members = ?");
       $sql->bindParam(1, $id, PDO::PARAM_INT);
@@ -956,17 +957,21 @@ function lookathim($login, $pdo) {
       $tags = $sql->fetchall(PDO::FETCH_ASSOC);
       $result['tags'] = $tags;
 
+
+      $st = '3';
       $sql = $pdo->prepare("SELECT id_user, timeof, IF(timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected FROM ping WHERE id_user = ?");
       $sql->bindParam(1, $id, PDO::PARAM_INT);
       $sql->execute();
       $result['logs']= $sql->fetch(PDO::FETCH_ASSOC);
 
+      $st = '4';
       $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? AND type = 'auto' ORDER BY timeof DESC LIMIT 1");
       $sql->bindParam(1, $id, PDO::PARAM_INT);
       $sql->execute();
       $result['geoloc']= $sql->fetch(PDO::FETCH_ASSOC);
       $result['geoloc']['info'] = getAddrWithCoord($result['geoloc']['latitude'],$result['geoloc']['longitude']);
 
+      $st = '5';
       $sql = $pdo->prepare("SELECT latitude, longitude FROM geoloc WHERE geoloc.id_user = ? ORDER BY timeof DESC LIMIT 1");
       $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
       $sql->execute();
@@ -974,6 +979,7 @@ function lookathim($login, $pdo) {
 
       $result['score'] = getscore($id, $pdo);
 
+      $st = '6';
       $sql = $pdo->prepare("SELECT DISTINCT (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS toyou , (SELECT id_like FROM `likes` WHERE id_from = ? AND id_to = ? LIMIT 1) AS fromyou FROM likes");
       $sql->bindParam(1, $id, PDO::PARAM_INT);
       $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
@@ -982,6 +988,7 @@ function lookathim($login, $pdo) {
       $sql->execute();
       $result['likes'] = $sql->fetch(PDO::FETCH_ASSOC);
 
+      $st = '7';
       $sql = $pdo->query("SELECT get_distance_km(".$result['geoloc']['latitude'].",".$result['geoloc']['longitude'].",". $current['latitude'].",". $current['longitude'].") AS dist");
       $result['dist'] = $sql->fetch(PDO::FETCH_ASSOC);
       }
@@ -1478,8 +1485,8 @@ function RNewNotif($id, $pdo) {
   try {
     if ($id != "-1")
     {
-      $sql = $pdo->prepare("SELECT notification.new, notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages 
-      WHERE 
+      $sql = $pdo->prepare("SELECT notification.new, notification.id_notif, messages.content, notification.timeof FROM notification INNER JOIN messages
+      WHERE
         messages.id_msg = notification.id_item
         AND notification.type = 3
         AND (messages.id_from = ? AND messages.id_to = ?)
@@ -1505,9 +1512,9 @@ function RNewNotif($id, $pdo) {
       COUNT(IF(type != 3, 1, NULL)) as nb_other,
       COUNT(IF(type = 1 OR type = 5 OR type = 4, 1, NULL)) as nb_like,
       COUNT(IF(type = 2, 1, NULL)) as nb_visits
-      FROM notification 
-      WHERE 
-        id_user = ? 
+      FROM notification
+      WHERE
+        id_user = ?
         AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
@@ -1517,9 +1524,9 @@ function RNewNotif($id, $pdo) {
       COUNT(*) as nb_notif,
       members.login,
       notification.type
-      FROM notification 
+      FROM notification
       INNER JOIN members
-      WHERE 
+      WHERE
       	members.id_user = notification.id_from
         AND notification.id_notif > ?
         AND notification.id_user = ?
@@ -1547,9 +1554,9 @@ function newNotifAuto($pdo, $offset){
     notification.*,
     members.login,
     members.profil_pict
-    FROM notification 
+    FROM notification
     INNER JOIN members
-    WHERE 
+    WHERE
       members.id_user = notification.id_from
       AND notification.id_notif > ?
       AND notification.id_user = ?
