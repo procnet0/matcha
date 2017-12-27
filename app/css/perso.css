@@ -556,7 +556,8 @@ span.badge.new{
 .real_btn, .real_btn:focus
 {
   background-color: #3e0550;
-  width: fit-content;
+  width: 100%;
+  font-size:14px;
   padding: 0px 2px 0px 2px;
   opacity:0.8;
 }
@@ -849,4 +850,9 @@ span.badge.msg:after{
   position: relative;
 vertical-align: middle;
 display: inline-block;
+}
+
+.page-footer{
+  background-color: rgba(0, 173, 145, 0.541);
+  width:100%;
 }

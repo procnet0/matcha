@@ -12,6 +12,7 @@ $(document).ready(function()
             $("#profiles_small").hide();
             $("#messages_smallz").show();
             $("#hide_this").hide();
+            $("#notif_button_small").hide();
         }
         else
         {
@@ -148,6 +149,7 @@ $(document).ready(function()
     });
 
     $(".profil_list_user_small").each(function(){
+        
         $(this).click(function(){
             var id = $(this).data('id');
             select_user(id, 1);
@@ -158,6 +160,7 @@ $(document).ready(function()
         $("#messages_smallz").hide();
         $("#profiles_small").show();
         $("#hide_this").show();
+        $("#notif_button_small").show();
     })
 
     $("#form_messages_small").submit(function(ev){
@@ -251,7 +254,16 @@ $(document).ready(function()
         $("#notif_container").show();
     });
 
+    $("#notif_button_small").click(function(){
+        $(this).hide();
+        $("#profiles_small").hide();
+        $("#chat_container").hide();
+        $("#notif_container").show();
+    });
+    
     $("#chat_button").click(function(){
+        $("#profiles_small").show();        
+        $("#notif_button_small").show();
         $("#chat_container").show();
         $("#notif_container").hide();
     });
