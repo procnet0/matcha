@@ -3,14 +3,17 @@
 {% block content %}
 <div class="row">
   <div class="col s6">
+
+      <div class="profil_pict-container">
+      {% if profil_pict %}<img  class="profil_pict" src="/matcha/{{ profil_pict}}"> {% endif %}
       {% if logs %}
         {% if logs.connected == 'yes' %}
-          <i class='material-icons green-text absolute'>lens</i>
+          <i class='material-icons green-text status-icon'>lens</i>
         {% else %}
-          <i class='material-icons red-text absolute'>lens</i>
+          <i class='material-icons red-text status-icon'>lens</i>
         {% endif %}
       {% endif %}
-      {% if profil_pict %}<img  class="profil_pict" src="/matcha/{{ profil_pict}}"> {% endif %}
+      </div>
       {% if login %}
       <div  class="text-field">
         login : {{ login }}
@@ -29,16 +32,16 @@
       <button type="button" name="block" onclick="openblockpanel('{{ login }}', event)">block</button>
     {% endif %}
   </div>
-  <div class="col s4">
+  <div class="col offset-s2 s4">
       <div>
-        {% if nom %}<div  class="text-field">nom : {{ nom }}</div> {% endif %}
-        {% if prenom %}<div  class="text-field">prenom : {{ prenom }}</div> {% endif %}
-        {% if age %}<div  class="text-field">age : {{ age }}</div> {% endif %}
-        {% if sexe %}<div  class="text-field">sexe : {{ sexe }}</div> {% endif %}
-        {% if score %}<div  class="text-field">score : {{ score.result.score }}</div> {% endif %}
-        {% if oriented %}<div  class="text-field">orientation : {{ oriented }}</div> {% endif %}
+        {% if nom %}<div  class="text-field"> Nom : {{ nom }}</div> {% endif %}
+        {% if prenom %}<div  class="text-field"> Prenom : {{ prenom }}</div> {% endif %}
+        {% if age %}<div  class="text-field"> Age : {{ age }}</div> {% endif %}
+        {% if sexe %}<div  class="text-field"> Sexe : {{ sexe }}</div> {% endif %}
+        {% if score %}<div  class="text-field"> Score : {{ score.result.score }}</div> {% endif %}
+        {% if oriented %}<div  class="text-field"> Orientation : {{ oriented }}</div> {% endif %}
         {% if logs and logs.connect != 'yes' %}
-      <div  class="text-field" id="lastlog">last log :
+      <div  class="text-field" id="lastlog">Last log :
         <div id="timeago">
           {% if logs.year %}{{ logs.year }}y {% endif %}
           {% if logs.month %}{{ logs.month }}m {% endif %}
@@ -56,10 +59,6 @@
 
     </div>
   </div>
-    <div class="col s2" id="mini-menu" >
-        <button type="button" class="round centeritem" onclick="sendmsg('{% if login %}{{ login }}{% endif %}', event)"><i class='material-icons black-text'>comment</i></button>
-
-  </div>
 </div>
 <div class="col s12">
   {% if pictures %}
@@ -72,8 +71,8 @@
 </div>
 <div class="row">
   <div class="col s6">
-    <div  class="text-field big">bio :{% if bio %} {{ bio }} {% endif %}</div>
-    <div class="tag-field">tags :
+    <div  class="text-field big">Bio :{% if bio %} {{ bio }} {% endif %}</div>
+    <div class="tag-field">Tags :
       {% if tags %}
         {% for elem in tags %}
           <div class="chip">
@@ -84,8 +83,8 @@
      </div>
   </div>
   <div class="col s6">
-    <div class="text-field">distance :{% if dist.dist %} {{ dist.dist }} km {% endif %}</div>
-    <div class="text-field">location :{% if geoloc %} {{ geoloc.info.address_components.3.short_name }}  {% endif %}</div>
+    <div class="text-field">Distance :{% if dist.dist %} {{ dist.dist }} km {% endif %}</div>
+    <div class="text-field">Location :{% if geoloc %} {{ geoloc.info.address_components.3.short_name }}  {% endif %}</div>
   </div>
 </div>
 {% endblock %}
