@@ -155,11 +155,12 @@ class Validator {
       }
       if($name == 'birthday') {
         if($this->isbirthday($value)) {
-          $return['status'] = true;
+          $this->return['status'] = true;
+
         }
         else {
-          $return['status'] = false;
-          $return['error'] = 'Wrong Format for your birthday';
+          $this->return['status'] = false;
+          $this->return['error'] = 'Wrong Format for your birthday';
         }
       }
     }
