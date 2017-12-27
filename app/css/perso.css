@@ -833,7 +833,8 @@ span.badge.msg:after{
 
 .UserVignet {
   margin-right: 10px !important;
-  border-width: medium;
+  border-width: 2px;
+  border-radius: 3px;
   border-style: dotted;
 }
 
@@ -851,7 +852,12 @@ vertical-align: middle;
 display: inline-block;
 }
 
-.page-footer{
-  background-color: rgba(0, 173, 145, 0.541);
-  width:100%;
+.UserVignet:hover{
+  border:2px solid #2b363a;
+  background-color: #ffffff2b;
+}
+
+.user_container{
+  width: 100%;
+  display:inline-block;
 }
