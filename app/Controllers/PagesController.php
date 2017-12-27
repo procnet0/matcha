@@ -106,7 +106,7 @@ class PagesController extends Controller{
   }
 
   public function getMember(Request $request, Response $response , $info) {
-      if(isset($info))
+      if(isset($info) && !empty($info))
     {
       $_SESSION['Alert'] = $info['Alert'] ? $info['Alert'] : [];
     }
@@ -118,6 +118,8 @@ class PagesController extends Controller{
     include_once ('Functions.php');
     $params = $request->getParams();
     $errors = [];
+
+
 
     $Validator = new Validator();
     if($Validator->validate('email',$request->getParam('email')) != true) {

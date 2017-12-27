@@ -758,7 +758,7 @@ function startsearch(status) {
           else {
             connect = "<i class='material-icons red-text'>lens</i>";
           }
-          newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"  data="'+ tag +'"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></a></div>";
+          newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='user_container'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"  data="'+ tag +'"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></div></a></div>";
           numtmp += 1;
           resultzone.appendChild(newelem);
           ordertab.push(newelem);
@@ -812,7 +812,7 @@ function infiniteScroll() {
                else {
                  connect = "<i class='material-icons red-text'>lens</i>";
                }
-               newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags" data="' + tag + '"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></a></div>";
+               newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='user_container'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags" data="' + tag + '"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></div></a></div>";
 
                resultzone.appendChild(newelem);
                if(triator['order'] === undefined && triator['by'] === undefined)
@@ -1033,7 +1033,7 @@ function set_old(evt)
         function (text){
             if (text == "ok")
             {
-              real.className = "collection-item avatar old_notif";   
+              real.className = "collection-item avatar old_notif";
             }
             else
               alert("Problem with post return Error:"+text);
