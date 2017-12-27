@@ -179,7 +179,7 @@ position: absolute;
 }
 
 #maincontainer {
-  max-height: 700px;
+  max-height: 58vh;
   padding-left: 25px;
   padding-right: 25px;
   overflow: auto;
@@ -833,4 +833,18 @@ span.badge.msg:after{
   margin-right: 10px !important;
   border-width: medium;
   border-style: dotted;
+}
+
+.status-icon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 30px;
+  width: 30px;
+}
+
+.profil_pict-container {
+  position: relative;
+vertical-align: middle;
+display: inline-block;
 }
