@@ -7,28 +7,39 @@ $(document).ready(function()
     {
         if(is_small == 1)
         {
+            var profil_info = $("#current_profil_info_small"), profil_name = $("#profil_name_small"), profil_image = $("#profil_image_small"), profil_link = $("#profil_link_small"), form_block = $("#form_block_small"), chat_msg = $("#chat_msg_small");
+            var next = $("#next_small"), text_content = $("#text_content_small"), user_id = $("#user_id_small"), messages = $("#messages_small");
             $("#profiles_small").hide();
-            $("#messages_small").show();
+            $("#messages_smallz").show();
             $("#hide_this").hide();
+        }
+        else
+        {
+            var profil_info = $("#current_profil_info"), profil_name = $("#profil_name"), profil_image = $("#profil_image"), profil_link = $("#profil_link"), form_block = $("#form_block"), chat_msg = $("#chat_msg");
+            var next = $("#next"), text_content = $("#text_content"), user_id = $("#user_id"), messages = $("#messages");
         }
         for(var i = 0; i < data.length; i++)
         {
             if (data[i]['id'] == id)
             {
                 id_user = id;
-                $("#current_profil_info").find(".default_profil_info").hide();
-                document.getElementById("current_profil_info").className = "current_profil";
-                $("#profil_name, #profil_image, #profil_link, #form_block, #chat_msg").show();
-                $("#profil_name").children("p").html(data[i]['login']);
-                $("#next").html("Afficher les prochains messages");
-                $("#text_content").css("border", "2px solid black");
+                profil_info.find(".default_profil_info").hide();
+                profil_name.show();
+                profil_image.show();
+                profil_link.show();
+                form_block.show();
+                chat_msg.show();
+                profil_name.children("p").html(data[i]['login']);
+                next.html("Afficher les prochains messages");
+                text_content.css("border", "2px solid black");
+                if(document.getElementById("current_profil_info")) document.getElementById("current_profil_info").className = "current_profil";
                 if (data[i]['profil_pict'] == "#")
-                    $("#profil_image").children("img").attr("src", "/matcha/app/css/image/Photo-non-disponible.png");
+                    profil_image.children("img").attr("src", "/matcha/app/css/image/Photo-non-disponible.png");
                 else
-                    $("#profil_image").children("img").attr("src", data[i]['profil_pict']);
-                $("#profil_link").children("a").attr("href", "/matcha/lookat/"+encodeURI(data[i]['login']));
-                $("#user_id").attr("value", id);
-                document.getElementById("messages").innerHTML = "";
+                    profil_image.children("img").attr("src", data[i]['profil_pict']);
+                profil_link.children("a").attr("href", "/matcha/lookat/"+encodeURI(data[i]['login']));
+                user_id.attr("value", id);
+                messages.html("");
                 loaded = 0;
                 $.ajax({
                     url: 'msglist',
@@ -39,7 +50,6 @@ $(document).ready(function()
                     },
                     dataType: 'json',
                     success: function (tab, status){
-                        console.log(tab['status']);
                         if (tab['status'] == "OK")
                         {
                             loaded = loaded + tab['msg'].length;
@@ -63,18 +73,18 @@ $(document).ready(function()
                                     else
                                         isnew = "old_msg";
                                 }
-                                $("#messages").prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li></div>");
+                                messages.prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li></div>");
                             }
-                            $("#chat_msg").animate({ scrollTop: $("#messages").height() }, 1000);
+                            chat_msg.animate({ scrollTop: messages.height() }, 1000);
                         }
                     },
                     error: function (msg){
-                        console.log("Error messages" + msg);
+                        alert("Error : "+msg);
                     }
                 });
-                $("#next").off("click");
+                next.off("click");
                 $count = 0;
-                $("#next").on("click", function(){
+                next.on("click", function(){
                     if (loaded != $count)
                     {
                         $.ajax({
@@ -111,12 +121,12 @@ $(document).ready(function()
                                                 else
                                                     isnew = "old_msg";
                                             }
-                                            $("#messages").prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li>");
+                                            messages.prepend("<div class=\"message "+rl+"\"><li class=\""+isnew+"\" >"+escapeHTML(tab['msg'][i]['content'])+"</li>");
                                         }
                                     }
                                     loaded = loaded+tab['msg'].length;
                                     if (loaded == tab['counter'])
-                                        $("#next").html("Tout les messages ont été chargés");
+                                        next.html("Tout les messages ont été chargés");
                                 }
                             },
                             error: function (msg){
@@ -145,10 +155,53 @@ $(document).ready(function()
     });
 
     $("#return_to_list").click(function(){
-        $("#messages_small").hide();
+        $("#messages_smallz").hide();
         $("#profiles_small").show();
         $("#hide_this").show();
     })
+
+    $("#form_messages_small").submit(function(ev){
+        var txt = $("#text_content_small");
+        var user_id = $("#user_id_small");
+        txt.css("border", "2px solid black");
+        if (txt.val() == "" || user_id.val() == "")
+            txt.css("border", "2px solid red");
+        else
+        {
+            $.ajax({
+                url: 'messenger',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    id: user_id.val(),
+                    content: txt.val()
+                },
+                success: function(tab, status){
+                    $(".new_msg").removeClass("new_msg").addClass("old_msg");
+                    var msg = $(document.getElementById("messages_small"));
+                    if(tab['error'] == "Message is empty")
+                    {
+                        console.log("Le message est vide");
+                    }
+                    else if (tab['status'] != "OK")
+                    {
+                        msg.append("<div class=\"message my_msg\"><li class=\"notseen\" >Erreur lors de l'envoi du messages, veuillez actualiser la page <br/ >erreur :"+tab['status']+"</li>");
+                    }
+                    else if (tab['error'] != "NO")
+                    {
+                        alert("Blocked");
+                    }
+                    else
+                    {
+                        msg.append("<div class=\"message my_msg\"><li class=\"notseen\" >"+escapeHTML(tab['content'])+"</li>");
+                    }
+                    $("#chat_msg_small").animate({ scrollTop: $("#messages_small").height() }, 1000);
+                }
+            });
+            txt.val("");
+        }
+        ev.preventDefault();
+    });
 
     $("#form_messages").submit(function(ev){
         var txt = $("#text_content");
@@ -171,7 +224,7 @@ $(document).ready(function()
                     var msg = $(document.getElementById("messages"));
                     if(tab['error'] == "Message is empty")
                     {
-                        alert("Le message est vide");
+                        console.log("Le message est vide");
                     }
                     else if (tab['status'] != "OK")
                     {
@@ -307,7 +360,7 @@ $(document).ready(function()
                         like_done = 1;
                 },
                 error: function(res, status, error){
-                    console.log(error);
+                    console.log("Error "+error);
                 }
             });
             count_like += 10;

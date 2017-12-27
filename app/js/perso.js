@@ -82,7 +82,6 @@ function setAsProfil(ev) {
         {
             document.getElementById('pict_selector').parentElement.appendChild(div);
         }}};
-        console.log(link);
     xhr.open("POST", "setAsProfil", true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send("profil_pict="+ encodeURIComponent(link));
@@ -114,7 +113,6 @@ function AddOrChangePicture(ev) {
       var xhr = new XMLHttpRequest();
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-          //console.log(xhr.responseText);
           var data = JSON.parse(xhr.responseText);
           if(data['status'] != "Invalid file.") {
 
@@ -198,7 +196,7 @@ function OpenTagMenu() {
       var acnl = document.getElementById('active-tag').childNodes;
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
-      if (xhr2.readyState == 4 && (xhr2.status == 200 || xhr2.status == 0)) {
+      if (xhr2.readyState == 4 && (xhr2.status != 200 && xhr2.status != 0)) {
         console.log(JSON.parse(xhr2.responseText));
       }};
 
@@ -255,7 +253,6 @@ function OpenTagMenu() {
       dat['active'].forEach(function (item, index) {
         activetag.innerHTML = activetag.innerHTML + "<div class='tagitem chip' id='tagitem"+item['id_tag']+"'>"+item['name_tag']+"<i class='material-icons'></i></div>"
       });}
-      console.log(dat['taglist']);
       str = '{';
       dat['taglist'].forEach(function (item, index) {
         str += '"' + item['name_tag'] + '" : null ,';
@@ -342,9 +339,8 @@ function updateLocation() {
    }
    var xhr = new XMLHttpRequest();
    xhr.onreadystatechange = function() {
-     if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+     if (xhr.readyState == 4 && (xhr.status != 200 && xhr.status != 0)) {
        var data = xhr.responseText;
-       //var data = JSON.parse(xhr.responseText);
        console.log(data);
      }
    }
@@ -353,11 +349,9 @@ function updateLocation() {
 
     if(input !== 'undefined') {
      xhr.send("input="+ encodeURIComponent(input));
-     console.log(input);
     }
     else if(data !== 'undefined') {
       xhr.send("lng="+ encodeURIComponent(data['longitude']) + "&lat="+ encodeURIComponent(data['latitude']));
-      console.log(data);
     }
  }
 
@@ -471,7 +465,6 @@ function supprelem(item,val,ev) {
   if( index !== -1) {
     tagarray.splice(index, 1);
   }
-  console.log('value = '+val+ ' index ='+ index);
 }
 
 function manageactivity(name_tag, ev) {
@@ -741,7 +734,6 @@ function startsearch(status) {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
         var data = JSON.parse(xhr.responseText);
-        //console.log(data);
         var num = extracted;
         var numtmp = 0;
         var connect = '';
@@ -834,7 +826,6 @@ function infiniteScroll() {
             }
              if(triator['order'] !== undefined && triator['by'] !== undefined)
              {
-               console.log(ordertab);
                $(ordertab).remove();
                if(triator['by'] === '+') {
                $(ordertab).each(function(key,elem) {$(resultzone).append(elem);});
@@ -866,7 +857,6 @@ function likeuser(login, ev) {
  xhr.onreadystatechange = function() {
     if(xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
       var data = JSON.parse(xhr.responseText);
-      console.log(data);
       var loveshower = document.getElementById('love');
       if(data['likes']){
         if(data['likes']['toyou'] && data['likes']['fromyou']){
@@ -916,7 +906,6 @@ function blockuser(login,ev) {
 }
 
 function openblockpanel(login,ev) {
-   console.log(login);
   if(!document.getElementById('block-menu')) {
     var contextmenu = document.createElement('DIV');
     contextmenu.setAttribute('id', 'block-menu');
@@ -973,10 +962,6 @@ function reportuser(login, ev) {
   }
 }
 
-function sendmsg(login, ev) {
-  console.log (login);
-}
-
 function openblockmanager(ev) {
   var menucontext2 = document.createElement('DIV');
   var mainbox = document.getElementsByTagName('main');
@@ -1010,7 +995,6 @@ function openblockmanager(ev) {
   xhr.onreadystatechange = function() {
     if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
       var data = JSON.parse(xhr.responseText);
-    console.log(data);
     var listfield = document.getElementById('listcontainer');
 
     if(undefined === data['error'] && listfield)
@@ -1023,7 +1007,7 @@ function openblockmanager(ev) {
 
       suppr.addEventListener('click', function(ev) {
         var xhr = new XMLHttpRequest();
-        if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
+        if (xhr.readyState == 4 && (xhr.status != 200 && xhr.status != 0)) {
           console.log(JSON.parse(xhr.responseText)['STATUS']);
         }
         xhr.open("POST", "removeblock", true);
@@ -1042,7 +1026,6 @@ function openblockmanager(ev) {
 
 function set_old(evt)
 {
-    //console.log(evt.currentTarget);
     var real = evt.currentTarget;
     $.post(
         'set_new_to_old',
@@ -1050,12 +1033,10 @@ function set_old(evt)
         function (text){
             if (text == "ok")
             {
-                console.log(real);
-                real.className = "collection-item avatar old_notif";
-
+              real.className = "collection-item avatar old_notif";   
             }
             else
-                console.log(text);
+              alert("Problem with post return Error:"+text);
         },
         'text'
     );
