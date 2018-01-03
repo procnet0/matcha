@@ -401,6 +401,10 @@ class PagesController extends Controller{
       if(empty($info['content'])) {
         $ret['error'] = 'Message is empty';
       }
+      else if (mb_strlen($info['content']) >= 4000)
+      {
+        $ret['error'] = "Message trop long";
+      }
       else {
       $pdo = $this->pdo;
         include_once ('Functions.php');
