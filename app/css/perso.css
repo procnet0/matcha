@@ -698,7 +698,7 @@ span.badge.new{
 #sidebar {
   position: fixed;
 height: 100%;
-width: 30px;
+width: 48px;
 background-color: rgba(0,0,0,0.6);
 left: 0px;
 top: 0px;
@@ -865,6 +865,26 @@ display: inline-block;
 .user_container{
   width: 100%;
   display:inline-block;
+}
+
+.sidebar_style
+{
+  width: 30px;
+  font-size: 30px;
+  word-wrap: break-word;
+  margin: auto;
+  top: 0;
+  position: absolute;
+  color: white;
+  font-family: Northwood;
+  height: 175px;
+  bottom: 0;
+  left: 0px;
+}
+
+.triangle{
+  left: 10px;
+  height: 56px;
 }
 
 .alert  {

@@ -1263,6 +1263,17 @@ function SetNavBar(type) {
       var sidebar = document.createElement('div');
       sidebar.setAttribute('data-activates', 'slide-out');
       sidebar.setAttribute('id','sidebar');
+      
+      var menutxt = document.createElement("span");
+      menutxt.setAttribute("class", "sidebar_style");
+      menutxt.innerHTML = "MENU";
+
+      var triangle = document.createElement("span");
+      triangle.setAttribute("class", "sidebar_style triangle");
+      triangle.innerHTML = "<i class=\"medium material-icons\">chevron_right</i>";
+
+      sidebar.append(menutxt);
+      sidebar.append(triangle);
 
       var sidenav = document.createElement('div');
       sidenav.setAttribute('class', 'side-nav');
