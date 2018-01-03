@@ -8,19 +8,19 @@
       <div class="row">
 
       <div class="input-field col s6">
-        <input type="text" class="form-control" name="nom" id="nom" value="{% if profil.nom %}{{ profil.nom }}{% endif %}">
+        <input type="text" class="form-control" name="nom" id="nom" data-length="64" maxlength="64" value="{% if profil.nom %}{{ profil.nom }}{% endif %}">
         <label class="scrib black-text" for="nom"> Votre nom </label>
       </div>
 
       <div class="input-field col s6">
-        <input type="text" class="form-control" name="prenom" id="prenom" value="{% if profil.prenom %}{{ profil.prenom }}{% endif %}">
+        <input type="text" class="form-control" name="prenom" id="prenom" data-length="64" maxlength="64" value="{% if profil.prenom %}{{ profil.prenom }}{% endif %}">
         <label class="scrib black-text" for="nom"> Votre prenom </label>
       </div>
     </div>
 
     <div class="row">
       <div class="input-field col s6">
-        <input type="text" class="form-control" name="email" id="email" value="{% if profil.email %}{{ profil.email }}{% endif %}">
+        <input type="text" class="form-control" name="email" id="email" maxlength="100" data-length="100" value="{% if profil.email %}{{ profil.email }}{% endif %}">
         <label class="scrib black-text" for="email"> Votre email </label>
       </div>
       <div class="input-field col s6">
@@ -53,7 +53,7 @@
 
       <div class="row">
 
-        <div class="input-field col s6 m6 l6 verticalparcho">
+        <div class="input-field col s12 m6 l6 verticalparcho">
         <select  name="gender" id="gender">
           <option value="" disabled></option>
           <option value="male" {% if profil.sexe == 'male' %}selected{% endif %} >Male</option>
@@ -64,7 +64,7 @@
         <label class="scrib black-text" for="gender"> Votre sexe</label>
       </div>
 
-      <div class="input-field col s6 m6 l6 verticalparcho">
+      <div class="input-field col s12 m6 l6 verticalparcho">
         <select  name="oriented" id="oriented">
           <option value="" disabled></option>
           <option value="hetero" {% if profil.oriented == 'hetero' %}selected{% endif %} >Heterosexuel</option>
@@ -78,21 +78,30 @@
 
     <div class="row">
 
-      <div class="input-field col s8 m8 l8">
-        <input type="text" class="form-control" name="bio" id="bio" value="{% if profil.bio %}{{ profil.bio }}{% endif %}">
+      <div class="input-field col s12 m8 l8">
+        <input type="text" class="form-control" name="bio" id="bio" maxlength="160" data-length="160" value="{% if profil.bio %}{{ profil.bio }}{% endif %}">
         <label class="scrib black-text" for="bio"> Votre bio</label>
+        {% if flash.error.bio %}
+         <div class="alert">
+           {{ flash.error.bio }}
+         </div>
+        {% endif %}
       </div>
-      <div class="input-field col s4 m4 l4">
+      <div class="input-field col s12 m4 l4">
         <input type="text" class="form-control" name="geoloc" id="geoloc" value="{% if geo.formatted_address %}{{ geo.formatted_address }}{% endif %}">
           <label class="scrib black-text" for="geoloc"> Localisation</label>
         <button type="button" class="geoloc" id="geolocSender" onclick="updateLocation()">Set new location</button>
       </div>
     </div>
-      <button type="submit" class="btn btn-primary" name="action">Save change
-        <i class="material-icons right">send</i>
+      <button type="submit" class="btn btn-primary btn-retail" name="action">Save change
       </button>
 
     </fieldset>
   </form>
+  <script>
+  $(document).ready(function() {
+    $('input#bio ,input#nom , input#prenom, input#email').characterCounter();
+  });
+  </script>
 </div>
 {% endblock %}

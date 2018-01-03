@@ -49,19 +49,20 @@ class PagesController extends Controller{
       $errors['nom'] = $Validator->returner('error');}
       if($Validator->validate('content',$request->getParam('prenom')) != true) {
       $errors['prenom'] = $Validator->returner('error');}
+      if($Validator->validate('bio',$request->getParam('bio')) != true) {
+      $errors['bio'] = $Validator->returner('error');}
       $value = $request->getParsedBody();
 
       if(empty($errors) && !empty($value)) {
           updateAccountInfo($_SESSION['loggued_as'],$value,$pdo);
-         $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
       }
       else {
-        $info['profil'] = getAccountInfo($_SESSION['loggued_as'], $pdo);
+        $this->flash($errors, 'error');
       }
-      $info['geo'] = getAddrWithCoord($info['profil']['latitude'], $info['profil']['longitude']);
-      $this->render($response, 'pages/account.twig', $info);
+      return $this->redirect($response, 'profil');
     }
     else {
+
       return $this->redirect($response, 'home');
     }
   }
@@ -106,7 +107,7 @@ class PagesController extends Controller{
   }
 
   public function getMember(Request $request, Response $response , $info) {
-      if(isset($info))
+      if(isset($info) && !empty($info))
     {
       $_SESSION['Alert'] = $info['Alert'] ? $info['Alert'] : [];
     }
@@ -118,6 +119,8 @@ class PagesController extends Controller{
     include_once ('Functions.php');
     $params = $request->getParams();
     $errors = [];
+
+
 
     $Validator = new Validator();
     if($Validator->validate('email',$request->getParam('email')) != true) {
@@ -226,13 +229,16 @@ class PagesController extends Controller{
   public function updateTagInfo(Request $request, Response $response) {
     $subject = $request->getParam('subject');
     $active = json_decode($request->getParam('activeTag'), true);
-    $error = [];
-    $x = 0;
+    var_dump($active);
     foreach($active as $key => $value)
     {
       $active[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
+      if(!preg_match('/^[a-zA-Z0-9]{1,7}$/',$value['name'])) {
+        unset($active[$key]);
+      }
     }
-    if(isset($subject) && $subject = 'tagupdt' && empty($error))
+    var_dump($active);
+    if(isset($subject) && $subject = 'tagupdt')
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');

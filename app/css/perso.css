@@ -170,7 +170,8 @@ background-color: lightgrey;
 color: black;
 cursor: pointer;
 margin: 0;
-position: absolute;
+position: relative;
+display: block;
 }
 
 @-webkit-keyframes FadeIn {
@@ -182,7 +183,8 @@ position: absolute;
   max-height: 58vh;
   padding-left: 25px;
   padding-right: 25px;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: visible;
   -webkit-animation-name: FadeIn;
   -webkit-animation-duration: 2s;
   -webkit-animation-iteration-count: 1;
@@ -216,6 +218,7 @@ div.bot-divcont {
 
 
 .tagitem {
+  overflow: hidden;
 width: 75px;
 height: 50px;
 border-radius: 50%;
@@ -374,6 +377,7 @@ div.miniProfilPict {
 }
 
 #report-menu {
+  z-index: 1;
   width: 250px;
   height: 250px;
   border-radius: 50%;
@@ -413,6 +417,7 @@ div.miniProfilPict {
 }
 
 #block-menu {
+    z-index: 1;
   left: 25%;
   width: 250px;
   height: 250px;
@@ -693,7 +698,7 @@ span.badge.new{
 #sidebar {
   position: fixed;
 height: 100%;
-width: 30px;
+width: 48px;
 background-color: rgba(0,0,0,0.6);
 left: 0px;
 top: 0px;
@@ -860,4 +865,38 @@ display: inline-block;
 .user_container{
   width: 100%;
   display:inline-block;
+}
+
+.sidebar_style
+{
+  width: 30px;
+  font-size: 30px;
+  word-wrap: break-word;
+  margin: auto;
+  top: 0;
+  position: absolute;
+  color: white;
+  font-family: Northwood;
+  height: 175px;
+  bottom: 0;
+  left: 0px;
+}
+
+.triangle{
+  left: 10px;
+  height: 56px;
+}
+
+.alert  {
+  color: red;
+}
+
+.tagalert {
+  bottom: 25%;
+  position: absolute;
+}
+
+.btn-retail {
+  min-width: 140px;
+  padding : 0 1rem;
 }

@@ -153,6 +153,34 @@ function addEventListenerByClass(className, event, fn) {
     }
 }
 
+function IsValidTagName(name) {
+  var result = [];
+  result['status'] = false;
+  result['error'] = '';
+  var size = false;
+  var content = false;
+  var regex = /^[a-z0-9]+$/i;
+
+  if(regex.test(name) == true) {
+    content = true;
+  }
+  else {
+    result['error'] = 'Only Letters and/or numbers.';
+  }
+
+  if(name.length <= 7) {
+    size = true;
+  }
+  else {
+    result['error'] += 'Actual length is ' + name.length + ' max is 7.';
+  }
+  if( size == true && content == true)
+  {
+    result['status'] = true;
+  }
+  return  result;
+}
+
 function OpenTagMenu() {
 
   var menucontext = document.createElement('DIV');
@@ -208,6 +236,7 @@ function OpenTagMenu() {
         }
         actives.push({id_tag:acnl[i].id, name: acnl[i].innerText});
       }
+      console.log(actives);
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr2.send("subject=tagupdt&activeTag=" + encodeURIComponent(JSON.stringify(actives)));
@@ -225,11 +254,21 @@ function OpenTagMenu() {
     sender.innerHTML = 'send';
     sender.addEventListener("click", function() {
       var val = document.getElementById('autocomplete-input').value;
-      var newtag = document.createElement('DIV');
-      newtag.className = 'tagitem chip';
-      newtag.id = 'tagitem';
-      newtag.innerHTML = val+"<i class='material-icons'></i>";
-      document.getElementById('active-tag').append(newtag);
+      var result = IsValidTagName(val);
+      if(result['status'] == true) {
+        var newtag = document.createElement('DIV');
+        newtag.className = 'tagitem chip';
+        newtag.id = 'tagitem';
+        newtag.innerHTML = val+"<i class='material-icons'></i>";
+        document.getElementById('active-tag').append(newtag);
+      }
+      else {
+        var newerror = document.createElement('DIV');
+        newerror.className = 'alert tagalert offset-s3 col s6';
+        newerror.innerHTML = result['error'];
+        document.getElementById('active-tag').append(newerror);
+        $(newerror).delay(3000).hide("fast",function(){$(newerror).remove()});
+      }
     });
   divcont.append(sender);
 
@@ -758,7 +797,7 @@ function startsearch(status) {
           else {
             connect = "<i class='material-icons red-text'>lens</i>";
           }
-          newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"  data="'+ tag +'"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></a></div>";
+          newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='user_container'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags"  data="'+ tag +'"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></div></a></div>";
           numtmp += 1;
           resultzone.appendChild(newelem);
           ordertab.push(newelem);
@@ -812,7 +851,7 @@ function infiniteScroll() {
                else {
                  connect = "<i class='material-icons red-text'>lens</i>";
                }
-               newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags" data="' + tag + '"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></a></div>";
+               newelem.innerHTML = "<div class='row UserVignet' id='row"+num+"'><a href='/matcha/lookat/"+data['result'][numtmp]['login']+"'><div class='user_container'><div class='col s2 miniProfilPict'><img src='"+data['result'][numtmp]['profil_pict']+"' class='miniProfilPict'><div class='flex'><p class='nameContainer'>"+data['result'][numtmp]['prenom']+" "+data['result'][numtmp]['nom'].substring(0,1)+". </p>"+connect+"</div></div><div class='col s2 col-age'>"+data['result'][numtmp]['age']+" </div><div class='col s2 col-km'>"+ data['result'][numtmp]['dist']+'</div><div class="col s2 col-score">'+ data['result'][numtmp]['score']+'</div><div class="col s1 col-tags" data="' + tag + '"> '+ data['result'][numtmp]['nb'] +"</div><div class='col s1'></div></div></a></div>";
 
                resultzone.appendChild(newelem);
                if(triator['order'] === undefined && triator['by'] === undefined)
@@ -1033,7 +1072,7 @@ function set_old(evt)
         function (text){
             if (text == "ok")
             {
-              real.className = "collection-item avatar old_notif";   
+              real.className = "collection-item avatar old_notif";
             }
             else
               alert("Problem with post return Error:"+text);
@@ -1043,7 +1082,7 @@ function set_old(evt)
     real.removeEventListener("mouseover", set_old);
 }
 
-function create_notif(tab, item, type)
+function create_notif(tab, item, str, type)
 {
   var date = new Date();
   for (var i = 0; i < tab['notif'].length; i++)
@@ -1076,10 +1115,9 @@ function create_notif(tab, item, type)
       set_date(tab['notif'][i]['timeof'], test);
       notif.innerHTML = htmlcode;
       notif.appendChild(test);
-
-      if (!type)
+      if (str == "append")
         item.appendChild(notif);
-      else
+      else if (str == "prepend")
         item.prepend(notif);
     }
   }
@@ -1097,7 +1135,7 @@ function add_new_notif(item, off, type){
       offset:off
     },
     success: function(tab){
-      create_notif(tab, item, type);
+      create_notif(tab, item, "prepend", type);
     }
   })
 
@@ -1224,6 +1262,17 @@ function SetNavBar(type) {
       var sidebar = document.createElement('div');
       sidebar.setAttribute('data-activates', 'slide-out');
       sidebar.setAttribute('id','sidebar');
+      
+      var menutxt = document.createElement("span");
+      menutxt.setAttribute("class", "sidebar_style");
+      menutxt.innerHTML = "MENU";
+
+      var triangle = document.createElement("span");
+      triangle.setAttribute("class", "sidebar_style triangle");
+      triangle.innerHTML = "<i class=\"medium material-icons\">chevron_right</i>";
+
+      sidebar.append(menutxt);
+      sidebar.append(triangle);
 
       var sidenav = document.createElement('div');
       sidenav.setAttribute('class', 'side-nav');
