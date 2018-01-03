@@ -1043,7 +1043,7 @@ function set_old(evt)
     real.removeEventListener("mouseover", set_old);
 }
 
-function create_notif(tab, item, type)
+function create_notif(tab, item, str, type)
 {
   var date = new Date();
   for (var i = 0; i < tab['notif'].length; i++)
@@ -1076,10 +1076,9 @@ function create_notif(tab, item, type)
       set_date(tab['notif'][i]['timeof'], test);
       notif.innerHTML = htmlcode;
       notif.appendChild(test);
-
-      if (!type)
+      if (str == "append")
         item.appendChild(notif);
-      else
+      else if (str == "prepend")
         item.prepend(notif);
     }
   }
@@ -1097,7 +1096,7 @@ function add_new_notif(item, off, type){
       offset:off
     },
     success: function(tab){
-      create_notif(tab, item, type);
+      create_notif(tab, item, "prepend", type);
     }
   })
 

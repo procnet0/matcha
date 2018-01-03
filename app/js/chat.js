@@ -282,7 +282,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var likz = document.getElementById("collection_like");
-                        create_notif(tab, likz);
+                        create_notif(tab, likz, "append");
                     }
                 },
                 error: function(res, status, error){
@@ -306,7 +306,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var visitz = document.getElementById("collection_visit");
-                        create_notif(tab, visitz);
+                        create_notif(tab, visitz, "append");
                     }
                 },
                 error: function(res, status, error){
@@ -335,7 +335,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var visitz = document.getElementById("collection_visit");
-                        create_notif(tab, visitz);
+                        create_notif(tab, visitz, "prepend");
                     }
                     if (tab['notif'].length == 0)
                         visite_done = 1;
@@ -366,7 +366,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var likz = document.getElementById("collection_like");
-                        create_notif(tab, likz);
+                        create_notif(tab, likz, "prepend");
                     }
                     if (tab['notif'].length == 0)
                         like_done = 1;
