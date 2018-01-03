@@ -6,7 +6,7 @@ function checkForAccount($name, $password, $pdo) {
 
   try {
     $pdo->beginTransaction();
-    $sql = $pdo->prepare("SELECT id_user,login,password FROM members WHERE login = ?");
+    $sql = $pdo->prepare("SELECT id_user,login,password FROM members WHERE BINARY login = ?");
     $sql->bindParam(1, $name , PDO::PARAM_STR);
     $sql->execute();
     $result = $sql->fetch(PDO::FETCH_ASSOC);
@@ -206,6 +206,7 @@ function updatePict($data, $pdo) {
 
   if($result && $result['login'] == $_SESSION['loggued_as'])
   {
+
     try {
       $pdo->beginTransaction();
       $sql = $pdo->prepare("UPDATE members SET profil_pict = ?  WHERE login = ? ");
@@ -213,13 +214,14 @@ function updatePict($data, $pdo) {
       $sql->bindParam(2, $result['login'] , PDO::PARAM_STR);
       $sql->execute();
       $pdo->commit();
+        return true;
     } catch (PDOException $e) {
       $pdo->rollBack();
       print "Error!: DATABASE Profilpict Update-> " . $e->getMessage() . " FAILED TO UPDATE<br/>";
       die();
     }
   }
-  return true;
+  return false;
 }
 
 // ajoute (<5) ou modifie (5) la photo active du carrousel
@@ -233,10 +235,10 @@ function AddOrChangePicturePhp($data, $pdo) {
     $result = $sql->fetch(PDO::FETCH_ASSOC);
     $pdo->commit();
     } catch (PDOException $e) {
-    $pdo->rollBack();
-    print "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO Check number of pictures<br/>";
-    die();
+      $pdo->rollBack();
+      return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO Check number of pictures<br/>";
   }
+
   $error = '';
   $ret = [];
   $tmp = explode(',',$data['newone']);
@@ -244,12 +246,15 @@ function AddOrChangePicturePhp($data, $pdo) {
 
   $info = getimagesize($data['newone']);
   if($info !== false) {
-  $data['old'] = str_replace('http://localhost:8080/matcha/','',$data['old']);
-  $newpict = imagecreatefromstring($newpict);
+
+    $data['old'] = str_replace('http://'.$_SERVER['HTTP_HOST'].'/matcha/','',$data['old']);
+    $newpict = imagecreatefromstring($newpict);
   }
   else {
     $error = 'Invalid file.';
   }
+
+
   if($newpict && !$error )
   {
     $pictname = 'app/imgprofil/'.$_SESSION['loggued_as'].'_'.date('h:i:s_z-o', time()).'.png';
@@ -258,49 +263,49 @@ function AddOrChangePicturePhp($data, $pdo) {
     if($key && $key['0'])
     {
       try {
-        $pdo->beginTransaction();
-        $sql = $pdo->prepare("UPDATE pictures SET ".$key['0']." = ? WHERE id_user = ? ");
-        $sql->bindParam(1, $pictname, PDO::PARAM_STR);
-        $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
-        $sql->execute();
-        $pdo->commit();
+          $pdo->beginTransaction();
+          $sql = $pdo->prepare("UPDATE pictures SET ".$key['0']." = ? WHERE id_user = ? ");
+          $sql->bindParam(1, $pictname, PDO::PARAM_STR);
+          $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
+          $sql->execute();
+          $pdo->commit();
         } catch (PDOException $e) {
-        $pdo->rollBack();
-        return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO add picture to db<br/>";
+          $pdo->rollBack();
+          return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO add picture to db<br/>";
         }
         $ret['status'] = 'added';
         $ret['number']= str_replace('pict','',$key['0']);
         $ret['src'] = $pictname;
        return json_encode($ret);
     }
-
     else {
       $cle = array_keys($result,$data['old']);
       if($cle && $cle['0']) {
+        try {
+          $pdo->beginTransaction();
+          $sql = $pdo->prepare("UPDATE pictures SET  ".$cle['0']."= ?  WHERE id_user = ? ");
+          $sql->bindParam(1, $pictname, PDO::PARAM_STR);
+          $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
+          $sql->execute();
+          $pdo->commit();
+        } catch (PDOException $e) {
+          $pdo->rollBack();
+          return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO change picture to db<br/>";
+        }
 
-      try {
-        $pdo->beginTransaction();
-        $sql = $pdo->prepare("UPDATE pictures SET  ".$cle['0']."= ?  WHERE id_user = ? ");
-        $sql->bindParam(1, $pictname, PDO::PARAM_STR);
-        $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
-        $sql->execute();
-        $pdo->commit();
-      } catch (PDOException $e) {
-        $pdo->rollBack();
-        return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO change picture to db<br/>";
-      }
-      unlink($data['old']);
-      $ret['status'] = 'changed';
-      $ret['number']= str_replace('pict','',$cle['0']);
-      $ret['src'] = $pictname;
-       return json_encode($ret);
-     }
+        $unlink = unlink($data['old']);
+        $ret['unlink'] = $unlink;
+        $ret['status'] = 'changed';
+        $ret['number']= str_replace('pict','',$cle['0']);
+        $ret['src'] = $pictname;
+         return json_encode($ret);
+       }
     }
   }
   else {
     $ret['status'] = $error;
     }
-  return json_encode($ret);
+      return json_encode($ret);
 }
 
 // compare 2 tableau en profondeur 1 (utile pour comparer les object javascript)
@@ -1324,8 +1329,16 @@ function PostNewMsg($id_user, $content, $pdo) {
       $ret['error'] = "NO";
       $ret['content'] = $content;
     }
-    else
-      $ret['error'] = "Blocked";
+    else{
+      if($block['matchi'] != 1)
+      {
+        $ret['error'] = "You don't match, you can't chat";
+      }
+      if($block['blocki'] != 0)
+      {
+        $ret['error'] = "You are you trying to talk to, are you crazy? no one is here!";
+      }
+    }
     $pdo->commit();
     } catch (PDOException $e) {
       $pdo->rollBack();
@@ -1409,7 +1422,8 @@ function RNewNotif($id, $pdo) {
       FROM notification
       WHERE
         id_user = ?
-        AND new = 1");
+        AND new = 1
+        AND checkblock(notification.id_user, notification.id_from) = 0");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret += $sql->fetch(PDO::FETCH_ASSOC);
@@ -1425,6 +1439,7 @@ function RNewNotif($id, $pdo) {
         AND notification.id_notif > ?
         AND notification.id_user = ?
         AND new = 1
+        AND checkblock(notification.id_user, notification.id_from) = 0
         GROUP BY members.login, notification.type");
     $sql->bindParam(1, $_SESSION['max_id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);

@@ -156,16 +156,6 @@ try {
     new TINYINT DEFAULT '1' NOT NULL
   )");
 
-  $_SESSION['db_status'] ='2';
-  $pdo->commit();
-  } catch (PDOException $e) {
-  $pdo->rollBack();
-  $_SESSION['db_status'] ='0';
-  print "Error!: DATABASE ALL -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
-  die();
-}
-
-  try {
     $sql = $pdo->exec("DROP FUNCTION IF EXISTS `GetScore`");
     $sql = $pdo->exec('CREATE DEFINER=`root`@`localhost` FUNCTION `GetScore`(`id1` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
     DECLARE tags INT;
@@ -269,10 +259,15 @@ try {
     SET a = SIN(dla) * SIN(dla) + COS(rla1) * COS(rla2) * SIN(dlo) * SIN(dlo);
     RETURN ROUND((6378137 * 2 * ATAN2(SQRT(a), SQRT(1 - a)) / 1000), 2);
   END");
+
+  $_SESSION['db_status'] ='2';
+  $pdo->commit();
   } catch (PDOException $e) {
-    print 'error =>'. $e;
-    die();
-  }
+  $pdo->rollBack();
+  $_SESSION['db_status'] ='0';
+  print "Error!: DATABASE ALL -> " . $e->getMessage() . " FAILED TO CREATE<br/>";
+  die();
+}
 }
 
 ?>

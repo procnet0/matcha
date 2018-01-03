@@ -1,90 +1,97 @@
 {% extends "layout.twig" %}
 
 {% block content %}
-<div class="row">
-  <div class="col s6">
-
-      <div class="profil_pict-container">
-      {% if profil_pict %}<img  class="profil_pict" src="/matcha/{{ profil_pict}}"> {% endif %}
-      {% if logs %}
-        {% if logs.connected == 'yes' %}
-          <i class='material-icons green-text status-icon'>lens</i>
-        {% else %}
-          <i class='material-icons red-text status-icon'>lens</i>
-        {% endif %}
+<fieldset class="lookathim">
+    <legend class="scrib text-gold-shadow">
+       {% if likes.toyou %}
+        <span>{% if sexe == 'female' %} She {% else %} He {% endif %} likes you !!<i class="material-icons red-text">favorite </i></span>
       {% endif %}
-      </div>
-      {% if login %}
-      <div  class="text-field">
-        login : {{ login }}
-        {% if likes.toyou and likes.fromyou is null %}
-          <i class="material-icons red-text" id="love">favorite_border</i>
-        {% elseif likes.toyou is null and likes.fromyou %}
-          <i class="material-icons red-text" id="love">favorite_border</i>
-        {% elseif likes.toyou and likes.fromyou %}
-          <i class="material-icons red-text" id="love">favorite </i>
-        {% else %}
-          <i class="material-icons red-text" id="love"> </i>
-        {% endif %}
-      </div>
-      <button type="button" name="report" onclick="openreportpanel('{{ login }}', event)">report</button>
-      <button type="button" name="like" onclick="likeuser('{{ login }}', event)">{% if likes.fromyou %} unlike  {% else %}  like  {% endif %}</button>
-      <button type="button" name="block" onclick="openblockpanel('{{ login }}', event)">block</button>
-    {% endif %}
-  </div>
-  <div class="col offset-s2 s4">
-      <div>
-        {% if nom %}<div  class="text-field"> Nom : {{ nom }}</div> {% endif %}
-        {% if prenom %}<div  class="text-field"> Prenom : {{ prenom }}</div> {% endif %}
-        {% if age %}<div  class="text-field"> Age : {{ age }}</div> {% endif %}
-        {% if sexe %}<div  class="text-field"> Sexe : {{ sexe }}</div> {% endif %}
-        {% if score %}<div  class="text-field"> Score : {{ score.result.score }}</div> {% endif %}
-        {% if oriented %}<div  class="text-field"> Orientation : {{ oriented }}</div> {% endif %}
-        {% if logs and logs.connect != 'yes' %}
-      <div  class="text-field" id="lastlog">Last log :
-        <div id="timeago">
-          {% if logs.year %}{{ logs.year }}y {% endif %}
-          {% if logs.month %}{{ logs.month }}m {% endif %}
-          {% if logs.day %}{{ logs.day }}d {% endif %}
-          {% if logs.hour %}{{ logs.hour }}h {% endif %}
-          {% if logs.min %}{{ logs.min }}mn {% endif %}
-          {% if logs.sec %}{{ logs.sec }}sc {% endif %}
-          ago
-        </div>
-        <div id="totaldate">
-          {% if logs.totaldate %}{{ logs.totaldate }} {% endif %}
-        </div>
-      </div>
-      {% endif %}
+  </legend>
+  <div class="row">
+    <div class="col s6">
 
+        <div class="profil_pict-container">
+        {% if profil_pict %}<img  class="profil_pict" src="/matcha/{{ profil_pict}}"> {% endif %}
+        {% if logs %}
+          {% if logs.connected == 'yes' %}
+            <i class='material-icons green-text status-icon'>lens</i>
+          {% else %}
+            <i class='material-icons red-text status-icon'>lens</i>
+          {% endif %}
+        {% endif %}
+        </div>
+        {% if login %}
+        <div  class="text-field">
+          login : {{ login }}
+          {% if likes.toyou and likes.fromyou is null %}
+            <i class="material-icons red-text" id="love">favorite_border</i>
+          {% elseif likes.toyou is null and likes.fromyou %}
+            <i class="material-icons red-text" id="love">favorite_border</i>
+          {% elseif likes.toyou and likes.fromyou %}
+            <i class="material-icons red-text" id="love">favorite </i>
+          {% else %}
+            <i class="material-icons red-text" id="love"> </i>
+          {% endif %}
+        </div>
+        <button type="button" name="report" onclick="openreportpanel('{{ login }}', event)">report</button>
+        <button type="button" name="like" onclick="likeuser('{{ login }}', event)">{% if likes.fromyou %} unlike  {% else %}  like  {% endif %}</button>
+        <button type="button" name="block" onclick="openblockpanel('{{ login }}', event)">block</button>
+      {% endif %}
+    </div>
+    <div class="col offset-s2 s4">
+        <div>
+          {% if nom %}<div  class="text-field"> Nom : {{ nom }}</div> {% endif %}
+          {% if prenom %}<div  class="text-field"> Prenom : {{ prenom }}</div> {% endif %}
+          {% if age %}<div  class="text-field"> Age : {{ age }}</div> {% endif %}
+          {% if sexe %}<div  class="text-field"> Sexe : {{ sexe }}</div> {% endif %}
+          {% if score %}<div  class="text-field"> Score : {{ score.result.score }}</div> {% endif %}
+          {% if oriented %}<div  class="text-field"> Orientation : {{ oriented }}</div> {% endif %}
+          {% if logs and logs.connect != 'yes' %}
+        <div  class="text-field" id="lastlog">Last log :
+          <div id="timeago">
+            {% if logs.year %}{{ logs.year }}y {% endif %}
+            {% if logs.month %}{{ logs.month }}m {% endif %}
+            {% if logs.day %}{{ logs.day }}d {% endif %}
+            {% if logs.hour %}{{ logs.hour }}h {% endif %}
+            {% if logs.min %}{{ logs.min }}mn {% endif %}
+            {% if logs.sec %}{{ logs.sec }}sc {% endif %}
+            ago
+          </div>
+          <div id="totaldate">
+            {% if logs.totaldate %}{{ logs.totaldate }} {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
     </div>
   </div>
-</div>
-<div class="col s12">
-  {% if pictures %}
-  <div>
-    {% for elem in pictures %}
-      <img class="miniProfilPict" src="/matcha/{{elem}}">
-    {% endfor %}
+  <div class="col s12">
+    {% if pictures %}
+    <div>
+      {% for elem in pictures %}
+        <img class="miniProfilPict" src="/matcha/{{elem}}">
+      {% endfor %}
+    </div>
+    {%endif%}
   </div>
-  {%endif%}
-</div>
-<div class="row">
-  <div class="col s6">
-    <div  class="text-field big">Bio :{% if bio %} {{ bio }} {% endif %}</div>
-    <div class="tag-field">Tags :
-      {% if tags %}
-        {% for elem in tags %}
-          <div class="chip">
-              {{ elem.name_tag }}
-          </div>
-        {% endfor %}
-       {% endif %}
-     </div>
+  <div class="row">
+    <div class="col s6">
+      <div  class="text-field big">Bio :{% if bio %} {{ bio }} {% endif %}</div>
+      <div class="tag-field">Tags :
+        {% if tags %}
+          {% for elem in tags %}
+            <div class="chip">
+                {{ elem.name_tag }}
+            </div>
+          {% endfor %}
+         {% endif %}
+       </div>
+    </div>
+    <div class="col s6">
+      <div class="text-field">Distance :{% if dist.dist %} {{ dist.dist }} km {% endif %}</div>
+      <div class="text-field">Location :{% if geoloc %} {{ geoloc.info.address_components.3.short_name }}  {% endif %}</div>
+    </div>
   </div>
-  <div class="col s6">
-    <div class="text-field">Distance :{% if dist.dist %} {{ dist.dist }} km {% endif %}</div>
-    <div class="text-field">Location :{% if geoloc %} {{ geoloc.info.address_components.3.short_name }}  {% endif %}</div>
-  </div>
-</div>
+</fieldset>
 {% endblock %}

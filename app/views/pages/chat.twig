@@ -9,7 +9,7 @@
                     <button class="waves-effect waves-light btn real_btn" id="notif_button_small">Notifs</button>
                 </div>
                 <p id="hide_this">Veuillez choisir quelqu'un à qui parler</p>
-                <div class="profiles_list_container_small mCustomScrollbar" data-msc-theme="dark" id="profiles_small">    
+                <div class="profiles_list_container_small mCustomScrollbar" data-msc-theme="dark" id="profiles_small">
                     {% if UserActiv %}
                         {% for elem in UserActiv %}
                         <div class="profil_list_user_small" data-id="{{elem.id}}">
@@ -127,11 +127,11 @@
         </div>
     </div>
     <div id="notif_container" style="display:none">
-        <div class="row">
-            <div class="col m2 l2 ">
 
-            </div>
-            <div class="col m8 l8">
+          <div class="col m12">
+              <button class="waves-effect waves-light btn real_btn" id="chat_button">Messages</button>
+          </div>
+            <div class="col m12">
                 <ul class="collapsible" data-collapsible="accordion">
                     <li id="li_like">
                     <div class="collapsible-header" id="like_block">Likes <span id="likebadge" class="badge">{{notif.like_count}}</span></div>
@@ -155,10 +155,7 @@
                     </li>
                 </ul>
             </div>
-            <div class="col m2 l2">
-                <button class="waves-effect waves-light btn real_btn" id="chat_button">Messages</button>
-            </div>
-        </div>
+
     </div>
 </div>
 <script>

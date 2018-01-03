@@ -900,3 +900,7 @@ display: inline-block;
   min-width: 140px;
   padding : 0 1rem;
 }
+
+.lookathim {
+border-style: none;
+}

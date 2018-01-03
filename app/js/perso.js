@@ -62,7 +62,7 @@ function setAsProfil(ev) {
    var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
   		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-
+        console.log(xhr.responseText);
         var div = document.getElementById('set_answer');
         var newo = false;
         if (!div)
@@ -126,10 +126,11 @@ function AddOrChangePicture(ev) {
           elem.setAttribute('href', assoc[data['number']]);
           if(child.length < 5)
           {
-          carousel.appendChild(elem);
+            carousel.appendChild(elem);
           }
           else {
-          child[data['number']- 1].replaceWith(elem);
+
+            child[data['number']-1].replaceWith(elem);
           }
           $('.carousel').removeClass('initialized');
           $('.carousel').carousel();
@@ -378,9 +379,9 @@ function updateLocation() {
    }
    var xhr = new XMLHttpRequest();
    xhr.onreadystatechange = function() {
-     if (xhr.readyState == 4 && (xhr.status != 200 && xhr.status != 0)) {
+     if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
        var data = xhr.responseText;
-       console.log(data);
+       document.getElementById('geoloc').value = data;
      }
    }
      xhr.open("POST", "updatePosition", true);
@@ -957,9 +958,16 @@ function openblockpanel(login,ev) {
     send.addEventListener('click', function(eve){ blockuser(login,eve)});
     contextmenu.append(send);
     document.getElementById('maincontainer').prepend(contextmenu);
+    $(document).on('click',function (event) {
+      if(!$(event.target).closest($(contextmenu)).length && !$(event.target).closest($(ev.target)).length){
+        document.getElementById('block-menu').remove();
+        $(document).off('click');
+      }
+    });
   }
   else {
     document.getElementById('block-menu').remove();
+    $(document).off('click');
   }
 }
 
@@ -975,9 +983,16 @@ function openreportpanel(login, ev) {
     send.addEventListener('click', function(eve){ reportuser(login,eve)});
     contextmenu.append(send);
     document.getElementById('maincontainer').prepend(contextmenu);
+    $(document).on('click',function (event) {
+      if(!$(event.target).closest($(contextmenu)).length && !$(event.target).closest($(ev.target)).length){
+        document.getElementById('report-menu').remove();
+        $(document).off('click');
+      }
+    });
   }
   else {
     document.getElementById('report-menu').remove();
+    $(document).off('click');
   }
 }
 
@@ -1177,7 +1192,7 @@ function autonotif() {
             document.getElementById("likebadge").innerHTML = data['nb_like'];
             document.getElementById("visitesbadge").innerHTML = data['nb_visits'];
         }
-        if (data['notif'].length != 0)
+        if ( data['notif'] && data['notif'].length != 0)
         {
           var li_like = document.getElementById("li_like");
           if (li_like && li_like.className == "active")
@@ -1262,7 +1277,7 @@ function SetNavBar(type) {
       var sidebar = document.createElement('div');
       sidebar.setAttribute('data-activates', 'slide-out');
       sidebar.setAttribute('id','sidebar');
-      
+
       var menutxt = document.createElement("span");
       menutxt.setAttribute("class", "sidebar_style");
       menutxt.innerHTML = "MENU";
