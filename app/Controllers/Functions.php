@@ -273,33 +273,31 @@ function AddOrChangePicturePhp($data, $pdo) {
         $ret['src'] = $pictname;
        return json_encode($ret);
     }
-
     else {
       $cle = array_keys($result,$data['old']);
       if($cle && $cle['0']) {
-
-      try {
-        $pdo->beginTransaction();
-        $sql = $pdo->prepare("UPDATE pictures SET  ".$cle['0']."= ?  WHERE id_user = ? ");
-        $sql->bindParam(1, $pictname, PDO::PARAM_STR);
-        $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
-        $sql->execute();
-        $pdo->commit();
-      } catch (PDOException $e) {
-        $pdo->rollBack();
-        return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO change picture to db<br/>";
+        try {
+          $pdo->beginTransaction();
+          $sql = $pdo->prepare("UPDATE pictures SET  ".$cle['0']."= ?  WHERE id_user = ? ");
+          $sql->bindParam(1, $pictname, PDO::PARAM_STR);
+          $sql->bindParam(2, $result['id_user'], PDO::PARAM_STR);
+          $sql->execute();
+          $pdo->commit();
+        } catch (PDOException $e) {
+          $pdo->rollBack();
+          return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO change picture to db<br/>";
+        }
+        unlink($data['old']);
+        $ret['status'] = 'changed';
+        $ret['number']= str_replace('pict','',$cle['0']);
+        $ret['src'] = $pictname;
+        return json_encode($ret);
       }
-      unlink($data['old']);
-      $ret['status'] = 'changed';
-      $ret['number']= str_replace('pict','',$cle['0']);
-      $ret['src'] = $pictname;
-       return json_encode($ret);
-     }
     }
   }
   else {
     $ret['status'] = $error;
-    }
+  }
   return json_encode($ret);
 }
 

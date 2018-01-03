@@ -169,7 +169,7 @@ $(document).ready(function()
         txt.css("border", "2px solid black");
         if (txt.val() == "" || user_id.val() == "")
             txt.css("border", "2px solid red");
-        else
+        else if (txt.val().length <= 2000)
         {
             $.ajax({
                 url: 'messenger',
@@ -212,7 +212,7 @@ $(document).ready(function()
         txt.css("border", "2px solid black");
         if (txt.val() == "" || user_id.val() == "")
             txt.css("border", "2px solid red");
-        else
+        else if (txt.val().length <= 2000)
         {
             $.ajax({
                 url: 'messenger',
