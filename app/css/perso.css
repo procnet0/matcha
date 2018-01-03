@@ -170,7 +170,8 @@ background-color: lightgrey;
 color: black;
 cursor: pointer;
 margin: 0;
-position: absolute;
+position: relative;
+display: block;
 }
 
 @-webkit-keyframes FadeIn {
@@ -217,6 +218,7 @@ div.bot-divcont {
 
 
 .tagitem {
+  overflow: hidden;
 width: 75px;
 height: 50px;
 border-radius: 50%;
@@ -375,6 +377,7 @@ div.miniProfilPict {
 }
 
 #report-menu {
+  z-index: 1;
   width: 250px;
   height: 250px;
   border-radius: 50%;
@@ -414,6 +417,7 @@ div.miniProfilPict {
 }
 
 #block-menu {
+    z-index: 1;
   left: 25%;
   width: 250px;
   height: 250px;
@@ -881,4 +885,18 @@ display: inline-block;
 .triangle{
   left: 10px;
   height: 56px;
+}
+
+.alert  {
+  color: red;
+}
+
+.tagalert {
+  bottom: 25%;
+  position: absolute;
+}
+
+.btn-retail {
+  min-width: 140px;
+  padding : 0 1rem;
 }
