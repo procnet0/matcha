@@ -149,7 +149,7 @@ $(document).ready(function()
     });
 
     $(".profil_list_user_small").each(function(){
-        
+
         $(this).click(function(){
             var id = $(this).data('id');
             select_user(id, 1);
@@ -182,6 +182,8 @@ $(document).ready(function()
                 success: function(tab, status){
                     $(".new_msg").removeClass("new_msg").addClass("old_msg");
                     var msg = $(document.getElementById("messages_small"));
+                    console.log(status);
+                    console.log(tab);
                     if(tab['error'] == "Message is empty")
                     {
                         console.log("Le message est vide");
@@ -192,7 +194,7 @@ $(document).ready(function()
                     }
                     else if (tab['error'] != "NO")
                     {
-                        alert("Blocked");
+                        alert(tab['error']);
                     }
                     else
                     {
@@ -235,7 +237,7 @@ $(document).ready(function()
                     }
                     else if (tab['error'] != "NO")
                     {
-                        alert("Blocked");
+                        alert(tab['error']);
                     }
                     else
                     {
@@ -260,9 +262,9 @@ $(document).ready(function()
         $("#chat_container").hide();
         $("#notif_container").show();
     });
-    
+
     $("#chat_button").click(function(){
-        $("#profiles_small").show();        
+        $("#profiles_small").show();
         $("#notif_button_small").show();
         $("#chat_container").show();
         $("#notif_container").hide();
@@ -282,7 +284,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var likz = document.getElementById("collection_like");
-                        create_notif(tab, likz);
+                        create_notif(tab, likz, "append");
                     }
                 },
                 error: function(res, status, error){
@@ -306,7 +308,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var visitz = document.getElementById("collection_visit");
-                        create_notif(tab, visitz);
+                        create_notif(tab, visitz, "append");
                     }
                 },
                 error: function(res, status, error){
@@ -335,7 +337,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var visitz = document.getElementById("collection_visit");
-                        create_notif(tab, visitz);
+                        create_notif(tab, visitz, "prepend");
                     }
                     if (tab['notif'].length == 0)
                         visite_done = 1;
@@ -366,7 +368,7 @@ $(document).ready(function()
                     if (tab['notif'].length > 0)
                     {
                         var likz = document.getElementById("collection_like");
-                        create_notif(tab, likz);
+                        create_notif(tab, likz, "prepend");
                     }
                     if (tab['notif'].length == 0)
                         like_done = 1;
