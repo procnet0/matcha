@@ -75,6 +75,10 @@
     </div>
   </div>
   <script type="text/javascript">
-  initsliders();
+  $(document).ready(function() {
+     initsliders();
+     document.getElementById('maincontainer').style.overflowY = 'visible';
+  });
+
    </script>
 {% endblock %}

@@ -87,30 +87,51 @@ class Validator {
   }
 
   public function issecured($content) {
-    if(preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$%^&]).*$/', $content)) {
-      return true;
+     $num = preg_match('@[\d]@', $content);
+     $lower = preg_match('@[a-z]@', $content);
+     $maj = preg_match('@[A-Z]@', $content);
+     $spe = preg_match('@[\W]@', $content);
+
+    if(!$num || !$lower || !$maj || !$spe) {
+      return false;
     }
     else {
-      return false;
+      return true;
     }
   }
 
   public function validate($name, $value , $revert = 'no') {
     $this->return = ['status' => false , 'error'=> 'none'];
 
+    if($name == 'bio') {
+      if(mb_strlen($value) <= 160)
+        $this->return['status'] = true;
+      else {
+        $this->return['status'] = false;
+        $this->return['error'] = 'Bio is too long 160 character max.';
+      }
+      return $this->return['status'];
+    }
 
     if(!$this->isempty($value))
     {
       if($name == 'email') {
-        if($this->isemail($value)) {
-          $this->return['status'] = true;
+        if(mb_strlen($value) <= 100) {
+          if($this->isemail($value)) {
+            $this->return['status'] = true;
+          }
+          else {
+            $this->return['error'] = 'Email is not valid.';
+            $this->return['status'] = false;
+          }
         }
         else {
-          $this->return['error'] = 'Email is not valid.';
-            $this->return['status'] = false;
+          $this->return['status'] = false;
+          $this->return['error'] = 'Data is too long 100 character max.';
         }
       }
       if($name == 'pseudo' ) {
+        if(mb_strlen($value) <= 64) {
         if(($revert === 'new') ? $this->ispseudo($value) : !$this->ispseudo($value)) {
           if($this->isalphanum($value) == true) {
               $this->return['status'] = true;
@@ -120,13 +141,23 @@ class Validator {
               $this->return['error'] = 'Invalid Character, use only letters, number or - and _ .';
           }
         }
+          else {
+            $this->return['status'] = false;
+            $this->return['error'] = 'Pseudo already used';
+          }
+        }
         else {
           $this->return['status'] = false;
-          $this->return['error'] = 'Pseudo already used';
+          $this->return['error'] = 'Data is too long 64 character max.';
         }
       }
       if($name == 'content') {
+        if(mb_strlen($value) <= 64)
           $this->return['status'] = true;
+          else {
+            $this->return['status'] = false;
+            $this->return['error'] = 'Data is too long 64 character max.';
+          }
       }
       if($name == 'gender') {
         if($this->isgender($value)) {
@@ -140,7 +171,7 @@ class Validator {
       if($name == 'password') {
         if($this->password($value)) {
           $this->return['status'] = true;
-          if($this->issecured($value)) {
+          if($this->issecured($value) == true) {
             $this->return['status'] = true;
           }
           else {

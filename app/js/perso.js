@@ -153,6 +153,34 @@ function addEventListenerByClass(className, event, fn) {
     }
 }
 
+function IsValidTagName(name) {
+  var result = [];
+  result['status'] = false;
+  result['error'] = '';
+  var size = false;
+  var content = false;
+  var regex = /^[a-z0-9]+$/i;
+
+  if(regex.test(name) == true) {
+    content = true;
+  }
+  else {
+    result['error'] = 'Only Letters and/or numbers.';
+  }
+
+  if(name.length <= 7) {
+    size = true;
+  }
+  else {
+    result['error'] += 'Actual length is ' + name.length + ' max is 7.';
+  }
+  if( size == true && content == true)
+  {
+    result['status'] = true;
+  }
+  return  result;
+}
+
 function OpenTagMenu() {
 
   var menucontext = document.createElement('DIV');
@@ -208,6 +236,7 @@ function OpenTagMenu() {
         }
         actives.push({id_tag:acnl[i].id, name: acnl[i].innerText});
       }
+      console.log(actives);
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr2.send("subject=tagupdt&activeTag=" + encodeURIComponent(JSON.stringify(actives)));
@@ -225,11 +254,21 @@ function OpenTagMenu() {
     sender.innerHTML = 'send';
     sender.addEventListener("click", function() {
       var val = document.getElementById('autocomplete-input').value;
-      var newtag = document.createElement('DIV');
-      newtag.className = 'tagitem chip';
-      newtag.id = 'tagitem';
-      newtag.innerHTML = val+"<i class='material-icons'></i>";
-      document.getElementById('active-tag').append(newtag);
+      var result = IsValidTagName(val);
+      if(result['status'] == true) {
+        var newtag = document.createElement('DIV');
+        newtag.className = 'tagitem chip';
+        newtag.id = 'tagitem';
+        newtag.innerHTML = val+"<i class='material-icons'></i>";
+        document.getElementById('active-tag').append(newtag);
+      }
+      else {
+        var newerror = document.createElement('DIV');
+        newerror.className = 'alert tagalert offset-s3 col s6';
+        newerror.innerHTML = result['error'];
+        document.getElementById('active-tag').append(newerror);
+        $(newerror).delay(3000).hide("fast",function(){$(newerror).remove()});
+      }
     });
   divcont.append(sender);
 

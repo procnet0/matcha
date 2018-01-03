@@ -604,123 +604,13 @@ function Researcher($datas, $pdo) {
   $area = $datas['area'];
   $extracted = intval($datas['extracted']);
   if($area){
-    $area = json_decode($area);
+    $area = json_decode($area,true);
   }
   $pop = explode(',', $datas['pop']);
   $tagsnm = [];
   $tagsnm = explode(',', $datas['tags']);
 
-
   try {
-    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `GetScore`");
-    $sql = $pdo->exec('CREATE DEFINER=`root`@`localhost` FUNCTION `GetScore`(`id1` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
-    DECLARE tags INT;
-    DECLARE likes INT;
-    DECLARE visites INT;
-    DECLARE pictures INT;
-    DECLARE tot INT;
-    DECLARE ptags INT;
-    DECLARE plikes INT;
-    DECLARE pvis INT;
-    DECLARE ppict INT;
-
-    SET ptags = 10;
-    SET plikes = 50;
-    SET pvis = 25;
-    SET ppict = 15;
-    SET tags = IFNULL((SELECT COUNT(*) FROM `tags_members` WHERE id_members = id1),0);
-    SET likes = IFNULL((SELECT COUNT(*) FROM `likes` WHERE id_to = id1),0);
-    SET visites = IFNULL((SELECT COUNT(*) FROM `visite` WHERE id_to = id1  AND timeof >= (UNIX_TIMESTAMP() - 604800)),0);
-    SET pictures = IFNULL((SELECT (ISNULL(pict1) + ISNULL(pict2) + ISNULL(pict3) + ISNULL(pict4) + ISNULL(pict5)) as nbpict FROM `pictures` WHERE id_user = id1),0);
-
-    SET tags = (((tags * ptags )/100)*10);
-    SET likes = (((likes * plikes)/100)*50);
-    SET visites = (((visites * pvis)/100));
-    SET pictures = (((pictures * ppict )/100)*15);
-    SET tags = IF(tags > ptags, ptags, tags);
-    SET likes = IF(likes > plikes, plikes, likes);
-    SET  visites = IF(visites > pvis, pvis, visites);
-    SET pictures = IF(pictures > ppict, ppict, pictures);
-
-    SET tot = ( tags + likes + visites + pictures);
-        RETURN  tot;
-    END');
-
-    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `checkblock`");
-    $sql = $pdo->exec('CREATE DEFINER=`root`@`localhost` FUNCTION `checkblock`(`id1` INT, `id2` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER BEGIN
-    DECLARE cross1 INT;
-    DECLARE cross2 INT;
-    DECLARE tot INT;
-        SET cross1 = IFNULL((SELECT blocked.id_block FROM `blocked` WHERE blocked.id_from = id1 AND blocked.id_to = id2 LIMIT 1),0);
-    	SET cross2 = IFNULL((SELECT blocked.id_block FROM `blocked` WHERE blocked.id_from = id2 AND blocked.id_to = id1 LIMIT 1),0);
-
-        SET tot = cross1 + cross2;
-        RETURN  tot;
-    END');
-
-    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `IsValid`");
-    $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION `IsValid`(`sexcase` INT, `idtarget` INT) RETURNS INT(11) NOT DETERMINISTIC CONTAINS SQL SQL SECURITY DEFINER
-    BEGIN
-    DECLARE orient INT;
-    DECLARE sexc INT;
-	  DECLARE valid INT;
-    DECLARE summ INT ;
-    SET orient = (SELECT CASE oriented
-    						WHEN 'bi' THEN 10
-    						WHEN 'homo' THEN 20
-    						WHEN 'hetero' THEN 30
-    						ELSE 0
-      				  	END as orientcase
-                        FROM members WHERE id_user = idtarget);
-    SET sexc = (SELECT CASE sexe
-    						WHEN 'male' THEN 100
-    						WHEN 'female' THEN 200
-    						WHEN 'other' THEN 300
-    						ELSE 0
-      				  	END as sexc
-                        FROM members WHERE id_user = idtarget);
-
-    SET summ = sexcase + sexc + orient;
-    SET valid =  CASE
-    			WHEN summ IN(112,114,115,117) THEN 1
-    			WHEN summ IN(127,124) THEN 1
-                WHEN summ IN(132,135) THEN 1
-                WHEN summ IN(211,214,215,218) THEN 1
-                WHEN summ IN(225,228) THEN 1
-                WHEN summ IN(231,234) THEN 1
-                WHEN summ IN(313,316,319,323,326,329,333,336,339) THEN 1
-                ELSE 0
-    		END;
-
-    RETURN valid;
-    END");
-
-
-  } catch (PDOException $e) {
-    print 'error =>'. $e;
-    die();
-  }
-  try {
-    $sql = $pdo->exec("DROP FUNCTION IF EXISTS `get_distance_km`");
-    $sql = $pdo->exec("CREATE DEFINER=`root`@`localhost` FUNCTION get_distance_km (lat1 DOUBLE, lng1 DOUBLE, lat2 DOUBLE, lng2 DOUBLE) RETURNS DOUBLE
-  BEGIN
-    DECLARE rlo1 DOUBLE;
-    DECLARE rla1 DOUBLE;
-    DECLARE rlo2 DOUBLE;
-    DECLARE rla2 DOUBLE;
-    DECLARE dlo DOUBLE;
-    DECLARE dla DOUBLE;
-    DECLARE a DOUBLE;
-
-    SET rlo1 = RADIANS(lng1);
-    SET rla1 = RADIANS(lat1);
-    SET rlo2 = RADIANS(lng2);
-    SET rla2 = RADIANS(lat2);
-    SET dlo = (rlo2 - rlo1) / 2;
-    SET dla = (rla2 - rla1) / 2;
-    SET a = SIN(dla) * SIN(dla) + COS(rla1) * COS(rla2) * SIN(dlo) * SIN(dlo);
-    RETURN ROUND((6378137 * 2 * ATAN2(SQRT(a), SQRT(1 - a)) / 1000), 2);
-  END");
 
   if($datas['tags']) {
     $sql = $pdo->query("SELECT id_tag, name_tag FROM tags WHERE name_tag IN ('".str_replace(',', "','",$datas['tags'])."')");
@@ -776,7 +666,10 @@ function Researcher($datas, $pdo) {
         $user['0']['geouser'] = $arr;
       }
     $sexnor = array($user['0']['sexe'], $user['0']['oriented']);
-
+    if($area && !empty($area['0']['lat']) && !empty($area['1']['lng']) && is_float($area['0']['lat']) && is_float($area['1']['lng']))
+    {
+      $pos = $area['0']['lat'] .','.$area['1']['lng'];
+    }
     switch($sexnor)  {
       case array('male','hetero'):
       $or = "'female'";$SexCase = '1'; break;
@@ -879,9 +772,10 @@ function Researcher($datas, $pdo) {
     $res['extracted']= count($resultaa);
   }
   /*
-  if(isset($reqsql))
+  $res['area']= $area;
+  if(isset($pos))
   {
-    $res['req']= $reqsql;
+    $res['pos']= $pos;
   }
   */
   return($res);
