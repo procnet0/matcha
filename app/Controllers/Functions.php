@@ -648,7 +648,7 @@ function Researcher($datas, $pdo) {
         DESC LIMIT 1
       )
       AS geoauto ,
-       (SELECT GROUP_CONCAT(id_tag) AS nb FROM `tags_members` WHERE id_members = members.id_user GROUP BY id_members) AS nb
+       (SELECT GROUP_CONCAT(id_tag) AS nsb FROM `tags_members` WHERE id_members = members.id_user GROUP BY id_members) AS nb
       FROM members
       INNER JOIN geoloc ON geoloc.id_user = members.id_user
       WHERE login = ?
@@ -658,6 +658,7 @@ function Researcher($datas, $pdo) {
     $sql->bindParam(3, $_SESSION['loggued_as'], PDO::PARAM_STR);
     $sql->execute();
     $user = $sql->fetchAll(PDO::FETCH_ASSOC);
+    $res['debug'] = $user;
      if(!empty($user['0']['geoauto'])) {
       $pos = $user['0']['geoauto'];
       $arr = explode(',',$user['0']['geoauto']);
@@ -756,7 +757,6 @@ function Researcher($datas, $pdo) {
     $res['binded'] = $binded;
     $resultaa = $sql->fetchall(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
-    $res['binded'] = $binded;
     $res['error'] =  "Error!: DATABASE searching-> " . $e->getMessage() . " FAILED TO search<br/>";
   }
   if(isset($resultaa)){
@@ -769,18 +769,19 @@ function Researcher($datas, $pdo) {
     foreach ($resultaa as $key=>$elem) {
       $idlist[$key] = $elem['id_user'];
     }
+
     $res['online'] = getOnlineMembers($idlist, $pdo);
     $res['taglist']= isset($tlist) ? $tlist : '';
     $res['result']= $resultaa;
     $res['extracted']= count($resultaa);
   }
-  /*
+
   $res['area']= $area;
   if(isset($pos))
   {
     $res['pos']= $pos;
   }
-  */
+
   return($res);
 }
 
@@ -1221,11 +1222,16 @@ function GetMsgInterface($pdo) {
   $ret['msg'] = [];
   try {
 
-    $sql = $pdo->prepare("SELECT id_match , members.profil_pict, members.login, timeof, active, IF(id_1=? , id_2 , id_1) AS id FROM matchs LEFT JOIN members ON members.id_user = IF(id_1=?, id_2, id_1) WHERE (id_1 = ? OR id_2 = ?)");
+    $sql = $pdo->prepare("SELECT id_match , members.profil_pict, IF(ping.timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected, members.login, matchs.timeof, active, IF(id_1=? , id_2 , id_1) AS id, (SELECT COUNT(*) FROM notification WHERE type = 3 AND NEW = 1 AND notification.id_user = ? AND id_from = id) as new_msg
+    FROM matchs
+    LEFT JOIN members ON members.id_user = IF(id_1=?, id_2, id_1)
+    LEFT JOIN ping ON ping.id_user = members.id_user
+    WHERE (id_1 = ? OR id_2 = ?)");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(4, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(5, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
 
@@ -1233,16 +1239,6 @@ function GetMsgInterface($pdo) {
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num, notification.timeof, id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_notif");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-
-    if(!empty($ret['notif']['new']['msg'])) {
-    $FirstUserMsg = $ret['notif']['new']['msg']['0']['id_from'];
-    $ret['msg']['id'] = $FirstUserMsg;
-    }
 
   } catch (PDOException $e) {
     $ret['msg']['Error'] = $e . ' in GetMsgInterface';
@@ -1428,6 +1424,7 @@ function RNewNotif($id, $pdo) {
     $sql->closeCursor();
     $sql = $pdo->prepare("SELECT
       COUNT(*) as nb_notif,
+      members.id_user,
       members.login,
       notification.type
       FROM notification
@@ -1438,7 +1435,7 @@ function RNewNotif($id, $pdo) {
         AND notification.id_user = ?
         AND new = 1
         AND checkblock(notification.id_user, notification.id_from) = 0
-        GROUP BY members.login, notification.type");
+        GROUP BY members.login, notification.type, members.id_user");
     $sql->bindParam(1, $_SESSION['max_id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
