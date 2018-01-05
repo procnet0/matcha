@@ -1177,7 +1177,7 @@ function autonotif() {
             document.getElementById("likebadge").innerHTML = data['nb_like'];
             document.getElementById("visitesbadge").innerHTML = data['nb_visits'];
         }
-        if (data['notif'].length != 0)
+        if (data['notif'] && data['notif'].length != 0)
         {
           var li_like = document.getElementById("li_like");
           if (li_like && li_like.className == "active")
@@ -1204,6 +1204,20 @@ function autonotif() {
             }
             else if(data['notif'][i]['type'] == 3 && data['notif'][i]['id_user'] != id_user)
             {
+              if ($("[data-id='"+data['notif'][i]['id_user']+"']"))
+              {
+                var toto = $("[data-id='"+data['notif'][i]['id_user']+"']").find(".user_new_msg");
+                var b = parseInt(data['notif'][i]['nb_notif']);
+                if (toto.html() != 0)
+                {
+                  var sum = parseInt(toto.html()) + b;
+                  toto.html(sum);
+                }
+                else if (toto.html() > 99)
+                  toto.html("99+");
+                else
+                  toto.html(b);
+              }
               if (data['notif'][i]['nb_notif'] > 1)
                 Materialize.toast(data['notif'][i]['login']+" vous a envoyé "+data['notif'][i]['nb_notif']+" nouveaux messages", 3000);
               else
@@ -1217,10 +1231,11 @@ function autonotif() {
         }
         if (data['msg'] && data['msg'].length != 0) {
           $(".notseen").removeClass("notseen").addClass("seen");
+          
           for(i = 0; i < data['msg'].length; i++){
             $("#messages").append("<div class=\"message not_my_msg\"><li class=\"new_msg\" >"+escapeHTML(data['msg'][i]['content'])+"</li>");
           }
-          $("#chat_msg").animate({ scrollTop: $("#chat_msg").height() }, 1000)
+          $("#chat_msg").animate({ scrollTop: $("#messages").height() }, 1000)
         }
       }
     });

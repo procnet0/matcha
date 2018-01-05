@@ -20,9 +20,12 @@
                                 <img class="img responsive-img" src="/matcha/{{elem.profil_pict}}" alt="Profile pict"/>
                                 {% endif %}
                             </div>
-                            <div class="profil_list_username_small">
-                                <p style="margin:0;">{{elem.login}}</p>
-                            </div>
+                            <div style="display:flex">
+                                    <div class="profil_list_username_small">
+                                        <p style="margin:0;">{{elem.login}}</p>
+                                    </div>
+                                    <div class="user_new_msg hidden"></div>
+                                </div>
                             <hr style="border:0"/>
                         </div>
                         {% endfor %}
@@ -68,6 +71,11 @@
                         {% if UserActiv %}
                             {% for elem in UserActiv %}
                             <div class="profil_list_user" data-id="{{elem.id}}">
+                                {% if elem.connected == 'yes' %}
+                                    <i class='material-icons green-text status-icon'>lens</i>
+                                {% else %}
+                                    <i class='material-icons red-text status-icon'>lens</i>
+                                {% endif %}
                                 <div class="profil_list_pict imgcontainer_square">
                                     {% if elem.profil_pict == '#'%}
                                         <img class="img responsive-img" src="app/css/image/Photo-non-disponible.png" alt="No profile pict"/>
@@ -75,8 +83,11 @@
                                     <img class="img responsive-img" src="/matcha/{{elem.profil_pict}}" alt="Profile pict"/>
                                     {% endif %}
                                 </div>
-                                <div class="profil_list_username">
-                                    <p style="margin:0;">{{elem.login}}</p>
+                                <div style="display:flex">
+                                    <div class="profil_list_username">
+                                        <p style="margin:0;">{{elem.login}}</p>
+                                    </div>
+                                    <div class="user_new_msg">{% if elem.new_msg != 0 %}{{elem.new_msg}}{% endif %}</div>
                                 </div>
                                 <hr style="border:0"/>
                             </div>

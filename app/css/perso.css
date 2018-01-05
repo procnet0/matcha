@@ -5,10 +5,10 @@
   width: 90%;
   min-height: 33%;
   max-width:1300px;
-background-image: url("image/parch.jpg");
-background-size: 100% 100%;
-background-repeat: no-repeat;
-box-shadow: 10px 10px 5px black;
+  background-image: url("image/parch.jpg");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: 10px 10px 5px black;
 }
 
 .text-container {
@@ -24,9 +24,9 @@ box-shadow: 10px 10px 5px black;
 }
 
 @font-face {
-font-family: "Angels";
-src: local(Angel),url("../fonts/Calling Angels Personal Use.woff") format("woff");
-font-weight: normal;
+  font-family: "Angels";
+  src: local(Angel),url("../fonts/Calling Angels Personal Use.woff") format("woff");
+  font-weight: normal;
 }
 
 @font-face{
@@ -141,37 +141,37 @@ fieldset.profil {
 }
 
 button.pict_selector {
-height: 75px;
-width: 75px;
-border-width: 0px;
-border-radius: 50%;
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  border-width: 0px;
 }
 
 input.pict_uploader {
-height: 0.1px;
-width: 0.1px;
-opacity: 0;
-z-index: -1;
-position: absolute;
+  height: 0.1px;
+  width: 0.1px;
+  opacity: 0;
+  z-index: -1;
+  position: absolute;
 }
 
 label.pict_selector {
-height: 75px;
-width: 75px;
-border: solid;
-border-width: 0px;
-border-radius: 50%;
-overflow: visible;
-padding: 10px;
-text-align: center;
-font-size: medium;
-font-weight: 300;
-background-color: lightgrey;
-color: black;
-cursor: pointer;
-margin: 0;
-position: relative;
-display: block;
+  height: 75px;
+  width: 75px;
+  border: solid;
+  border-width: 0px;
+  border-radius: 50%;
+  overflow: visible;
+  padding: 10px;
+  text-align: center;
+  font-size: medium;
+  font-weight: 300;
+  background-color: lightgrey;
+  color: black;
+  cursor: pointer;
+  margin: 0;
+  position: relative;
+  display: block;
 }
 
 @-webkit-keyframes FadeIn {
@@ -219,14 +219,14 @@ div.bot-divcont {
 
 .tagitem {
   overflow: hidden;
-width: 75px;
-height: 50px;
-border-radius: 50%;
-background: radial-gradient(circle at center, transparent ,  rgba(255,255,255, 0.8) 76%, transparent);
-background-color: rgba(255, 255, 255, 0.5);
-text-align: center;
-line-height: 50px;
-cursor: pointer;
+  width: 75px;
+  height: 50px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, transparent ,  rgba(255,255,255, 0.8) 76%, transparent);
+  background-color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  line-height: 50px;
+  cursor: pointer;
 }
 
 
@@ -541,6 +541,7 @@ span.badge.new{
 .profil_list_user, .profil_list_user_small
 {
   box-shadow: inset 0 0 11px 2px black;
+  position:relative;
 }
 
 .profil_list_user:hover, .profil_list_user_small:hover
@@ -633,7 +634,7 @@ span.badge.new{
 }
 
 .collection .collection-item.new_notif{
-  background-color:rgb(141, 129, 0);
+  background-color:rgb(70, 0, 177);
 }
 
 
@@ -697,11 +698,11 @@ span.badge.new{
 
 #sidebar {
   position: fixed;
-height: 100%;
-width: 48px;
-background-color: rgba(0,0,0,0.6);
-left: 0px;
-top: 0px;
+  width: 48px;
+  background-color: rgba(0,0,0,0.6);
+  left: 0px;
+  height: 100%;
+  top: 0px;
 }
 
 .side-nav {
@@ -743,7 +744,7 @@ span.badge.msg:after{
 }
 
 .chat-container{
-  max-height:500px;
+  max-height:417px;
   overflow: auto;
   background-color: rgba(255, 255, 255, 0.37);
 }
@@ -849,12 +850,13 @@ span.badge.msg:after{
   right: 0;
   height: 30px;
   width: 30px;
+  z-index:1;
 }
 
 .profil_pict-container {
   position: relative;
-vertical-align: middle;
-display: inline-block;
+  vertical-align: middle;
+  display: inline-block;
 }
 
 .UserVignet:hover{
@@ -899,4 +901,50 @@ display: inline-block;
 .btn-retail {
   min-width: 140px;
   padding : 0 1rem;
+}
+
+input.form-control{
+  border-bottom: 1px solid !important;
+  border-image: linear-gradient(to right, rgba(0,0,0,0) 0%,rgba(0,0,0,1) 18%,rgba(0,0,0,1) 75%,rgba(0,0,0,1) 83%,rgba(0,0,0,0) 100%) 1 !important;
+  border-image: -moz-linear-gradient(left, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,1) 75%, rgba(0,0,0,1) 83%, rgba(0,0,0,0) 100%) 1 !important;
+  border-image: -webkit-linear-gradient(left, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 18%, rgba(0,0,0,1) 75%, rgba(0,0,0,1) 83%, rgba(0,0,0,0) 100%) 1 !important;
+  height:1.6em !important;
+}
+
+.black-btn{
+  background-color:rgba(24, 24, 24, 0.73);;
+}
+
+.black-btn:focus{
+  background-color:rgba(24, 24, 24, 0.73);;
+}
+
+.black-btn:hover{
+  background-color:black;
+}
+
+.link_home{
+  color:black;
+  font-family:fantasy;
+}
+
+.link_home:hover{
+  text-shadow: 0 0 1px black;
+}
+
+.user_new_msg{
+  display: block;
+  position: absolute;
+  width: fit-content;
+  font-size: 0.7em;
+  margin-left: 3%;
+  margin-top: 3px;
+  padding: 0px 2px 0px 2px;
+  background-color: #fa4f4f;
+  border-radius: 2px;
+}
+
+.profil_list_username, .profil_list_username_small{
+  margin:0 auto;
+  overflow-x: hidden;
 }

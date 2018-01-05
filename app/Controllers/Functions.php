@@ -1216,28 +1216,23 @@ function GetMsgInterface($pdo) {
   $ret['msg'] = [];
   try {
 
-    $sql = $pdo->prepare("SELECT id_match , members.profil_pict, members.login, timeof, active, IF(id_1=? , id_2 , id_1) AS id FROM matchs LEFT JOIN members ON members.id_user = IF(id_1=?, id_2, id_1) WHERE (id_1 = ? OR id_2 = ?)");
+    $sql = $pdo->prepare("SELECT id_match , members.profil_pict, IF(ping.timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected, members.login, matchs.timeof, active, IF(id_1=? , id_2 , id_1) AS id, (SELECT COUNT(*) FROM notification WHERE type = 3 AND NEW = 1 AND notification.id_user = ? AND id_from = id) as new_msg
+    FROM matchs 
+    LEFT JOIN members ON members.id_user = IF(id_1=?, id_2, id_1)
+    LEFT JOIN ping ON ping.id_user = members.id_user 
+    WHERE (id_1 = ? OR id_2 = ?)");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(3, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(4, $_SESSION['id'], PDO::PARAM_INT);
+    $sql->bindParam(5, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-
+    
     $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1 OR type = 4 OR type = 5,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count FROM notification WHERE notification.id_user = ? AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['notif'] += $sql->fetch(PDO::FETCH_ASSOC);
-
-    $sql = $pdo->prepare("SELECT COUNT(id_notif) as num, notification.timeof, id_from, members.login FROM notification INNER JOIN members WHERE notification.id_user = ? AND id_from = members.id_user AND type = 3 GROUP BY id_notif");
-    $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
-    $sql->execute();
-    $ret['notif']['msg'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-
-    if(!empty($ret['notif']['new']['msg'])) {
-    $FirstUserMsg = $ret['notif']['new']['msg']['0']['id_from'];
-    $ret['msg']['id'] = $FirstUserMsg;
-    }
 
   } catch (PDOException $e) {
     $ret['msg']['Error'] = $e . ' in GetMsgInterface';
@@ -1414,6 +1409,7 @@ function RNewNotif($id, $pdo) {
     $sql->closeCursor();
     $sql = $pdo->prepare("SELECT
       COUNT(*) as nb_notif,
+      members.id_user,
       members.login,
       notification.type
       FROM notification
@@ -1423,7 +1419,7 @@ function RNewNotif($id, $pdo) {
         AND notification.id_notif > ?
         AND notification.id_user = ?
         AND new = 1
-        GROUP BY members.login, notification.type");
+        GROUP BY members.login, notification.type, members.id_user");
     $sql->bindParam(1, $_SESSION['max_id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();

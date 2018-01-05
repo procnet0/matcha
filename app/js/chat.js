@@ -24,6 +24,7 @@ $(document).ready(function()
             if (data[i]['id'] == id)
             {
                 id_user = id;
+                $("[data-id='"+id_user+"']").find(".user_new_msg").html("");
                 profil_info.find(".default_profil_info").hide();
                 profil_name.show();
                 profil_image.show();
