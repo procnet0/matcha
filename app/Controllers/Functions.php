@@ -292,20 +292,18 @@ function AddOrChangePicturePhp($data, $pdo) {
           $pdo->rollBack();
           return "Error!: DATABASE Add/change pict-> " . $e->getMessage() . " FAILED TO change picture to db<br/>";
         }
-
-        $unlink = unlink($data['old']);
-        $ret['unlink'] = $unlink;
+        unlink($data['old']);
         $ret['status'] = 'changed';
         $ret['number']= str_replace('pict','',$cle['0']);
         $ret['src'] = $pictname;
-         return json_encode($ret);
-       }
+        return json_encode($ret);
+      }
     }
   }
   else {
     $ret['status'] = $error;
-    }
-      return json_encode($ret);
+  }
+  return json_encode($ret);
 }
 
 // compare 2 tableau en profondeur 1 (utile pour comparer les object javascript)
