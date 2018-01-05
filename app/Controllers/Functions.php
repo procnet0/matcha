@@ -648,7 +648,7 @@ function Researcher($datas, $pdo) {
         DESC LIMIT 1
       )
       AS geoauto ,
-       (SELECT GROUP_CONCAT(id_tag) AS nb FROM `tags_members` WHERE id_members = members.id_user GROUP BY id_members) AS nb
+       (SELECT GROUP_CONCAT(id_tag) AS nsb FROM `tags_members` WHERE id_members = members.id_user GROUP BY id_members) AS nb
       FROM members
       INNER JOIN geoloc ON geoloc.id_user = members.id_user
       WHERE login = ?
@@ -658,6 +658,7 @@ function Researcher($datas, $pdo) {
     $sql->bindParam(3, $_SESSION['loggued_as'], PDO::PARAM_STR);
     $sql->execute();
     $user = $sql->fetchAll(PDO::FETCH_ASSOC);
+    $res['debug'] = $user;
      if(!empty($user['0']['geoauto'])) {
       $pos = $user['0']['geoauto'];
       $arr = explode(',',$user['0']['geoauto']);
@@ -756,7 +757,6 @@ function Researcher($datas, $pdo) {
     $res['binded'] = $binded;
     $resultaa = $sql->fetchall(PDO::FETCH_ASSOC);
   } catch (PDOException $e) {
-    $res['binded'] = $binded;
     $res['error'] =  "Error!: DATABASE searching-> " . $e->getMessage() . " FAILED TO search<br/>";
   }
   if(isset($resultaa)){
@@ -769,18 +769,19 @@ function Researcher($datas, $pdo) {
     foreach ($resultaa as $key=>$elem) {
       $idlist[$key] = $elem['id_user'];
     }
+
     $res['online'] = getOnlineMembers($idlist, $pdo);
     $res['taglist']= isset($tlist) ? $tlist : '';
     $res['result']= $resultaa;
     $res['extracted']= count($resultaa);
   }
-  /*
+
   $res['area']= $area;
   if(isset($pos))
   {
     $res['pos']= $pos;
   }
-  */
+
   return($res);
 }
 
@@ -1222,9 +1223,9 @@ function GetMsgInterface($pdo) {
   try {
 
     $sql = $pdo->prepare("SELECT id_match , members.profil_pict, IF(ping.timeof > (UNIX_TIMESTAMP() - 900), 'yes', 'no') AS connected, members.login, matchs.timeof, active, IF(id_1=? , id_2 , id_1) AS id, (SELECT COUNT(*) FROM notification WHERE type = 3 AND NEW = 1 AND notification.id_user = ? AND id_from = id) as new_msg
-    FROM matchs 
+    FROM matchs
     LEFT JOIN members ON members.id_user = IF(id_1=?, id_2, id_1)
-    LEFT JOIN ping ON ping.id_user = members.id_user 
+    LEFT JOIN ping ON ping.id_user = members.id_user
     WHERE (id_1 = ? OR id_2 = ?)");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
@@ -1233,7 +1234,7 @@ function GetMsgInterface($pdo) {
     $sql->bindParam(5, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
     $ret['UserActiv'] = $sql->fetchAll(PDO::FETCH_ASSOC);
-    
+
     $sql = $pdo->prepare("SELECT COUNT(*) as new_notification, COUNT(IF(type = 1 OR type = 4 OR type = 5,1,NULL)) as like_count, COUNT(IF(type = 2,1,NULL)) as visites_count, COUNT(IF(type = 3,1,NULL)) as messages_count FROM notification WHERE notification.id_user = ? AND new = 1");
     $sql->bindParam(1, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();

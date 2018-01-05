@@ -120,8 +120,6 @@ class PagesController extends Controller{
     $params = $request->getParams();
     $errors = [];
 
-
-
     $Validator = new Validator();
     if($Validator->validate('email',$request->getParam('email')) != true) {
     $errors['email'] = $Validator->returner('error');}
@@ -137,6 +135,8 @@ class PagesController extends Controller{
     $errors['answer'] = $Validator->returner('error');}
     if($Validator->validate('birthday',$request->getParam('birthday')) != true) {
     $errors['birthday'] = $Validator->returner('error');}
+    if($params['birthday'])
+      $params['birthday'] = str_replace(',','', $params['birthday']);
 
     if(empty($errors))
     {
@@ -301,6 +301,7 @@ class PagesController extends Controller{
         $res['logs']['month'] =  $tmp % 12;
         $tmp = floor(($tmp - $res['logs']['month'])/12);
         $res['logs']['year'] = $tmp % 9999;
+        var_dump($res);
         $this->render($response, 'pages/lookat.twig', $res);
       }
       else {

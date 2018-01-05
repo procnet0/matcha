@@ -185,9 +185,10 @@ class Validator {
         }
       }
       if($name == 'birthday') {
-        if($this->isbirthday($value)) {
+        $value = str_replace(',','', $value);
+        $tmp = $this->isbirthday($value);
+        if($tmp <= strtotime('-18 years')) {
           $this->return['status'] = true;
-
         }
         else {
           $this->return['status'] = false;
