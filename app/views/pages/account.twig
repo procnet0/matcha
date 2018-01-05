@@ -25,7 +25,7 @@
       </div>
       <div class="input-field col s6">
           <button type="button" class="opener" id="tag-opener" onclick="OpenTagMenu()">Tags Menu</button>
-          <button type="button" class="opener" id="blockmanager-opener" onclick="openblockmanager()">Blocked Users</button>
+          <button type="button" class="opener" id="blockmanager-opener" onclick="openblockmanager()">Utilisateurs bloqué</button>
       </div>
     </div>
     <div class="row">
@@ -42,11 +42,11 @@
 
       <div class="selector col s4">
         <div>
-          <button type="button"  class="pict_selector" id="pict_selector" onclick="setAsProfil(event)">Set Profil pict</button>
+          <button type="button"  class="pict_selector" id="pict_selector" onclick="setAsProfil(event)">Changer Photo de profil</button>
         </div>
         <div>
           <input type="file" accept="image/*" id="pict_uploader" name="pict_uploader" class="pict_uploader" onchange="AddOrChangePicture(event)">
-          <label class="pict_selector" for="pict_uploader" >Add a picture</label>
+          <label class="pict_selector" for="pict_uploader" >Ajout photo</label>
         </div>
       </div>
     </div>
@@ -90,10 +90,10 @@
       <div class="input-field col s12 m4 l4">
         <input type="text" class="form-control" name="geoloc" id="geoloc" value="{% if geo.formatted_address %}{{ geo.formatted_address }}{% endif %}">
           <label class="scrib black-text" for="geoloc"> Localisation</label>
-        <button type="button" class="geoloc" id="geolocSender" onclick="updateLocation()">Set new location</button>
+        <button type="button" class="geoloc" id="geolocSender" onclick="updateLocation()">Changer la localisation</button>
       </div>
     </div>
-      <button type="submit" class="btn btn-primary btn-retail" name="action">Save change
+      <button type="submit" class="btn btn-primary btn-retail" name="action">Enregistré
       </button>
 
     </fieldset>

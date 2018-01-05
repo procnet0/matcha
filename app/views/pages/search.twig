@@ -4,20 +4,20 @@
   <div class="search-menu row" >
     <div class="col s3 m3 l3 slid">
         <div class="sliders" name="age-picker" id="age-picker"></div>
-        <p class="text-center"> Age range </p>
+        <p class="text-center"> Age </p>
     </div>
     <div class="col s3 m3 l3 slid">
       <div class="sliders" name="range-picker" id="range-picker"></div>
-      <p class="text-center"> Area range (km) </p>
+      <p class="text-center"> Distance de recherche (km) </p>
     </div>
     <div class="col s3 m3 l3 slid">
         <input type="text" id="range-origin" value="" placeholder="default is your position" name="range-origin">
-        <p class="text-center">  Area Origin </p>
+        <p class="text-center">  Point d'origine </p>
     </div>
     <div class="col s3 m3 l3 slid">
 
         <div class="sliders" name="range-popularity" id="range-popularity"></div>
-        <p class="text-center"> Popularity </p>
+        <p class="text-center"> Score </p>
     </div>
   </div>
   <div class="search-menu row">
@@ -28,7 +28,7 @@
           <i class="material-icons">settings</i>
         </a>
         <div class="input-field" id="autotag">
-          <i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choose tag</label>  </div>
+          <i class="material-icons prefix">textsms</i><input type="text" id="autocomplete-input" class="autocomplete"><label for="autocomplete-input">Choisi des tags</label>  </div>
       </div>
             <div id="tag-container">
               <ul>
@@ -38,12 +38,12 @@
 
     <div class="col s5">
       <div class="col s12">
-      <button type="button" name="setFilterAge" class="round" onclick="activefilter('Age')">Filter Age</button>
-      <button type="button" name="setFilterArea" class="round" onclick="activefilter('Area')">Filter Area</button>
+      <button type="button" name="setFilterAge" class="round" onclick="activefilter('Age')">Filtre Age</button>
+      <button type="button" name="setFilterArea" class="round" onclick="activefilter('Area')">Filtre Distance</button>
       </div>
       <div class="col s12">
-      <button type="button" name="setFilterPop" class="round" onclick="activefilter('Pop')">Filter Popularity</button>
-      <button type="button" name="setFilterTag" class="round" onclick="activefilter('Tags')">Filter Tags</button>
+      <button type="button" name="setFilterPop" class="round" onclick="activefilter('Pop')">Filtre Score</button>
+      <button type="button" name="setFilterTag" class="round" onclick="activefilter('Tags')">Filtre Tags</button>
     </div>
     </div>
     <div class="col s3">
