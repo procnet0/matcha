@@ -62,7 +62,6 @@ function setAsProfil(ev) {
    var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
   		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-        console.log(xhr.responseText);
         var div = document.getElementById('set_answer');
         var newo = false;
         if (!div)
@@ -226,7 +225,7 @@ function OpenTagMenu() {
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
       if (xhr2.readyState == 4 && (xhr2.status != 200 && xhr2.status != 0)) {
-        console.log(JSON.parse(xhr2.responseText));
+
       }};
 
       var actives = [];
@@ -237,7 +236,6 @@ function OpenTagMenu() {
         }
         actives.push({id_tag:acnl[i].id, name: acnl[i].innerText});
       }
-      console.log(actives);
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr2.send("subject=tagupdt&activeTag=" + encodeURIComponent(JSON.stringify(actives)));

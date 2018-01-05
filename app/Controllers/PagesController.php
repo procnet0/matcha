@@ -499,9 +499,13 @@ class PagesController extends Controller{
         $_SESSION['flash'] = array('status' => 'Message envoyer');
         return $this->redirect($response, 'home');
       }
+      else {
+        $_SESSION['flash'] = array('status' => 'Secret invalid');
+        return $this->redirect($response, 'Recover');
+      }
     }
     else {
-      $_SESSION['flash'] = array('status' => 'Secret erroner');
+      $_SESSION['flash'] = array('status' => 'Secret invalid');
       return $this->redirect($response, 'Recover');
     }
   }
