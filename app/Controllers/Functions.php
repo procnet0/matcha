@@ -1434,7 +1434,7 @@ function RNewNotif($id, $pdo) {
         AND notification.id_user = ?
         AND new = 1
         AND checkblock(notification.id_user, notification.id_from) = 0
-        GROUP BY members.login, notification.type");
+        GROUP BY members.login, notification.type, members.id_user");
     $sql->bindParam(1, $_SESSION['max_id'], PDO::PARAM_INT);
     $sql->bindParam(2, $_SESSION['id'], PDO::PARAM_INT);
     $sql->execute();
