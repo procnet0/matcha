@@ -210,8 +210,8 @@ class PagesController extends Controller{
     {
       $pdo = $this->pdo;
       include_once ('Functions.php');
-      $ret =  (AddOrChangePicturePhp($_POST, $pdo));
-      print ($ret);
+      $ret =  AddOrChangePicturePhp($_POST, $pdo);
+      print $ret;
     }
   }
 
@@ -275,7 +275,7 @@ class PagesController extends Controller{
       $pdo = $this->pdo;
       include_once ('Functions.php');
       $ret = updateLocation($data,$pdo);
-      var_dump( $ret);
+      print json_encode($ret);
     }
   }
 
@@ -503,9 +503,13 @@ class PagesController extends Controller{
         $_SESSION['flash'] = array('status' => 'Message envoyer');
         return $this->redirect($response, 'home');
       }
+      else {
+        $_SESSION['flash'] = array('status' => 'Secret invalid');
+        return $this->redirect($response, 'Recover');
+      }
     }
     else {
-      $_SESSION['flash'] = array('status' => 'Secret erroner');
+      $_SESSION['flash'] = array('status' => 'Secret invalid');
       return $this->redirect($response, 'Recover');
     }
   }

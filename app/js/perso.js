@@ -62,7 +62,6 @@ function setAsProfil(ev) {
    var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = function() {
   		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
-
         var div = document.getElementById('set_answer');
         var newo = false;
         if (!div)
@@ -126,10 +125,11 @@ function AddOrChangePicture(ev) {
           elem.setAttribute('href', assoc[data['number']]);
           if(child.length < 5)
           {
-          carousel.appendChild(elem);
+            carousel.appendChild(elem);
           }
           else {
-          child[data['number']- 1].replaceWith(elem);
+
+            child[data['number']-1].replaceWith(elem);
           }
           $('.carousel').removeClass('initialized');
           $('.carousel').carousel();
@@ -225,7 +225,7 @@ function OpenTagMenu() {
       var xhr2 = new XMLHttpRequest();
       xhr2.onreadystatechange = function() {
       if (xhr2.readyState == 4 && (xhr2.status != 200 && xhr2.status != 0)) {
-        console.log(JSON.parse(xhr2.responseText));
+
       }};
 
       var actives = [];
@@ -236,7 +236,6 @@ function OpenTagMenu() {
         }
         actives.push({id_tag:acnl[i].id, name: acnl[i].innerText});
       }
-      console.log(actives);
       xhr2.open("POST", "updateTagInfo", true);
       xhr2.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       xhr2.send("subject=tagupdt&activeTag=" + encodeURIComponent(JSON.stringify(actives)));
@@ -378,9 +377,9 @@ function updateLocation() {
    }
    var xhr = new XMLHttpRequest();
    xhr.onreadystatechange = function() {
-     if (xhr.readyState == 4 && (xhr.status != 200 && xhr.status != 0)) {
+     if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
        var data = xhr.responseText;
-       console.log(data);
+       document.getElementById('geoloc').value = data;
      }
    }
      xhr.open("POST", "updatePosition", true);
@@ -957,9 +956,16 @@ function openblockpanel(login,ev) {
     send.addEventListener('click', function(eve){ blockuser(login,eve)});
     contextmenu.append(send);
     document.getElementById('maincontainer').prepend(contextmenu);
+    $(document).on('click',function (event) {
+      if(!$(event.target).closest($(contextmenu)).length && !$(event.target).closest($(ev.target)).length){
+        document.getElementById('block-menu').remove();
+        $(document).off('click');
+      }
+    });
   }
   else {
     document.getElementById('block-menu').remove();
+    $(document).off('click');
   }
 }
 
@@ -975,9 +981,16 @@ function openreportpanel(login, ev) {
     send.addEventListener('click', function(eve){ reportuser(login,eve)});
     contextmenu.append(send);
     document.getElementById('maincontainer').prepend(contextmenu);
+    $(document).on('click',function (event) {
+      if(!$(event.target).closest($(contextmenu)).length && !$(event.target).closest($(ev.target)).length){
+        document.getElementById('report-menu').remove();
+        $(document).off('click');
+      }
+    });
   }
   else {
     document.getElementById('report-menu').remove();
+    $(document).off('click');
   }
 }
 
@@ -1277,7 +1290,7 @@ function SetNavBar(type) {
       var sidebar = document.createElement('div');
       sidebar.setAttribute('data-activates', 'slide-out');
       sidebar.setAttribute('id','sidebar');
-      
+
       var menutxt = document.createElement("span");
       menutxt.setAttribute("class", "sidebar_style");
       menutxt.innerHTML = "MENU";

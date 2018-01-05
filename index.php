@@ -17,7 +17,6 @@ if(!is_dir('app/imgprofil/'))
 {
   mkdir('app/imgprofil/', '0744');
 }
-
 $app = new \Slim\App([
   'settings' => [
     'displayErrorDetails' => true

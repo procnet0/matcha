@@ -11,7 +11,6 @@
       {% if flash.login %}
        <div class="alert">
          {{ flash.login }}
-         test
        </div>
       {% endif %}
     </div>
@@ -33,7 +32,7 @@
 </div>
   <div class="row">
     <div clas="col s6">
-      <a href="{{ path_for('signUp')}}" class="link_home"> Create a new Hackount</a>
+      <a href="{{ path_for('signUp')}}"> Create a new Hackount</a>
     </div>
     <div clas="col s6">
       <a href="{{ path_for('Recover')}}"class="link_home"> Recover Mdp</a>
