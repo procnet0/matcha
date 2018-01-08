@@ -772,6 +772,7 @@ function startsearch(status) {
     xhr.onreadystatechange = function() {
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0)) {
         var data = JSON.parse(xhr.responseText);
+        console.log(data);
         var num = extracted;
         var numtmp = 0;
         var connect = '';
@@ -1244,7 +1245,7 @@ function autonotif() {
         }
         if (data['msg'] && data['msg'].length != 0) {
           $(".notseen").removeClass("notseen").addClass("seen");
-          
+
           for(i = 0; i < data['msg'].length; i++){
             $("#messages").append("<div class=\"message not_my_msg\"><li class=\"new_msg\" >"+escapeHTML(data['msg'][i]['content'])+"</li>");
           }
