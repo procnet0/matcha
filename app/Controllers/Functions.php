@@ -659,6 +659,7 @@ function Researcher($datas, $pdo) {
     $sql->execute();
     $user = $sql->fetchAll(PDO::FETCH_ASSOC);
     $res['debug'] = $user;
+    if(!empty($user['0'])) {
      if(!empty($user['0']['geoauto'])) {
       $pos = $user['0']['geoauto'];
       $arr = explode(',',$user['0']['geoauto']);
@@ -756,6 +757,7 @@ function Researcher($datas, $pdo) {
     $sql->execute();
     $res['binded'] = $binded;
     $resultaa = $sql->fetchall(PDO::FETCH_ASSOC);
+    }
   } catch (PDOException $e) {
     $res['error'] =  "Error!: DATABASE searching-> " . $e->getMessage() . " FAILED TO search<br/>";
   }
