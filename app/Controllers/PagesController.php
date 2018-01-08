@@ -229,7 +229,6 @@ class PagesController extends Controller{
   public function updateTagInfo(Request $request, Response $response) {
     $subject = $request->getParam('subject');
     $active = json_decode($request->getParam('activeTag'), true);
-    var_dump($active);
     foreach($active as $key => $value)
     {
       $active[$key]['id_tag'] = str_replace('tagitem','',$value['id_tag']);
@@ -237,7 +236,6 @@ class PagesController extends Controller{
         unset($active[$key]);
       }
     }
-    var_dump($active);
     if(isset($subject) && $subject = 'tagupdt')
     {
       $pdo = $this->pdo;
@@ -301,7 +299,7 @@ class PagesController extends Controller{
         $res['logs']['month'] =  $tmp % 12;
         $tmp = floor(($tmp - $res['logs']['month'])/12);
         $res['logs']['year'] = $tmp % 9999;
-        var_dump($res);
+
         $this->render($response, 'pages/lookat.twig', $res);
       }
       else {
@@ -516,7 +514,6 @@ class PagesController extends Controller{
   }
 
   public function getReset(Request $request, Response $response, $key) {
-    var_dump($key);
     if(!empty($_SESSION['key']) && $key['key'] == $_SESSION['key'])
     {
       $key = hash('whirlpool', $key['key'].time());
