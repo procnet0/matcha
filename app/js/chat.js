@@ -183,8 +183,6 @@ $(document).ready(function()
                 success: function(tab, status){
                     $(".new_msg").removeClass("new_msg").addClass("old_msg");
                     var msg = $(document.getElementById("messages_small"));
-                    console.log(status);
-                    console.log(tab);
                     if(tab['error'] == "Message is empty")
                     {
                         console.log("Le message est vide");

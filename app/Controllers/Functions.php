@@ -946,15 +946,12 @@ function reportevent($from, $param, $pdo) {
     $sql->execute();
     $tmp = $sql->fetch(PDO::FETCH_ASSOC);
     $to = $tmp['id_user'];
-    var_dump($tmp);
 
     $sql =$pdo->prepare("SELECT id_user FROM members WHERE login = ?");
     $sql->bindParam(1, $from, PDO::PARAM_STR);
     $sql->execute();
     $tmp = $sql->fetch(PDO::FETCH_ASSOC);
     $from = $tmp['id_user'];
-
-    var_dump($tmp);
 
     $sql = $pdo->prepare("INSERT INTO report (id_from, id_to,timeof,subject,content) VALUES (?,?,UNIX_TIMESTAMP(),?,?) ");
     $sql->bindParam(1, $from, PDO::PARAM_INT);
